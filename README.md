@@ -8,6 +8,7 @@ Base de trabajo del equipo frontend para FurMatch.
 - Frontend configurado en `http://localhost:3001`.
 - Backend actual esperado en `http://localhost:3000`.
 - Estructura modular lista para auth, adoptante, albergue y admin.
+- No se dejaron vistas de documentacion dentro de la app.
 
 ## Documentacion funcional revisada
 
@@ -45,9 +46,7 @@ npm run build
 
 ```text
 app/
-  (auth)/
-  (workspace)/
-components/
+  components/
 config/
 docs/
 features/
@@ -63,18 +62,9 @@ types/
 - `react-hook-form` y `zod` para formularios y validaciones
 - `clsx` y `tailwind-merge` para utilidades de estilos
 
-## Rutas semilla
-
-- `/`
-- `/registro`
-- `/login`
-- `/recuperar-contrasena`
-- `/nueva-contrasena`
-- `/terminos-y-condiciones`
-- `/adoptante`
-- `/albergue`
-- `/admin`
-
 ## Guia interna
 
-La guia resumida para el equipo esta en `docs/frontend-setup.md`.
+La guia resumida para el equipo esta en:
+
+- `docs/frontend-setup.md`
+- `docs/frontend-modules.md`

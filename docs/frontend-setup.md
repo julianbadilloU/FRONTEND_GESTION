@@ -16,17 +16,13 @@
 - Se agrego `apiClient` con interceptores base y almacenamiento de token para no repetir esa configuracion en cada vista.
 - Se agrego `React Query` para manejo de estado servidor, cache y reintentos controlados.
 - Se agregaron `react-hook-form` y `zod` porque la mayoria de historias del proyecto son formularios y validaciones.
+- Toda la documentacion operativa quedo en archivos Markdown dentro de `docs/`, sin vistas informativas en la app.
 
 ## Estructura preparada
 
 ```text
 app/
-  (auth)/
-  (workspace)/
   providers.tsx
-components/
-  layout/
-  project/
 config/
 docs/
 features/
@@ -79,17 +75,10 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 - `npm run check`
 - `npm run build`
 
-## Rutas semilla ya creadas
+## Documentacion interna
 
-- `/`
-- `/registro`
-- `/login`
-- `/recuperar-contrasena`
-- `/nueva-contrasena`
-- `/terminos-y-condiciones`
-- `/adoptante`
-- `/albergue`
-- `/admin`
+- `docs/frontend-setup.md`
+- `docs/frontend-modules.md`
 
 ## Siguiente reparto sugerido
 
