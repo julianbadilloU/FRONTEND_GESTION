@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FurMatch Frontend
 
-## Getting Started
+Base de trabajo del equipo frontend para FurMatch.
 
-First, run the development server:
+## Estado actual
+
+- Proyecto en `Next.js 16` con `React 19`.
+- Frontend configurado en `http://localhost:3001`.
+- Backend actual esperado en `http://localhost:3000`.
+- Estructura modular lista para auth, adoptante, albergue y admin.
+
+## Documentacion funcional revisada
+
+- `../../HU_Frontend_Mockups_Unificado.md`
+- `../../tareas_frontend_mockups.md`
+- `../../planeacion_7_sprints.md`
+- `../../prompt_vistas_aplicativo.md`
+- `../../validacion_mockups.md`
+
+## Instalacion
+
+```bash
+npm install
+```
+
+Crear `.env.local` a partir de `.env.example`.
+
+```env
+NEXT_PUBLIC_APP_NAME=FurMatch
+NEXT_PUBLIC_APP_URL=http://localhost:3001
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+## Scripts
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run lint
+npm run typecheck
+npm run check
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Estructura base
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+app/
+  (auth)/
+  (workspace)/
+components/
+config/
+docs/
+features/
+hooks/
+lib/
+types/
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Dependencias base agregadas
 
-## Learn More
+- `axios` para cliente HTTP e interceptores
+- `@tanstack/react-query` para cache y estado servidor
+- `react-hook-form` y `zod` para formularios y validaciones
+- `clsx` y `tailwind-merge` para utilidades de estilos
 
-To learn more about Next.js, take a look at the following resources:
+## Rutas semilla
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/`
+- `/registro`
+- `/login`
+- `/recuperar-contrasena`
+- `/nueva-contrasena`
+- `/terminos-y-condiciones`
+- `/adoptante`
+- `/albergue`
+- `/admin`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Guia interna
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+La guia resumida para el equipo esta en `docs/frontend-setup.md`.
