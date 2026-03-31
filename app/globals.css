@@ -21,6 +21,20 @@
   --color-brand-strong: var(--brand-strong);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Sage palette — used by auth components */
+  --color-sage-50: #f4f8f2;
+  --color-sage-100: #e8f0e4;
+  --color-sage-200: #d0e2c8;
+  --color-sage-300: #a9c99a;
+  --color-sage-400: #81af6d;
+  --color-sage-500: #5e924e;
+  --color-sage-600: #4a7540;
+  --color-sage-900: #1e3318;
+
+  /* Display / body fonts from furmatch design system */
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-body: var(--font-dm), var(--font-geist-sans), sans-serif;
 }
 
 * {
