@@ -7,11 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import { AuthAlert } from "@/features/auth/components/AuthAlert";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 
-type VerifyEmailViewProps = {
-  email?: string;
-};
-
-export function VerifyEmailView({ email }: VerifyEmailViewProps) {
+export function VerifyEmailView({ email }) {
   return (
     <motion.div
       key="verify"

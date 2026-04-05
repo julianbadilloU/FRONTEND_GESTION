@@ -2,16 +2,12 @@
 
 import { cn } from "@/lib/utils/cn";
 
-type AuthButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "danger" | "ghost";
-};
-
 export function AuthButton({
   variant = "primary",
   className,
   children,
   ...props
-}: AuthButtonProps) {
+}) {
   const variants = {
     primary:
       "bg-sage-500 text-white hover:bg-sage-600 shadow-lg shadow-sage-200/50 hover:shadow-sage-200/80 active:scale-95 disabled:bg-sage-300 disabled:shadow-none disabled:cursor-not-allowed",

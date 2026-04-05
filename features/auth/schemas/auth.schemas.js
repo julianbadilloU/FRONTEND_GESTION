@@ -21,8 +21,6 @@ export const signupSchema = z
     path: ["confirm"],
   });
 
-export type SignupFormValues = z.infer<typeof signupSchema>;
-
 // ──── Login ────
 export const loginSchema = z.object({
   email: z.string().email({ message: "Formato de correo inválido" }),
@@ -30,11 +28,7 @@ export const loginSchema = z.object({
   remember: z.boolean().optional(),
 });
 
-export type LoginFormValues = z.infer<typeof loginSchema>;
-
 // ──── Recuperar contraseña ────
 export const forgotPasswordSchema = z.object({
   email: z.string().email({ message: "Formato de correo inválido" }),
 });
-
-export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;

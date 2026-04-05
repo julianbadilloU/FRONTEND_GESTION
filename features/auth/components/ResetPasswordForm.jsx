@@ -14,15 +14,15 @@ export function ResetPasswordForm() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const PASSWORD_CHECKS = [
-    { label: "8+ Caracteres", test: (v: string) => v.length >= 8 },
-    { label: "Una Mayúscula", test: (v: string) => /[A-Z]/.test(v) },
-    { label: "Un Número", test: (v: string) => /[0-9]/.test(v) },
-    { label: "Especial (#@!)", test: (v: string) => /[^A-Za-z0-9]/.test(v) },
+    { label: "8+ Caracteres", test: (v) => v.length >= 8 },
+    { label: "Una Mayúscula", test: (v) => /[A-Z]/.test(v) },
+    { label: "Un Número", test: (v) => /[0-9]/.test(v) },
+    { label: "Especial (#@!)", test: (v) => /[^A-Za-z0-9]/.test(v) },
   ];
 
   const score = PASSWORD_CHECKS.filter((c) => c.test(password)).length;
@@ -30,7 +30,7 @@ export function ResetPasswordForm() {
   const passwordsMatch = password === confirm && password.length > 0;
   const isValid = score === 4 && passwordsMatch;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
@@ -137,7 +137,7 @@ export function ResetPasswordForm() {
                   className={cn(
                     "h-1.5 flex-1 rounded-full transition-all duration-500",
                     i <= score
-                      ? (["bg-red-400", "bg-amber-400", "bg-sage-300", "bg-sage-500"] as const)[
+                      ? ["bg-red-400", "bg-amber-400", "bg-sage-300", "bg-sage-500"][
                           score - 1
                         ]
                       : "bg-gray-200",

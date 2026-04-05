@@ -1,16 +1,14 @@
-import type { Metadata } from "next";
-
 import { AuthShell } from "@/features/auth/components/AuthShell";
 import { AuthHero } from "@/features/auth/components/AuthHero";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: {
     default: "Autenticación",
     template: "%s | FurMatch",
   },
 };
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({ children }) {
   return (
     <AuthShell>
       <div className="flex w-full max-w-[1440px] mx-auto overflow-hidden">

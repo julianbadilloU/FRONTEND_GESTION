@@ -2,11 +2,7 @@
 
 import { motion } from "framer-motion";
 
-type AuthShellProps = {
-  children: React.ReactNode;
-};
-
-export function AuthShell({ children }: AuthShellProps) {
+export function AuthShell({ children }) {
   return (
     <div className="flex min-h-screen bg-sage-50/30 overflow-hidden relative">
       {/* Decorative floating blobs */}
