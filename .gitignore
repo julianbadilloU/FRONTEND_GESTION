@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
+# dependencies — NEVER commit node_modules
+node_modules/
 /node_modules
 /.pnp
 .pnp.*
@@ -13,7 +14,8 @@
 # testing
 /coverage
 
-# next.js
+# next.js — NEVER commit build artifacts
+.next/
 /.next/
 /out/
 
