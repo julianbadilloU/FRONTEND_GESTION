@@ -94,7 +94,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
 
       {serverError && <AuthAlert type="error">{serverError}</AuthAlert>}
 
-      <div className="w-full max-w-sm space-y-6">
+      <form className="w-full max-w-sm space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
         <AuthInput
           label="Correo Electrónico"
           id="forgot-email"
@@ -107,8 +107,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
         <div className="flex justify-center pt-2">
           <AuthButton 
             type="submit" 
-            disabled={isSubmitting || sent} 
-            onClick={handleSubmit(onSubmit)}
+            disabled={isSubmitting || sent}
             className="w-auto px-12 py-3 rounded-full bg-[#a9c99a] hover:bg-[#81af6d] text-white shadow-none text-base normal-case tracking-normal"
           >
             {isSubmitting ? "Enviando..." : sent ? "Enviado ✓" : "Enviar"}
@@ -118,7 +117,7 @@ export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
         <p className="text-center text-[0.7rem] text-[#8ea482] font-medium leading-relaxed px-4 pt-4">
           Si este correo está registrado, recibirás<br/>un enlace en los próximos minutos
         </p>
-      </div>
+      </form>
     </motion.div>
   );
 }
