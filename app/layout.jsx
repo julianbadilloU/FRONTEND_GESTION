@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display, DM_Sans } from "next/font/google";
 
 import { env } from "@/config/env";
@@ -26,7 +25,7 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
   title: {
     default: "FurMatch Frontend",
@@ -35,11 +34,7 @@ export const metadata: Metadata = {
   description: "Workspace de frontend para FurMatch alineado con las HU, mockups y planeacion del proyecto.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }) {
   return (
     <html
       lang="es"

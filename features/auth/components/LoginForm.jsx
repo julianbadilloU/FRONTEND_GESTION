@@ -7,28 +7,24 @@ import { PawPrint, Dog } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-import { loginSchema, type LoginFormValues } from "@/features/auth/schemas/auth.schemas";
+import { loginSchema } from "@/features/auth/schemas/auth.schemas";
 import { AuthInput } from "@/features/auth/components/AuthInput";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 import { AuthAlert } from "@/features/auth/components/AuthAlert";
 
-type LoginFormProps = {
-  onSuccess?: (email: string) => void;
-};
-
-export function LoginForm({ onSuccess }: LoginFormProps) {
+export function LoginForm({ onSuccess }) {
   const [showPw, setShowPw] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [isBlocking, setIsBlocking] = useState(false);
-  const [countdown, setCountdown] = useState<number | null>(null);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(null);
+  const [serverError, setServerError] = useState(null);
 
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormValues>({
+  } = useForm({
     resolver: zodResolver(loginSchema),
     mode: "onSubmit",
   });
@@ -50,13 +46,13 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     }, 1000);
   };
 
-  const formatTime = (s: number) => {
+  const formatTime = (s) => {
     const m = Math.floor(s / 60).toString().padStart(2, "0");
     const sec = (s % 60).toString().padStart(2, "0");
     return `${m}:${sec}`;
   };
 
-  const onSubmit = async (data: LoginFormValues) => {
+  const onSubmit = async (data) => {
     if (isBlocking) return;
     setServerError(null);
 

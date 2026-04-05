@@ -4,16 +4,6 @@ import { Eye, EyeOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils/cn";
 
-type AuthInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
-  label: string;
-  id: string;
-  error?: string | null;
-  success?: string | null;
-  showToggle?: boolean;
-  isShown?: boolean;
-  onToggle?: () => void;
-};
-
 export function AuthInput({
   label,
   id,
@@ -24,7 +14,7 @@ export function AuthInput({
   isShown,
   onToggle,
   ...props
-}: AuthInputProps) {
+}) {
   return (
     <div className="w-full space-y-1.5 group">
       <label

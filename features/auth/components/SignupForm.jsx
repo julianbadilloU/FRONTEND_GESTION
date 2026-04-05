@@ -7,28 +7,23 @@ import { ArrowRight, Check, Circle, Dog, PawPrint } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
-import { signupSchema, type SignupFormValues } from "@/features/auth/schemas/auth.schemas";
+import { signupSchema } from "@/features/auth/schemas/auth.schemas";
 import { AuthInput } from "@/features/auth/components/AuthInput";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 import { AuthAlert } from "@/features/auth/components/AuthAlert";
 import { cn } from "@/lib/utils/cn";
 
-type SignupFormProps = {
-  /** Called with validated form values when registration succeeds (mock or real). */
-  onSuccess?: (email: string) => void;
-};
-
 const PASSWORD_CHECKS = [
-  { label: "8+ Caracteres", test: (v: string) => v.length >= 8 },
-  { label: "Una Mayúscula", test: (v: string) => /[A-Z]/.test(v) },
-  { label: "Un Número", test: (v: string) => /[0-9]/.test(v) },
-  { label: "Especial (#@!)", test: (v: string) => /[^A-Za-z0-9]/.test(v) },
+  { label: "8+ Caracteres", test: (v) => v.length >= 8 },
+  { label: "Una Mayúscula", test: (v) => /[A-Z]/.test(v) },
+  { label: "Un Número", test: (v) => /[0-9]/.test(v) },
+  { label: "Especial (#@!)", test: (v) => /[^A-Za-z0-9]/.test(v) },
 ];
 
-export function SignupForm({ onSuccess }: SignupFormProps) {
+export function SignupForm({ onSuccess }) {
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState(null);
 
   const {
     register,
@@ -37,7 +32,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
     setValue,
     setError,
     formState: { errors, isSubmitting, isValid },
-  } = useForm<SignupFormValues>({
+  } = useForm({
     resolver: zodResolver(signupSchema),
     mode: "onChange",
     defaultValues: { role: "albergue", terms: false },
@@ -52,7 +47,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const onSubmit = async (data: SignupFormValues) => {
+  const onSubmit = async (data) => {
     setServerError(null);
     try {
       // TODO: replace with real API call via apiClient
@@ -106,12 +101,10 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 
       {/* Role selector */}
       <div className="flex gap-4">
-        {(
-          [
-            { id: "albergue", label: "Albergue", icon: "🏠" },
-            { id: "adoptante", label: "Adoptante", icon: "🧑‍🤝‍🐕" },
-          ] as const
-        ).map((r) => (
+        {[
+          { id: "albergue", label: "Albergue", icon: "🏠" },
+          { id: "adoptante", label: "Adoptante", icon: "🧑‍🤝‍🐕" },
+        ].map((r) => (
           <button
             key={r.id}
             type="button"
@@ -169,7 +162,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                 className={cn(
                   "h-1.5 flex-1 rounded-full transition-all duration-500",
                   i <= score
-                    ? (["bg-red-400", "bg-amber-400", "bg-sage-300", "bg-sage-500"] as const)[
+                    ? ["bg-red-400", "bg-amber-400", "bg-sage-300", "bg-sage-500"][
                         score - 1
                       ]
                     : "bg-gray-200",
@@ -229,7 +222,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           </label>
         </div>
         {errors.terms && (
-          <p className="text-red-500 text-[0.78rem] text-center">{errors.terms.message as string}</p>
+          <p className="text-red-500 text-[0.78rem] text-center">{errors.terms.message}</p>
         )}
 
         <div className="flex justify-center pt-2">

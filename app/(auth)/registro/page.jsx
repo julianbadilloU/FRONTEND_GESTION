@@ -9,7 +9,7 @@ import { VerifyEmailView } from "@/features/auth/components/VerifyEmailView";
 
 export default function RegistroPage() {
   const router = useRouter();
-  const [verifyEmail, setVerifyEmail] = useState<string | null>(null);
+  const [verifyEmail, setVerifyEmail] = useState(null);
 
   if (verifyEmail) {
     return (

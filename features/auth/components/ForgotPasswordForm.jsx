@@ -6,32 +6,25 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { PawPrint, Dog } from "lucide-react";
 import { motion } from "framer-motion";
 
-import {
-  forgotPasswordSchema,
-  type ForgotPasswordFormValues,
-} from "@/features/auth/schemas/auth.schemas";
+import { forgotPasswordSchema } from "@/features/auth/schemas/auth.schemas";
 import { AuthInput } from "@/features/auth/components/AuthInput";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 import { AuthAlert } from "@/features/auth/components/AuthAlert";
 
-type ForgotPasswordFormProps = {
-  onSuccess?: () => void;
-};
-
-export function ForgotPasswordForm({ onSuccess }: ForgotPasswordFormProps) {
+export function ForgotPasswordForm({ onSuccess }) {
   const [sent, setSent] = useState(false);
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [serverError, setServerError] = useState(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ForgotPasswordFormValues>({
+  } = useForm({
     resolver: zodResolver(forgotPasswordSchema),
     mode: "onSubmit",
   });
 
-  const onSubmit = async (_data: ForgotPasswordFormValues) => {
+  const onSubmit = async (_data) => {
     setServerError(null);
     try {
       // TODO: replace with real API call via apiClient
