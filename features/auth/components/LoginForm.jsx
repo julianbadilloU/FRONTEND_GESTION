@@ -11,6 +11,8 @@ import { loginSchema } from "@/features/auth/schemas/auth.schemas";
 import { AuthInput } from "@/features/auth/components/AuthInput";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 import { AuthAlert } from "@/features/auth/components/AuthAlert";
+import { apiClient } from "@/lib/http/api-client";
+import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 export function LoginForm({ onSuccess }) {
   const [showPw, setShowPw] = useState(false);
@@ -57,20 +59,41 @@ export function LoginForm({ onSuccess }) {
     setServerError(null);
 
     try {
-      // TODO: replace with real API call
-      await new Promise((r) => setTimeout(r, 400));
-      // Simulated failure path for demo - adjust flag 'failed'
-      const failed = false; 
-      if (failed) {
-        const newAttempts = attempts + 1;
-        setAttempts(newAttempts);
-        setError("email", { type: "server", message: "El correo no está registrado" });
-        if (newAttempts >= 3) startLockout();
-        return;
+      const response = await apiClient.post("/api/auth/login", {
+        email: data.email,
+        password: data.password,
+      });
+
+      let accessToken = response.data;
+      if (typeof accessToken === "object") {
+        accessToken = accessToken.token || accessToken.accessToken || accessToken.jwt || accessToken.data;
       }
+      
+      saveSessionTokens({ accessToken });
+
       onSuccess?.(data.email);
-    } catch {
-      setServerError("Error de conexión. Intenta de nuevo.");
+    } catch (error) {
+      if (error.response) {
+        const { status } = error.response;
+        if (status === 400) {
+          setServerError("Error de validación (correo o contraseña en formato incorrecto).");
+        } else if (status === 401) {
+          setError("email", { type: "server", message: "Correo o contraseña incorrectos" });
+          setError("password", { type: "server", message: "Correo o contraseña incorrectos" });
+          
+          const newAttempts = attempts + 1;
+          setAttempts(newAttempts);
+          if (newAttempts >= 3) startLockout();
+        } else if (status === 403) {
+          startLockout();
+        } else if (status === 500) {
+          setServerError("Error interno del servidor. Intenta de nuevo más tarde.");
+        } else {
+          setServerError("Ocurrió un error inesperado al iniciar sesión.");
+        }
+      } else {
+        setServerError("Error de conexión. Intenta de nuevo.");
+      }
     }
   };
 

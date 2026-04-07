@@ -11,6 +11,7 @@ import { signupSchema } from "@/features/auth/schemas/auth.schemas";
 import { AuthInput } from "@/features/auth/components/AuthInput";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 import { AuthAlert } from "@/features/auth/components/AuthAlert";
+import { apiClient } from "@/lib/http/api-client";
 import { cn } from "@/lib/utils/cn";
 
 const PASSWORD_CHECKS = [
@@ -50,11 +51,30 @@ export function SignupForm({ onSuccess }) {
   const onSubmit = async (data) => {
     setServerError(null);
     try {
-      // TODO: replace with real API call via apiClient
-      await new Promise((r) => setTimeout(r, 400));
+      await apiClient.post("/api/auth/register", {
+        email: data.email,
+        password: data.password,
+        confirmPassword: data.confirm,
+        role: data.role,
+        termsAccepted: data.terms,
+      });
+
       onSuccess?.(data.email);
-    } catch {
-      setServerError("Ocurrió un error al registrarse. Intenta de nuevo.");
+    } catch (error) {
+      if (error.response) {
+        const { status } = error.response;
+        if (status === 400) {
+          setServerError("Error de validación en los campos enviados.");
+        } else if (status === 409) {
+          setError("email", { type: "server", message: "El correo ya se encuentra registrado." });
+        } else if (status === 500) {
+          setServerError("Error interno del servidor. Intenta de nuevo más tarde.");
+        } else {
+          setServerError("Ocurrió un error inesperado al registrarse.");
+        }
+      } else {
+        setServerError("Error de conexión. Intenta de nuevo.");
+      }
     }
   };
 
