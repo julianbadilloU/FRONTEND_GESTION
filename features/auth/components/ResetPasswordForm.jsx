@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { PawPrint, Dog } from "lucide-react";
 
@@ -9,9 +9,12 @@ import { AuthInput } from "@/features/auth/components/AuthInput";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 import { AuthAlert } from "@/features/auth/components/AuthAlert";
 import { cn } from "@/lib/utils/cn";
+import { apiClient } from "@/lib/http/api-client";
 
 export function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") || "";
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState(null);
@@ -42,17 +45,35 @@ export function ResetPasswordForm() {
     setIsSubmitting(true);
 
     try {
-      // TODO: replace with real API call via apiClient
-      // const res = await apiClient.post("/auth/reset-password", { password });
-      await new Promise((r) => setTimeout(r, 400));
+      if (!token) {
+        setError("Token no proporcionado. Solicita un nuevo enlace desde la recuperación de contraseña.");
+        setIsSubmitting(false);
+        return;
+      }
+      
+      await apiClient.post("/api/auth/reset-password", {
+        token,
+        nuevaPassword: password,
+      });
 
       setSuccess(true);
 
       setTimeout(() => {
         router.push("/login");
       }, 2000);
-    } catch {
-      setError("Error de conexión. Intenta de nuevo.");
+    } catch (err) {
+      if (err.response) {
+        const { status } = err.response;
+        if (status === 400) {
+          setError("El token es inválido o ha expirado. Solicita un nuevo enlace.");
+        } else if (status === 500) {
+          setError("Error interno del servidor al restablecer contraseña.");
+        } else {
+          setError("Ocurrió un error inesperado al restablecer la contraseña.");
+        }
+      } else {
+        setError("Error de conexión. Intenta de nuevo.");
+      }
     } finally {
       setIsSubmitting(false);
     }

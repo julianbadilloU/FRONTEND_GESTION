@@ -10,6 +10,7 @@ import { forgotPasswordSchema } from "@/features/auth/schemas/auth.schemas";
 import { AuthInput } from "@/features/auth/components/AuthInput";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 import { AuthAlert } from "@/features/auth/components/AuthAlert";
+import { apiClient } from "@/lib/http/api-client";
 
 export function ForgotPasswordForm({ onSuccess }) {
   const [sent, setSent] = useState(false);
@@ -27,12 +28,24 @@ export function ForgotPasswordForm({ onSuccess }) {
   const onSubmit = async (_data) => {
     setServerError(null);
     try {
-      // TODO: replace with real API call via apiClient
-      await new Promise((r) => setTimeout(r, 400));
+      await apiClient.post("/api/auth/forgot-password", {
+        correo: _data.email,
+      });
       setSent(true);
       onSuccess?.();
-    } catch {
-      setServerError("Error al enviar el correo. Intenta de nuevo.");
+    } catch (error) {
+      if (error.response) {
+        const { status } = error.response;
+        if (status === 429) {
+          setServerError("Demasiadas solicitudes (Por favor, espera antes de intentar de nuevo).");
+        } else if (status === 500) {
+          setServerError("Error interno del servidor. Intenta de nuevo más tarde.");
+        } else {
+          setServerError("Ocurrió un error inesperado al enviar el correo.");
+        }
+      } else {
+        setServerError("Error de conexión. Intenta de nuevo.");
+      }
     }
   };
 
