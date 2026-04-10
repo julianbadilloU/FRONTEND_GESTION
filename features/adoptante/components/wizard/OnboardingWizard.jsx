@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Dog } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Dog, Bone, PawPrint } from "lucide-react";
 import Link from "next/link";
 
 import { useWizard } from "@/features/adoptante/hooks/useWizard";
@@ -142,32 +142,43 @@ function EmojiCard({ option, selected, onSelect }) {
 // ─────────────────────────────────────────────
 function CompletionScreen() {
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="min-h-screen flex flex-col items-center justify-center bg-white gap-6 p-8"
-    >
-      <span className="text-7xl select-none">🐾</span>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden p-6 w-full">
+      {/* Decorative background circles */}
+      <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-[#f4f8f2] rounded-full opacity-60" />
+      <div className="absolute -bottom-52 -right-32 w-[700px] h-[700px] bg-[#f4f8f2] rounded-full opacity-60" />
 
-      <h1 className="text-3xl font-bold text-gray-900 text-center">
-        ¡Preferencias guardadas!
-      </h1>
+      {/* Decorative icons floating */}
+      <PawPrint className="absolute top-[35%] left-[8%] text-[#d8e8d0] rotate-[-25deg] opacity-70" size={54} strokeWidth={1.5} />
+      <Bone className="absolute top-[30%] left-[18%] text-[#d8e8d0] rotate-12 opacity-60" size={32} strokeWidth={1.5} />
+      <PawPrint className="absolute bottom-[20%] left-[25%] text-[#d8e8d0] rotate-12 opacity-60" size={40} strokeWidth={1.5} />
+      <Bone className="absolute bottom-[25%] left-[30%] text-[#d8e8d0] rotate-45 opacity-40" size={24} strokeWidth={1.5} />
 
-      <p className="text-gray-500 text-center max-w-sm">
-        Ya tenemos todo lo que necesitamos para encontrar tu{" "}
-        <span className="font-serif italic text-[#5e924e]">match</span> perfecto.
-      </p>
+      <PawPrint className="absolute bottom-[28%] right-[25%] text-[#d8e8d0] rotate-[-15deg] opacity-70" size={48} strokeWidth={1.5} />
+      <Bone className="absolute bottom-[22%] right-[32%] text-[#d8e8d0] rotate-[35deg] opacity-50" size={28} strokeWidth={1.5} />
+      <PawPrint className="absolute bottom-[35%] right-[10%] text-[#d8e8d0] rotate-12 opacity-40" size={24} strokeWidth={1.5} />
 
-      {/* TODO: redirigir al feed real del adoptante */}
-      <Link
-        href="/adoptante/feed"
-        className="flex items-center gap-2 px-8 py-3 bg-[#81af6d] hover:bg-[#5e924e] text-white rounded-full font-semibold transition-colors"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="flex flex-col items-center max-w-md w-full relative z-10"
       >
-        Ver mi feed
-        <ArrowRight size={16} />
-      </Link>
-    </motion.div>
+        <h1 className="text-[2.5rem] font-bold text-gray-900 text-center mb-6">
+          Listo!
+        </h1>
+        
+        <p className="text-gray-500 text-center text-lg leading-relaxed px-4">
+          Estamos personalizando tu perfil
+          <br className="hidden sm:block" />
+          con tus preferencias
+        </p>
+
+        {/* Loading spinner ring */}
+        <div className="mt-16 relative flex items-center justify-center">
+          <div className="w-10 h-10 border-[3px] border-[#d8e8d0] border-t-[#81af6d] rounded-full animate-spin" />
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -196,7 +207,16 @@ export function OnboardingWizard() {
   const isColorStep    = currentStep.variant === "color";
   const isImageStep    = currentStep.variant === "image";
   const isFormStep     = currentStep.variant === "form";
-  const isThreeOptions = currentStep.options?.length === 3;
+
+  const optionsCount   = currentStep.options?.length || 0;
+  let emojiGridClass   = "grid-cols-2 sm:grid-cols-4";
+  if (optionsCount === 2) {
+    emojiGridClass = "grid-cols-1 sm:grid-cols-2 max-w-md mx-auto";
+  } else if (optionsCount === 3) {
+    emojiGridClass = "grid-cols-1 sm:grid-cols-3";
+  } else if (optionsCount === 5 || optionsCount === 6) {
+    emojiGridClass = "grid-cols-2 sm:grid-cols-3 max-w-2xl mx-auto";
+  }
 
   const canProceed = isFormStep ? isFormValid : canGoNext;
 
@@ -337,15 +357,8 @@ export function OnboardingWizard() {
                 ))}
               </div>
             ) : (
-              // Emoji: 3 col si hay 3 opciones, si no 2 col en mobile / 4 en desktop
-              <div
-                className={cn(
-                  "grid gap-4",
-                  isThreeOptions
-                    ? "grid-cols-3"
-                    : "grid-cols-2 sm:grid-cols-4",
-                )}
-              >
+              // Emoji: grid dinámico según cantidad de opciones
+              <div className={cn("grid gap-4 w-full", emojiGridClass)}>
                 {currentStep.options.map((option) => (
                   <EmojiCard
                     key={option.id}

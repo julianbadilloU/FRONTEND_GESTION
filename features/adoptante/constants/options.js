@@ -54,8 +54,41 @@ export const BREED_OPTIONS = [
 export const ENERGY_OPTIONS = [
   { id: "calm",     label: "Tranquilo",        emoji: "😴", hint: "Le gusta la calma" },
   { id: "moderate", label: "Moderado",          emoji: "🐾", hint: "Balance perfecto" },
-  { id: "active",   label: "Activo",            emoji: "⚡", hint: "Mucha energía"    },
+  { id: "active",   label: "Muy activo",        emoji: "⚡", hint: "Mucha energía"    },
   { id: "any",      label: "Sin Preferencia",   emoji: "✨", hint: ""                 },
+];
+
+export const EXPERIENCE_OPTIONS = [
+  { id: "first_time", label: "Primera vez adoptando", emoji: "🐣" },
+  { id: "experienced", label: "Con experiencia en mascotas", emoji: "🐕" },
+];
+
+export const RESIDENCE_OPTIONS = [
+  { id: "apt_no_balcony", label: "Apartamento", hint: "(Sin balcón)", emoji: "🏢" },
+  { id: "apt_balcony", label: "Apartamento", hint: "(Con balcón)", emoji: "🪴" },
+  { id: "house_no_yard", label: "Casa", hint: "(Sin jardín)", emoji: "🏘️" },
+  { id: "house_yard", label: "Casa", hint: "(Con jardín)", emoji: "🏡" },
+];
+
+export const COMPATIBILITY_OPTIONS = [
+  { id: "kids", label: "Niños", emoji: "👶" },
+  { id: "dogs", label: "Otros Perros", emoji: "🐶" },
+  { id: "cats", label: "Gatos", emoji: "🐱" },
+  { id: "seniors", label: "Adultos Mayores", emoji: "🧓" },
+  { id: "disabled", label: "Personas con Discapacidad", emoji: "🦽" },
+  { id: "none", label: "Ninguna", emoji: "✨" },
+];
+
+export const SPECIAL_CONDITION_OPTIONS = [
+  { id: "disabled_pet", label: "Acepto mascotas", hint: "con discapacidad", emoji: "❤️‍🩹" },
+  { id: "medical_treatment", label: "Acepto mascotas", hint: "en tratamiento médico", emoji: "💊" },
+  { id: "healthy_only", label: "Solo mascotas sanas", emoji: "✨" },
+];
+
+export const TIME_AVAILABILITY_OPTIONS = [
+  { id: "home", label: "Trabajo en casa", emoji: "💻" },
+  { id: "outside_full", label: "Trabajo fuera", hint: "(Tiempo Completo)", emoji: "🏢" },
+  { id: "outside_part", label: "Trabajo fuera", hint: "(Medio tiempo)", emoji: "⏱️" },
 ];
 
 /**
@@ -67,6 +100,24 @@ export const WIZARD_STEPS = [
     key:      "personalData",
     question: "Ingresa tus datos personales",
     variant:  "form",
+  },
+  {
+    key:      "experience",
+    question: "¿ Qué experiencia tienes con mascotas ?",
+    variant:  "emoji",
+    options:  EXPERIENCE_OPTIONS,
+  },
+  {
+    key:      "residence",
+    question: "¿ Cómo es el entorno en tu hogar ?",
+    variant:  "emoji",
+    options:  RESIDENCE_OPTIONS,
+  },
+  {
+    key:      "time",
+    question: "¿ Qué disponibilidad de tiempo tienes ?",
+    variant:  "emoji",
+    options:  TIME_AVAILABILITY_OPTIONS,
   },
   {
     key:      "animalType",
@@ -107,8 +158,20 @@ export const WIZARD_STEPS = [
   },
   {
     key:      "energy",
-    question: "¿ Qué nivel de energía buscas ?",
+    question: "¿ Qué nivel de energía prefieres ?",
     variant:  "emoji",
     options:  ENERGY_OPTIONS,
+  },
+  {
+    key:      "compatibility",
+    question: "¿ Qué compatibilidad requieres ?",
+    variant:  "emoji",
+    options:  COMPATIBILITY_OPTIONS,
+  },
+  {
+    key:      "specialCondition",
+    question: "¿ Aceptas mascotas en condición especial ?",
+    variant:  "emoji",
+    options:  SPECIAL_CONDITION_OPTIONS,
   },
 ];
