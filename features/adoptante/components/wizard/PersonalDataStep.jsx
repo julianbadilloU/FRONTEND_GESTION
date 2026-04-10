@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils/cn";
 export function PersonalDataStep({ selection, onSelect, onValidation }) {
   const [data, setData] = useState(selection || {
     fullName: "",
-    whatsapp: "+57 ",
+    whatsapp: "",
     city: "",
     profilePhoto: null
   });
@@ -99,7 +99,7 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           <input
             type="tel"
             className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
-            placeholder="+57 "
+            placeholder="Ej: 3001234567"
             value={data.whatsapp}
             onChange={(e) => handleChange("whatsapp", e.target.value)}
           />

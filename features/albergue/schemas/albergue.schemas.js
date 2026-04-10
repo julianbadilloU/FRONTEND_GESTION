@@ -5,6 +5,11 @@ export const albergueProfileSchema = z.object({
     .string()
     .min(2, "El nombre debe tener al menos 2 caracteres")
     .max(100, "Nombre demasiado largo"),
+  nit: z
+    .string()
+    .min(5, "NIT demasiado corto")
+    .max(20, "NIT demasiado largo")
+    .regex(/^\d+$/, "El NIT solo debe contener números"),
   whatsapp: z
     .string()
     .min(7, "Número de WhatsApp inválido")
