@@ -22,8 +22,8 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          # Next.js necesita estas variables DURANTE el build
-          NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
+          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -33,5 +33,5 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'app-furmatch-frontend'
+          app-name: 'app-adopcion-frontend-dev'
           package: .
