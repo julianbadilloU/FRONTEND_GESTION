@@ -22,8 +22,9 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          NEXT_PUBLIC_API_URL: ${{ vars.NEXT_PUBLIC_API_URL }}
-          NEXT_PUBLIC_APP_URL: ${{ vars.NEXT_PUBLIC_APP_URL }}
+          # Ponemos las URLs fijas aquí para evitar que Zod reciba un "undefined" o "null"
+          NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
+          NEXT_PUBLIC_APP_URL: "https://app-adopcion-frontend-dev.azurewebsites.net"
 
       - name: Login to Azure
         uses: azure/login@v2
