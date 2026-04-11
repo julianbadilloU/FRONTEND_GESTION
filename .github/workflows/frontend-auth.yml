@@ -29,8 +29,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          # El modo standalone mete todo lo necesario en esta carpeta:
-          path: .next/standalone 
+          path: |
+            .next/standalone
+            .next/static
+            public
 
   deploy:
     runs-on: ubuntu-latest
