@@ -25,14 +25,12 @@ jobs:
           NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
           NEXT_PUBLIC_APP_URL: "https://app-adopcion-frontend-dev.azurewebsites.net"
 
-      - name: Remove devDependencies
-        run: npm prune --production # Limpiamos librerías de desarrollo para que el zip sea ligero
-
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: . # Subimos todo lo necesario desde la raíz
+          # El modo standalone mete todo lo necesario en esta carpeta:
+          path: .next/standalone 
 
   deploy:
     runs-on: ubuntu-latest
@@ -42,7 +40,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: next-build
-          path: . # CRÍTICO: Descargar en la raíz actual, no en una subcarpeta
+          path: .
+
+      # AGREGAMOS ESTO: Copiamos la carpeta 'public' y 'static' manualmente 
+      # porque standalone no las incluye por defecto por peso.
+      # (Este paso se hace en el job de build antes del upload si prefieres)
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -53,4 +55,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-adopcion-frontend-dev'
-          package: .
+          package: .   
