@@ -1,28 +1,37 @@
-name: Azure Static Web Apps CI/CD
+name: Deploy FurMatch Frontend
 
 on:
   push:
-    branches:
-      - deploy # Tu rama de trabajo
+    branches: [ "deploy" ]
 
 jobs:
-  build_and_deploy_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+  build-and-deploy:
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Build And Deploy
-        id: builddeploy
-        uses: Azure/static-web-apps-deploy@v1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "/" # Dónde está tu código
-          output_location: "" # Azure detecta automáticamente .next para Next.js
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
         env:
-          # ESTO ES VITAL: Inyectamos la URL del backend desplegado
+          # Next.js necesita estas variables DURANTE el build
           NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
-          NEXT_PUBLIC_APP_URL: "https://tu-url-de-frontend.azurestaticapps.net"
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'app-furmatch-frontend'
+          package: .
