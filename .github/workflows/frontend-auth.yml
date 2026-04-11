@@ -25,14 +25,16 @@ jobs:
           NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
           NEXT_PUBLIC_APP_URL: "https://app-adopcion-frontend-dev.azurewebsites.net"
 
+      - name: Prepare Standalone Bundle
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: |
-            .next/standalone
-            .next/static
-            public
+          path: .next/standalone # Solo subimos el contenido de esta carpeta
 
   deploy:
     runs-on: ubuntu-latest
