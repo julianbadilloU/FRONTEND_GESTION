@@ -5,7 +5,8 @@ on:
     branches: [ "deploy" ]
 
 jobs:
-  build-and-deploy:
+  # --- TRABAJO 1: CI (Continuous Integration / Build) ---
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,9 +23,31 @@ jobs:
       - name: Build project
         run: npm run build
         env:
-          # Ponemos las URLs fijas aquí para evitar que Zod reciba un "undefined" o "null"
+          # Inyectamos las URLs aquí para que Next.js las compile
           NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
           NEXT_PUBLIC_APP_URL: "https://app-adopcion-frontend-dev.azurewebsites.net"
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-build
+          # Solo subimos lo necesario para ejecutar, no todo el repo
+          path: |
+            .next
+            public
+            package.json
+            package-lock.json
+            next.config.mjs
+
+  # --- TRABAJO 2: CD (Continuous Deployment / Azure) ---
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build # Este job solo empieza si el build termina con éxito
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: next-build
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -35,4 +58,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-adopcion-frontend-dev'
+          # Enviamos el paquete de archivos ya compilados
           package: .
