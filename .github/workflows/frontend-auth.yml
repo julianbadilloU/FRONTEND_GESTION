@@ -1,78 +1,44 @@
-name: Deploy FurMatch Frontend
+name: Deploy FurMatch Docker
 
 on:
   push:
     branches: [ "deploy" ]
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          node-version: '20'
-          cache: 'npm'
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Cache Next.js build
-        uses: actions/cache@v4
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
         with:
-          path: .next/cache
-          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
-          restore-keys: |
-            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build project
-        run: npm run build
-        env:
-          NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
-          NEXT_PUBLIC_APP_URL: "https://app-adopcion-frontend-dev.azurewebsites.net"
-
-      - name: Prepare Production Bundle
-        run: |
-          # 1. Creamos la carpeta de despliegue
-          mkdir -p deploy_package
-          
-          # 2. Copiamos el contenido de standalone (usando -a para incluir archivos ocultos como .next)
-          cp -a .next/standalone/. deploy_package/
-          
-          # 3. Copiamos public y static (Next standalone no los trae por defecto)
-          cp -r public deploy_package/
-          mkdir -p deploy_package/.next/static
-          cp -r .next/static/. deploy_package/.next/static/
-          
-          # 4. TRUCO FINAL: Borramos el package.json de la carpeta de despliegue
-          # Esto evita que Azure intente instalar módulos por su cuenta (Oryx)
-          rm deploy_package/package.json || true
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          path: deploy_package/ # Subimos la carpeta organizada
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/furmatch-frontend:latest
 
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-push
     steps:
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: .
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-adopcion-frontend-dev'
-          package: .
+          images: 'ghcr.io/${{ github.repository_owner }}/furmatch-frontend:latest'
