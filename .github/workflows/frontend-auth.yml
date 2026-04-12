@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: .next/standalone # Solo subimos el contenido de esta carpeta
+          path: .next/standalone
 
   deploy:
     runs-on: ubuntu-latest
