@@ -35,26 +35,27 @@ jobs:
 
       - name: Prepare Production Bundle
         run: |
-          # 1. Creamos una carpeta de despliegue que NO sea oculta
+          # 1. Creamos la carpeta de despliegue
           mkdir -p deploy_package
           
-          # 2. Copiamos el contenido de standalone (incluyendo el server.js)
-          cp -r .next/standalone/. deploy_package/
+          # 2. Copiamos el contenido de standalone (server.js, node_modules y el .next interno)
+          # Usamos cp -a para preservar atributos y carpetas ocultas
+          cp -a .next/standalone/. deploy_package/
           
-          # 3. Copiamos public y static (Next standalone no los trae por defecto)
+          # 3. Copiamos public y static (necesarios para el diseño)
           cp -r public deploy_package/
-          
-          # 4. PASO CLAVE: Forzamos la copia del "cerebro" (.next) a la carpeta de despliegue
-          # Usamos '.' para asegurar que se copie TODO lo que hay dentro
-          mkdir -p deploy_package/.next
-          cp -r .next/static deploy_package/.next/
-          cp -r .next/standalone/.next/. deploy_package/.next/
+          mkdir -p deploy_package/.next/static
+          cp -r .next/static/. deploy_package/.next/static/
+
+          # 4. OPCIONAL: Borramos el package.json del paquete final
+          # Esto evita que Azure intente instalar cosas por su cuenta
+          rm deploy_package/package.json || true
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: deploy_package/  # Subimos la carpeta completa y organizada
+          path: deploy_package/
 
   deploy:
     runs-on: ubuntu-latest
