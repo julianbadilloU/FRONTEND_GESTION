@@ -38,24 +38,23 @@ jobs:
           # 1. Creamos la carpeta de despliegue
           mkdir -p deploy_package
           
-          # 2. Copiamos el contenido de standalone (server.js, node_modules y el .next interno)
-          # Usamos cp -a para preservar atributos y carpetas ocultas
+          # 2. Copiamos el contenido de standalone (usando -a para incluir archivos ocultos como .next)
           cp -a .next/standalone/. deploy_package/
           
-          # 3. Copiamos public y static (necesarios para el diseño)
+          # 3. Copiamos public y static (Next standalone no los trae por defecto)
           cp -r public deploy_package/
           mkdir -p deploy_package/.next/static
           cp -r .next/static/. deploy_package/.next/static/
-
-          # 4. OPCIONAL: Borramos el package.json del paquete final
-          # Esto evita que Azure intente instalar cosas por su cuenta
+          
+          # 4. TRUCO FINAL: Borramos el package.json de la carpeta de despliegue
+          # Esto evita que Azure intente instalar módulos por su cuenta (Oryx)
           rm deploy_package/package.json || true
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: deploy_package/
+          path: deploy_package/ # Subimos la carpeta organizada
 
   deploy:
     runs-on: ubuntu-latest
