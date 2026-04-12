@@ -25,16 +25,22 @@ jobs:
           NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
           NEXT_PUBLIC_APP_URL: "https://app-adopcion-frontend-dev.azurewebsites.net"
 
-      - name: Prepare Standalone Bundle
+      # --- PASO CRÍTICO: ORGANIZAR LA CARPETA DE DESPLIEGUE ---
+      - name: Prepare Production Bundle
         run: |
-          cp -r public .next/standalone/public
-          cp -r .next/static .next/standalone/.next/static
+          mkdir deploy_package
+          # 1. Copiamos el servidor standalone y sus módulos internos
+          cp -r .next/standalone/* deploy_package/
+          # 2. Copiamos los archivos estáticos y públicos a la ruta que Next.js espera
+          cp -r public deploy_package/
+          mkdir -p deploy_package/.next/static
+          cp -r .next/static/* deploy_package/.next/static/
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: .next/standalone
+          path: deploy_package # Subimos solo la carpeta limpia
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,10 +52,6 @@ jobs:
           name: next-build
           path: .
 
-      # AGREGAMOS ESTO: Copiamos la carpeta 'public' y 'static' manualmente 
-      # porque standalone no las incluye por defecto por peso.
-      # (Este paso se hace en el job de build antes del upload si prefieres)
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -59,4 +61,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'app-adopcion-frontend-dev'
-          package: .   
+          package: .
