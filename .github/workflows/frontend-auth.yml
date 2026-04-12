@@ -25,13 +25,19 @@ jobs:
           NEXT_PUBLIC_API_URL: "https://app-adopcion-backend-dev.azurewebsites.net/api"
           NEXT_PUBLIC_APP_URL: "https://app-adopcion-frontend-dev.azurewebsites.net"
 
-      # --- PASO CRÍTICO: ORGANIZAR LA CARPETA DE DESPLIEGUE ---
       - name: Prepare Production Bundle
         run: |
+          # 1. Creamos una carpeta limpia para el despliegue
           mkdir deploy_package
-          # 1. Copiamos el servidor standalone y sus módulos internos
+          
+          # 2. Copiamos el contenido de standalone a la raíz de la carpeta
           cp -r .next/standalone/* deploy_package/
-          # 2. Copiamos los archivos estáticos y públicos a la ruta que Next.js espera
+          
+          # 3. Copiamos explícitamente la carpeta .next interna (CEREBRO)
+          # Usamos -a para asegurar que se copien archivos ocultos
+          cp -ra .next/standalone/.next deploy_package/
+          
+          # 4. Copiamos las carpetas estáticas que standalone no trae por defecto
           cp -r public deploy_package/
           mkdir -p deploy_package/.next/static
           cp -r .next/static/* deploy_package/.next/static/
@@ -40,7 +46,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: deploy_package # Subimos solo la carpeta limpia
+          path: deploy_package/ # Subimos la carpeta completa y visible
 
   deploy:
     runs-on: ubuntu-latest
