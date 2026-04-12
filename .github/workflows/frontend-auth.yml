@@ -27,18 +27,26 @@ jobs:
 
       - name: Prepare Production Bundle
         run: |
-          mkdir -p deploy_package/.next
-          # 1. Copiamos todo lo que generó standalone (server.js, node_modules, .next básico)
+          # 1. Creamos una carpeta de despliegue que NO sea oculta
+          mkdir -p deploy_package
+          
+          # 2. Copiamos el contenido de standalone (incluyendo el server.js)
           cp -r .next/standalone/. deploy_package/
-          # 2. Copiamos las carpetas de archivos estáticos DENTRO de la nueva estructura
-          cp -r .next/static deploy_package/.next/
+          
+          # 3. Copiamos public y static (Next standalone no los trae por defecto)
           cp -r public deploy_package/
+          
+          # 4. PASO CLAVE: Forzamos la copia del "cerebro" (.next) a la carpeta de despliegue
+          # Usamos '.' para asegurar que se copie TODO lo que hay dentro
+          mkdir -p deploy_package/.next
+          cp -r .next/static deploy_package/.next/
+          cp -r .next/standalone/.next/. deploy_package/.next/
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: next-build
-          path: deploy_package/
+          path: deploy_package/  # Subimos la carpeta completa y organizada
 
   deploy:
     runs-on: ubuntu-latest
