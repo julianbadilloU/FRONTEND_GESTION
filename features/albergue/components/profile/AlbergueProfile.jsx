@@ -2,10 +2,12 @@
 
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Pencil } from "lucide-react";
+import { Check, Pencil, Loader2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { ProfileView } from "./ProfileView";
 import { ProfileForm } from "./ProfileForm";
+import { getAlbergueProfile, updateAlbergueProfile } from "../../services/albergue.service";
 
 // ─── Datos mock (reemplazar por fetch real cuando exista el endpoint) ─────────
 const MOCK_PROFILE = {
@@ -40,11 +42,46 @@ function Toast({ message }) {
 
 // ─── Controlador principal ────────────────────────────────────────────────────
 export function AlbergueProfile() {
+  const queryClient = useQueryClient();
   const [isEditing,   setIsEditing]   = useState(false);
-  const [profile,     setProfile]     = useState(MOCK_PROFILE);
   const [logoPreview, setLogoPreview] = useState(null);
-  const [isSaving,    setIsSaving]    = useState(false);
+  const [logoBase64,  setLogoBase64]  = useState(null);
   const [toast,       setToast]       = useState(null);
+
+  const { data: serverProfile, isLoading, isError } = useQuery({
+    queryKey: ["albergueProfile"],
+    queryFn: getAlbergueProfile,
+  });
+
+  const profile = serverProfile ? {
+     name: serverProfile.nombre_albergue || "",
+     nit: serverProfile.nit || "",
+     email: serverProfile.correo || "",
+     whatsapp: serverProfile.whatsapp_actual || "",
+     website: serverProfile.sitio_web || "",
+     description: serverProfile.descripcion || "",
+     logoUrl: serverProfile.logo || "",
+     address: "", // Opcional, si existiera
+     city: "",
+  } : MOCK_PROFILE;
+
+  const updateMutation = useMutation({
+    mutationFn: updateAlbergueProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["albergueProfile"] });
+      showToast("Perfil actualizado exitosamente");
+      setIsEditing(false);
+      setLogoPreview(null);
+      setLogoBase64(null);
+    },
+    onError: (err) => {
+       if (err?.response?.status === 400) {
+           showToast("Error de validación en los campos enviados");
+       } else {
+           showToast("Error al actualizar el perfil");
+       }
+    }
+  });
 
   // ── Mostrar toast 3.5 s ──────────────────────────────────────────────────
   const showToast = (msg) => {
@@ -52,39 +89,55 @@ export function AlbergueProfile() {
     setTimeout(() => setToast(null), 3500);
   };
 
-  // ── Cambio de logo con preview ───────────────────────────────────────────
+  // ── Cambio de logo con preview y base64 ──────────────────────────────────
   const handleLogoChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setLogoPreview(URL.createObjectURL(file));
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setLogoBase64(reader.result);
+    };
+    reader.readAsDataURL(file);
   }, []);
 
-  // ── Guardar cambios (mock: simula 1 s de espera) ─────────────────────────
-  const handleSave = useCallback(async (data) => {
-    setIsSaving(true);
-    // TODO: reemplazar por apiClient.patch('/api/albergue/perfil', { ...data, logo })
-    await new Promise((res) => setTimeout(res, 1200));
-    setProfile((prev) => ({
-      ...prev,
-      name:        data.name,
-      whatsapp:    data.whatsapp,
-      address:     data.address     ?? "",
-      city:        data.city,
-      website:     data.website     ?? "",
-      description: data.description ?? "",
-      ...(logoPreview ? { logoUrl: logoPreview } : {}),
-    }));
-    setIsSaving(false);
-    setIsEditing(false);
-    setLogoPreview(null);
-    showToast("Cambios guardados correctamente");
-  }, [logoPreview]);
+  // ── Guardar cambios ──────────────────────────────────────────────────────
+  const handleSave = useCallback((data) => {
+    const payload = {
+      descripcion: data.description,
+      whatsapp_actual: data.whatsapp,
+      sitio_web: data.website,
+    };
+    if (logoBase64) {
+      payload.logo = logoBase64;
+    }
+    updateMutation.mutate(payload);
+  }, [logoBase64, updateMutation]);
 
   // ── Cancelar edición ─────────────────────────────────────────────────────
   const handleCancel = useCallback(() => {
     setLogoPreview(null);
+    setLogoBase64(null);
     setIsEditing(false);
   }, []);
+
+  if (isLoading) {
+     return (
+       <div className="flex flex-col items-center justify-center min-h-[50vh] text-gray-500">
+         <Loader2 className="animate-spin text-[#81af6d] mb-4" size={32} />
+         <p>Cargando perfil...</p>
+       </div>
+     );
+  }
+
+  if (isError) {
+     return (
+       <div className="flex flex-col items-center justify-center min-h-[50vh] text-red-500">
+         <p>Ocurrió un error al cargar el perfil. Por favor, intenta más tarde.</p>
+       </div>
+     );
+  }
 
   return (
     <>
@@ -112,7 +165,7 @@ export function AlbergueProfile() {
             onLogoChange={handleLogoChange}
             onSave={handleSave}
             onCancel={handleCancel}
-            isSaving={isSaving}
+            isSaving={updateMutation.isPending}
           />
         ) : (
           <ProfileView
