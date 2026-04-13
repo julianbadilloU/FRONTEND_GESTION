@@ -11,13 +11,16 @@ import Image from "next/image";
 
 import { albergueProfileSchema } from "@/features/albergue/schemas/albergue.schemas";
 import { cn } from "@/lib/utils/cn";
+import { createAlbergueProfile } from "@/features/albergue/services/albergue.service";
 
 export function AlbergueWizard() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [logoPreview, setLogoPreview] = useState(null);
+  const [logoBase64, setLogoBase64] = useState(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
   const {
     register,
@@ -61,22 +64,51 @@ export function AlbergueWizard() {
   };
 
   const handleSubmit = async () => {
+    setSubmitError(null);
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setStep(3);
+    
+    try {
+      const values = getValues();
+      const payload = {
+        nombre_albergue: values.name,
+        nit: values.nit,
+        descripcion: values.description || "",
+        whatsapp: values.whatsapp,
+        sitio_web: values.website || "",
+        logo: logoBase64 || "",
+        // Opcional en caso de que el backend lo soporte
+        direccion: values.address || "",
+        ciudad: values.city || "",
+      };
+
+      await createAlbergueProfile(payload);
+      setStep(3);
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setSubmitError("El NIT ya está registrado o ya tienes un perfil creado.");
+      } else if (err.response?.status === 400) {
+        setSubmitError("Error de validación en los campos enviados.");
+      } else {
+        setSubmitError("Ocurrió un error al intentar crear el perfil institucional.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       setIsUploadingLogo(true);
-      // Simulate reading and uploading
-      await new Promise((resolve) => setTimeout(resolve, 800));
       const url = URL.createObjectURL(file);
       setLogoPreview(url);
-      setIsUploadingLogo(false);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoBase64(reader.result);
+        setIsUploadingLogo(false);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -254,6 +286,12 @@ export function AlbergueWizard() {
                     <p className="text-[0.6rem] text-gray-400 mt-1 px-1 relative">Debe comenzar con http:// o https://</p>
                     {errors.website && <p className="text-xs text-red-500 mt-1 px-1 absolute -bottom-5">{errors.website.message}</p>}
                   </div>
+
+                  {submitError && (
+                    <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200">
+                      {submitError}
+                    </div>
+                  )}
                 </div>
               )}
             </motion.div>
