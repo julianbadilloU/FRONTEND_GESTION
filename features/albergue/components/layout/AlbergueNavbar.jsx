@@ -3,9 +3,12 @@
 import { Dog, Lock } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 
 import { logoutUser } from "@/lib/auth/auth-service";
 import { cn } from "@/lib/utils/cn";
+import { getAlbergueProfile } from "../../services/albergue.service";
 
 const NAV_LINKS = [
   { href: "/albergue/mascotas",   label: "Mis Mascotas" },
@@ -22,6 +25,14 @@ export function AlbergueNavbar() {
     await logoutUser();
     router.push("/login");
   };
+
+  const { data: profile } = useQuery({
+    queryKey: ["albergueProfile"],
+    queryFn: getAlbergueProfile,
+  });
+
+  const displayName = profile?.nombre_albergue || "Mi Albergue";
+  const displayLogo = profile?.logo || null;
 
   return (
     <header className="bg-white border-b border-[#e4d5c4] px-6 py-4">
@@ -55,13 +66,28 @@ export function AlbergueNavbar() {
         </nav>
 
         {/* Mi Albergue / Cerrar sesión */}
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors shrink-0"
-        >
-          Mi Albergue
-          <Lock size={13} className="text-gray-500" />
-        </button>
+        <div className="flex items-center gap-4 shrink-0">
+          <Link href="/albergue/perfil" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            {displayLogo ? (
+              <Image src={displayLogo} alt="Logo" width={28} height={28} className="w-7 h-7 rounded-full object-cover" />
+            ) : (
+              <div className="w-7 h-7 bg-gray-200 rounded-full flex items-center justify-center text-xs font-bold text-gray-500">
+                {displayName.charAt(0)}
+              </div>
+            )}
+            <span className="text-sm font-semibold text-gray-800">{displayName}</span>
+          </Link>
+
+          <div className="h-4 w-px bg-gray-300" />
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+            title="Cerrar sesión"
+          >
+            <Lock size={15} />
+          </button>
+        </div>
       </div>
     </header>
   );
