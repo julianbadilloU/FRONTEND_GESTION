@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Dog, Bone, PawPrint } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Dog, Bone, PawPrint, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
 import { useWizard } from "@/features/adoptante/hooks/useWizard";
 import { cn } from "@/lib/utils/cn";
 import { PersonalDataStep } from "./PersonalDataStep";
+import { getEtiquetas, createAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
 
 // ─────────────────────────────────────────────
 // Tarjeta con imagen (paso de preferencia de raza)
@@ -140,7 +142,75 @@ function EmojiCard({ option, selected, onSelect }) {
 // ─────────────────────────────────────────────
 // Pantalla de finalización
 // ─────────────────────────────────────────────
-function CompletionScreen() {
+function CompletionScreen({ selections }) {
+  const router = useRouter();
+  const called = useRef(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (called.current) return;
+    called.current = true;
+
+    async function submit() {
+      try {
+        const { data: etiquetas } = await getEtiquetas();
+
+        const selectedTagIds = new Set();
+        function addTag(categoria, valor) {
+          const tag = etiquetas.find((t) => t.categoria === categoria && t.valor === valor);
+          if (tag) selectedTagIds.add(tag.id_opcion);
+        }
+
+        if (selections.animalType === "dog") addTag("Tipo de animal", "Perro");
+        if (selections.animalType === "cat") addTag("Tipo de animal", "Gato");
+        if (selections.animalType === "both") {
+          addTag("Tipo de animal", "Perro");
+          addTag("Tipo de animal", "Gato");
+        }
+
+        if (selections.size === "small") addTag("Tamaño", "Pequeño");
+        if (selections.size === "medium") addTag("Tamaño", "Mediano");
+        if (selections.size === "large") addTag("Tamaño", "Grande");
+
+        if (selections.sex === "male") addTag("Sexo", "Macho");
+        if (selections.sex === "female") addTag("Sexo", "Hembra");
+
+        if (selections.age === "puppy") addTag("Rango de edad", "Cachorro (0-1)");
+        if (selections.age === "young") addTag("Rango de edad", "Joven (1-3)");
+        if (selections.age === "adult") addTag("Rango de edad", "Adulto (3-7)");
+        if (selections.age === "senior") addTag("Rango de edad", "Senior (7+)");
+
+        if (selections.energy === "calm") addTag("Nivel de energía", "Bajo (Tranquilo)");
+        if (selections.energy === "moderate") addTag("Nivel de energía", "Medio");
+        if (selections.energy === "active") addTag("Nivel de energía", "Alto (Muy activo)");
+
+        if (selections.compatibility === "kids") addTag("Convivencia con niños", "Recomendado");
+        if (selections.compatibility === "dogs") addTag("Relación con perros", "Sociable");
+        if (selections.compatibility === "cats") addTag("Relación con gatos", "Sociable");
+
+        if (selections.specialCondition === "disabled_pet") addTag("Condición Especial", "Discapacidad motriz");
+        if (selections.specialCondition === "medical_treatment") addTag("Condición Especial", "Tratamiento crónico");
+        if (selections.specialCondition === "healthy_only") addTag("Condición Especial", "Ninguna");
+
+        const payload = {
+          nombre_completo: selections.personalData?.fullName || "",
+          whatsapp: selections.personalData?.whatsapp || "",
+          ciudad: selections.personalData?.city || "",
+          tags: Array.from(selectedTagIds),
+          foto: selections.personalData?.profilePhotoBase64 || "",
+        };
+
+        await createAdoptanteProfile(payload);
+        router.push("/");
+      } catch (err) {
+        console.error("Error creating profile:", err);
+        setError("Ocurrió un error al crear tu perfil. Por favor, intenta de nuevo.");
+      }
+    }
+
+    submit();
+  }, [selections, router]);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden p-6 w-full">
       {/* Decorative background circles */}
@@ -164,19 +234,29 @@ function CompletionScreen() {
         className="flex flex-col items-center max-w-md w-full relative z-10"
       >
         <h1 className="text-[2.5rem] font-bold text-gray-900 text-center mb-6">
-          Listo!
+          {error ? "Uy!" : "Listo!"}
         </h1>
         
         <p className="text-gray-500 text-center text-lg leading-relaxed px-4">
-          Estamos personalizando tu perfil
-          <br className="hidden sm:block" />
-          con tus preferencias
+          {error ? error : <>Estamos personalizando tu perfil<br className="hidden sm:block" />con tus preferencias</>}
         </p>
 
-        {/* Loading spinner ring */}
-        <div className="mt-16 relative flex items-center justify-center">
-          <div className="w-10 h-10 border-[3px] border-[#d8e8d0] border-t-[#81af6d] rounded-full animate-spin" />
-        </div>
+        {error ? (
+          <div className="mt-10">
+             <button
+              onClick={() => window.location.reload()}
+              className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-[#a9c99a] hover:bg-[#81af6d] text-white shadow-md transition-all duration-200"
+             >
+               <AlertCircle size={18} />
+               Reintentar
+             </button>
+          </div>
+        ) : (
+          /* Loading spinner ring */
+          <div className="mt-16 relative flex items-center justify-center">
+            <div className="w-10 h-10 border-[3px] border-[#d8e8d0] border-t-[#81af6d] rounded-full animate-spin" />
+          </div>
+        )}
       </motion.div>
     </div>
   );
@@ -192,6 +272,7 @@ export function OnboardingWizard() {
     currentStep,
     currentSelection,
     select,
+    selections,
     next,
     prev,
     canGoNext,
@@ -202,7 +283,7 @@ export function OnboardingWizard() {
 
   const [isFormValid, setIsFormValid] = useState(false);
 
-  if (isComplete) return <CompletionScreen />;
+  if (isComplete) return <CompletionScreen selections={selections} />;
 
   const isColorStep    = currentStep.variant === "color";
   const isImageStep    = currentStep.variant === "image";
