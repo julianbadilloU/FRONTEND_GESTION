@@ -29,7 +29,12 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
     if (file) {
       const url = URL.createObjectURL(file);
       setPreview(url);
-      setData(prev => ({ ...prev, profilePhoto: url }));
+      
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setData(prev => ({ ...prev, profilePhoto: url, profilePhotoBase64: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
