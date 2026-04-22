@@ -98,7 +98,7 @@ describe("PublicarMascotaWizard", () => {
     fireEvent.click(nextBtn);
 
     await waitFor(() => {
-      expect(screen.getByText("Debes subir al menos 1 foto")).toBeInTheDocument();
+      expect(screen.getByText("Debes subir al menos una foto para publicar la mascota.")).toBeInTheDocument();
     });
   });
 

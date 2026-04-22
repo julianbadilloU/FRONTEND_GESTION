@@ -5,19 +5,19 @@ import { PhotoUploader } from "./PhotoUploader";
 
 export function StepDatosBasicos({ register, errors, photos, onPhotosChange }) {
   return (
-    <div className="space-y-6 w-full max-w-lg mx-auto">
+    <div className="space-y-7 w-full max-w-xl mx-auto">
       {/* Nombre */}
-      <div className="space-y-1 relative">
-        <label className="text-sm font-semibold text-gray-700">
+      <div className="space-y-2">
+        <label className="text-sm font-bold text-gray-800">
           Nombre de la mascota <span className="text-red-400">*</span>
         </label>
         <input
           {...register("nombre")}
           className={cn(
-            "w-full border-2 rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800 bg-white",
+            "w-full border rounded-xl py-3.5 px-4 focus:outline-none transition-all text-sm text-gray-800 bg-white placeholder:text-gray-400",
             errors.nombre
-              ? "border-red-300 focus:border-red-500"
-              : "border-gray-100 focus:border-[#81af6d]"
+              ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+              : "border-[#d5d0c8] focus:border-[#8b9e7e] focus:ring-2 focus:ring-[#8b9e7e]/10"
           )}
           placeholder="Ej: Luna, Max, Firulais"
         />
@@ -27,8 +27,8 @@ export function StepDatosBasicos({ register, errors, photos, onPhotosChange }) {
       </div>
 
       {/* Descripción */}
-      <div className="space-y-1 relative">
-        <label className="text-sm font-semibold text-gray-700">
+      <div className="space-y-2">
+        <label className="text-sm font-bold text-gray-800">
           Descripción{" "}
           <span className="font-normal text-gray-400">(opcional)</span>
         </label>
@@ -36,10 +36,10 @@ export function StepDatosBasicos({ register, errors, photos, onPhotosChange }) {
           {...register("descripcion")}
           rows={4}
           className={cn(
-            "w-full border-2 rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800 resize-none bg-white",
+            "w-full border rounded-xl py-3.5 px-4 focus:outline-none transition-all text-sm text-gray-800 resize-none bg-white placeholder:text-gray-400",
             errors.descripcion
-              ? "border-red-300 focus:border-red-500"
-              : "border-gray-100 focus:border-[#81af6d]"
+              ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+              : "border-[#d5d0c8] focus:border-[#8b9e7e] focus:ring-2 focus:ring-[#8b9e7e]/10"
           )}
           placeholder="Cuéntanos sobre la personalidad, historia o detalles especiales de esta mascota..."
         />

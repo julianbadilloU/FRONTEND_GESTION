@@ -57,13 +57,6 @@ export function PublicarMascotaWizard() {
     setTags((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const canGoNext = () => {
-    if (step === 1) return true; // validated on trigger
-    if (step === 2) return photos.length >= 1;
-    if (step === 3) return tags.animalType && tags.age && tags.sex;
-    return false;
-  };
-
   const handleNext = async () => {
     setStepError(null);
 
@@ -71,29 +64,25 @@ export function PublicarMascotaWizard() {
       const isValid = await trigger(["nombre", "descripcion"]);
       if (!isValid) return;
       if (photos.length < 1) {
-        setStepError("Debes subir al menos 1 foto");
+        setStepError("Debes subir al menos una foto para publicar la mascota.");
         return;
       }
     }
 
     if (step === 2) {
       if (photos.length < 1) {
-        setStepError("Debes tener al menos 1 foto");
+        setStepError("Debes subir al menos una foto para publicar la mascota.");
         return;
       }
     }
 
     if (step === 3) {
-      if (!tags.animalType) {
-        setStepError("Selecciona el tipo de animal");
-        return;
-      }
-      if (!tags.age) {
-        setStepError("Selecciona la edad");
-        return;
-      }
-      if (!tags.sex) {
-        setStepError("Selecciona el sexo");
+      const missing = [];
+      if (!tags.animalType) missing.push("Tipo de animal");
+      if (!tags.age) missing.push("Edad");
+      if (!tags.sex) missing.push("Sexo");
+      if (missing.length > 0) {
+        setStepError(`Faltan los siguientes campos obligatorios: ${missing.join(", ")}. Completa esta información para continuar.`);
         return;
       }
     }
@@ -113,7 +102,6 @@ export function PublicarMascotaWizard() {
     setIsSubmitting(true);
 
     try {
-      // Get etiquetas from backend to map tag IDs
       const etiquetasResponse = await getEtiquetas();
       const etiquetas = etiquetasResponse?.data || etiquetasResponse || [];
 
@@ -126,7 +114,6 @@ export function PublicarMascotaWizard() {
         if (tag) selectedTagIds.add(tag.id_opcion);
       }
 
-      // Map local selections to backend tag IDs
       if (tags.animalType === "dog") addTag("Tipo de animal", "Perro");
       if (tags.animalType === "cat") addTag("Tipo de animal", "Gato");
 
@@ -158,7 +145,6 @@ export function PublicarMascotaWizard() {
         if (c === "disabled") addTag("Convivencia con personas con discapacidad", "Recomendado");
       });
 
-      // Convert photos to base64
       const photosBase64 = await Promise.all(
         photos.map(
           (photo) =>
@@ -181,13 +167,17 @@ export function PublicarMascotaWizard() {
       await createMascota(payload);
       router.push("/albergue/mascotas");
     } catch (err) {
-      if (err.response?.status === 400) {
-        setSubmitError("Error de validación. Revisa los datos ingresados.");
-      } else if (err.response?.status === 409) {
-        setSubmitError("Se ha alcanzado el límite de mascotas activas.");
+      if (err.response?.status === 409) {
+        const limite = err.response?.data?.limite || 50;
+        setSubmitError(`Has alcanzado el límite de ${limite} mascotas activas. Para publicar una nueva mascota, cambia el estado de una existente a 'Adoptado' o elimínala.`);
+      } else if (err.response?.status === 202) {
+        // Indexación tardó más de 3s pero mascota publicada
+        setSubmitError("Tu mascota fue publicada correctamente. La indexación en el buscador puede tardar unos minutos.");
+        setTimeout(() => router.push("/albergue/mascotas"), 3000);
+        return;
       } else {
         setSubmitError(
-          "Ocurrió un error al publicar la mascota. Intenta de nuevo."
+          "Ocurrió un error al publicar la mascota. No se guardó ningún dato. Por favor, intenta de nuevo."
         );
       }
     } finally {
@@ -196,123 +186,124 @@ export function PublicarMascotaWizard() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-140px)] flex flex-col px-4 py-8 max-w-4xl mx-auto">
-      {/* Header: Back + Title + Next */}
-      <div className="flex items-center justify-between mb-8">
-        {step > 1 ? (
-          <button
-            type="button"
-            onClick={handlePrev}
-            className="flex items-center gap-1 text-sm font-semibold text-gray-600 hover:text-gray-900 border border-gray-300 rounded-full px-4 py-2 transition-colors"
-          >
-            <ChevronLeft size={16} />
-            Atrás
-          </button>
-        ) : (
-          <div className="w-24" />
-        )}
+    <div className="min-h-[calc(100vh-140px)] bg-[#fafaf8]">
+      <div className="max-w-4xl mx-auto px-6 py-10">
+        {/* Header: Back + Title + Next */}
+        <div className="flex items-center justify-between mb-10">
+          {step > 1 ? (
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-[#d5d0c8] rounded-full px-5 py-2.5 transition-colors bg-white"
+            >
+              <ChevronLeft size={16} />
+              Atrás
+            </button>
+          ) : (
+            <div className="w-28" />
+          )}
 
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 text-center">
-          Publica tu{" "}
-          <span className="font-serif italic font-normal text-[#a9c99a]">
-            mascota
-          </span>
-        </h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
+            Publica tu{" "}
+            <span className="font-serif italic font-normal text-[#b5c9a8]">
+              mascota
+            </span>
+          </h1>
 
-        {step < TOTAL_STEPS ? (
-          <button
-            type="button"
-            onClick={handleNext}
-            className="flex items-center gap-1 bg-[#a9c99a] hover:bg-[#81af6d] transition-colors text-white text-sm font-semibold py-2 px-5 rounded-full"
-          >
-            Siguiente
-            <ChevronRight size={16} />
-          </button>
-        ) : (
-          <div className="w-28" />
-        )}
-      </div>
-
-      {/* Stepper */}
-      <WizardStepper currentStep={step} />
-
-      {/* Step error */}
-      {stepError && (
-        <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200 max-w-lg mx-auto">
-          {stepError}
+          {step < TOTAL_STEPS ? (
+            <button
+              type="button"
+              onClick={handleNext}
+              className="flex items-center gap-1.5 bg-[#8b9e7e] hover:bg-[#7a8e6e] transition-colors text-white text-sm font-semibold py-2.5 px-6 rounded-full shadow-sm"
+            >
+              Siguiente
+              <ChevronRight size={16} />
+            </button>
+          ) : (
+            <div className="w-32" />
+          )}
         </div>
-      )}
 
-      {/* Paw icon */}
-      <div className="flex justify-center mt-6 mb-2">
-        <PawPrint className="text-[#d8e8d0] opacity-50" size={28} />
-      </div>
+        {/* Stepper */}
+        <WizardStepper currentStep={step} />
 
-      {/* Step title */}
-      <h2 className="text-xl font-bold text-gray-900 text-center mb-6">
-        {step === 1 && "Datos Básicos"}
-        {step === 2 && "Galería de Fotos"}
-        {step === 3 && "Etiquetas de la Mascota"}
-        {step === 4 && "Revisión Final"}
-      </h2>
+        {/* Step error */}
+        {stepError && (
+          <div className="mt-5 p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200 max-w-lg mx-auto">
+            {stepError}
+          </div>
+        )}
 
-      {/* Step content */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={step}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-          className="flex-1"
-        >
-          {step === 1 && (
-            <StepDatosBasicos
-              register={register}
-              errors={errors}
-              photos={photos}
-              onPhotosChange={setPhotos}
-            />
-          )}
-          {step === 2 && (
-            <StepFotos photos={photos} onPhotosChange={setPhotos} />
-          )}
-          {step === 3 && (
-            <StepTags tags={tags} onTagChange={handleTagChange} />
-          )}
-          {step === 4 && (
-            <StepRevision
-              formData={getValues()}
-              tags={tags}
-              photos={photos}
-            />
-          )}
-        </motion.div>
-      </AnimatePresence>
+        {/* Paw icon */}
+        <div className="flex justify-center mt-8 mb-3">
+          <PawPrint className="text-[#c8d4be]" size={30} strokeWidth={1.5} />
+        </div>
 
-      {/* Publish button (step 4 only) */}
-      {step === TOTAL_STEPS && (
-        <div className="mt-8 max-w-2xl mx-auto w-full">
-          {submitError && (
-            <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200">
-              {submitError}
-            </div>
-          )}
-          <button
-            type="button"
-            onClick={handlePublish}
-            disabled={isSubmitting}
-            className="w-full flex items-center justify-center gap-2 bg-[#a9c99a] hover:bg-[#81af6d] disabled:opacity-50 transition-colors text-white font-semibold py-4 rounded-2xl text-base"
+        {/* Step title */}
+        <h2 className="text-xl font-bold text-gray-900 text-center mb-8">
+          {step === 1 && "Datos Básicos"}
+          {step === 2 && "Galería de Fotos"}
+          {step === 3 && "Etiquetas de la Mascota"}
+          {step === 4 && "Revisión Final"}
+        </h2>
+
+        {/* Step content */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={step}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
           >
-            {isSubmitting ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <Check size={20} />
+            {step === 1 && (
+              <StepDatosBasicos
+                register={register}
+                errors={errors}
+                photos={photos}
+                onPhotosChange={setPhotos}
+              />
             )}
-            {isSubmitting ? "Publicando..." : "Publicar Mascota"}
-          </button>
-        </div>
-      )}
+            {step === 2 && (
+              <StepFotos photos={photos} onPhotosChange={setPhotos} />
+            )}
+            {step === 3 && (
+              <StepTags tags={tags} onTagChange={handleTagChange} />
+            )}
+            {step === 4 && (
+              <StepRevision
+                formData={getValues()}
+                tags={tags}
+                photos={photos}
+              />
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Publish button (step 4 only) */}
+        {step === TOTAL_STEPS && (
+          <div className="mt-10 max-w-2xl mx-auto w-full">
+            {submitError && (
+              <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200">
+                {submitError}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handlePublish}
+              disabled={isSubmitting}
+              className="w-full flex items-center justify-center gap-2.5 bg-[#8b9e7e] hover:bg-[#7a8e6e] disabled:opacity-50 transition-colors text-white font-semibold py-4 rounded-2xl text-base shadow-sm"
+            >
+              {isSubmitting ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <Check size={20} />
+              )}
+              {isSubmitting ? "Publicando..." : "Publicar Mascota"}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

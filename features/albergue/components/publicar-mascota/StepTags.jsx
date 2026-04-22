@@ -22,11 +22,11 @@ function TagCard({ option, selected, onSelect, size = "normal" }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center justify-center gap-2 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
-        isSmall ? "p-3" : "p-4",
+        "relative group flex flex-col items-center justify-center gap-2.5 rounded-2xl border bg-white transition-all duration-200 focus:outline-none",
+        isSmall ? "p-3.5" : "p-5",
         selected
-          ? "border-[#5e924e] bg-[#f4f8f2] shadow-lg shadow-[#a9c99a]/20 scale-[1.03]"
-          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md"
+          ? "border-[#7a8e6e] bg-[#f5f8f2] shadow-md ring-1 ring-[#8b9e7e]/20"
+          : "border-[#d5d0c8] hover:border-[#8b9e7e] hover:shadow-sm"
       )}
     >
       <span className={cn("leading-none", isSmall ? "text-2xl" : "text-3xl")}>
@@ -34,7 +34,7 @@ function TagCard({ option, selected, onSelect, size = "normal" }) {
       </span>
       <span
         className={cn(
-          "font-bold text-gray-800 text-center",
+          "font-semibold text-gray-800 text-center",
           isSmall ? "text-xs" : "text-sm"
         )}
       >
@@ -50,10 +50,10 @@ function PillTag({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "flex items-center gap-1.5 px-4 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200",
+        "flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition-all duration-200",
         selected
-          ? "border-[#5e924e] bg-[#f4f8f2] text-[#5e924e]"
-          : "border-[#d8e8d0] bg-white text-gray-700 hover:border-[#81af6d]"
+          ? "border-[#7a8e6e] bg-[#f5f8f2] text-[#5e7a50] ring-1 ring-[#8b9e7e]/20"
+          : "border-[#d5d0c8] bg-white text-gray-700 hover:border-[#8b9e7e]"
       )}
     >
       <span className="text-base">{option.emoji}</span>
@@ -64,7 +64,7 @@ function PillTag({ option, selected, onSelect }) {
 
 function CheckTag({ option, checked, onToggle }) {
   return (
-    <label className="flex items-center gap-3 cursor-pointer group">
+    <label className="flex items-center gap-3 cursor-pointer group py-1">
       <input
         type="checkbox"
         checked={checked}
@@ -73,10 +73,10 @@ function CheckTag({ option, checked, onToggle }) {
       />
       <div
         className={cn(
-          "w-5 h-5 rounded border-2 flex items-center justify-center transition-colors",
+          "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
           checked
-            ? "bg-[#5e924e] border-[#5e924e]"
-            : "border-gray-300 group-hover:border-[#81af6d]"
+            ? "bg-[#8b9e7e] border-[#8b9e7e]"
+            : "border-[#c8c2b8] bg-white group-hover:border-[#8b9e7e]"
         )}
       >
         {checked && (
@@ -101,7 +101,7 @@ function CheckTag({ option, checked, onToggle }) {
 
 function SectionLabel({ children, required }) {
   return (
-    <h3 className="text-base font-bold text-gray-800">
+    <h3 className="text-base font-bold text-gray-900">
       {children}
       {required && <span className="text-red-400 ml-1">*</span>}
     </h3>
@@ -129,19 +129,14 @@ export function StepTags({ tags, onTagChange }) {
     onTagChange(key, updated);
   };
 
-  const breedList =
-    tags.animalType === "dog"
-      ? BREED_OPTIONS.dog
-      : tags.animalType === "cat"
-        ? BREED_OPTIONS.cat
-        : [];
+  const breedList = tags.animalType ? BREED_OPTIONS : [];
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-8">
+    <div className="w-full max-w-2xl mx-auto space-y-9">
       {/* Tipo de animal */}
       <div className="space-y-3">
         <SectionLabel required>Tipo de animal</SectionLabel>
-        <div className="grid grid-cols-2 gap-4 max-w-xs">
+        <div className="grid grid-cols-2 gap-4 max-w-[16rem]">
           {ANIMAL_TYPE_OPTIONS.map((opt) => (
             <TagCard
               key={opt.id}
@@ -160,7 +155,8 @@ export function StepTags({ tags, onTagChange }) {
           <select
             value={tags.breed || ""}
             onChange={(e) => onTagChange("breed", e.target.value)}
-            className="w-full max-w-sm border-2 border-gray-100 focus:border-[#81af6d] rounded-xl py-3 px-4 text-sm text-gray-800 bg-white focus:outline-none transition-colors"
+            className="w-full max-w-sm border border-[#d5d0c8] focus:border-[#8b9e7e] focus:ring-2 focus:ring-[#8b9e7e]/10 rounded-xl py-3.5 px-4 text-sm text-gray-800 bg-white focus:outline-none transition-all appearance-none"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}
           >
             <option value="">Selecciona una raza</option>
             {breedList.map((b) => (
@@ -205,7 +201,7 @@ export function StepTags({ tags, onTagChange }) {
       {/* Color */}
       <div className="space-y-3">
         <SectionLabel>Color</SectionLabel>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
           {COLOR_OPTIONS.map((opt) => (
             <PillTag
               key={opt.id}
@@ -220,7 +216,7 @@ export function StepTags({ tags, onTagChange }) {
       {/* Sexo */}
       <div className="space-y-3">
         <SectionLabel required>Sexo</SectionLabel>
-        <div className="grid grid-cols-2 gap-4 max-w-xs">
+        <div className="grid grid-cols-2 gap-4 max-w-[16rem]">
           {SEX_OPTIONS.map((opt) => (
             <TagCard
               key={opt.id}
@@ -250,7 +246,7 @@ export function StepTags({ tags, onTagChange }) {
       {/* Compatibilidad */}
       <div className="space-y-3">
         <SectionLabel>Compatibilidad</SectionLabel>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
           {COMPATIBILITY_OPTIONS.map((opt) => (
             <PillTag
               key={opt.id}
@@ -281,7 +277,7 @@ export function StepTags({ tags, onTagChange }) {
       {/* Estado de salud */}
       <div className="space-y-3">
         <SectionLabel>Estado de salud</SectionLabel>
-        <div className="space-y-3">
+        <div className="space-y-2">
           {HEALTH_STATUS_OPTIONS.map((opt) => (
             <CheckTag
               key={opt.id}

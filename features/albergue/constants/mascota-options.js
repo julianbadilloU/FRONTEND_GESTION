@@ -1,34 +1,30 @@
-// ──── Opciones del wizard de publicación de mascota ────
+// ──── Opciones del wizard de publicación de mascota (RF-MA-01) ────
 
 export const ANIMAL_TYPE_OPTIONS = [
   { id: "dog", label: "Perro", emoji: "🐶" },
   { id: "cat", label: "Gato", emoji: "🐱" },
 ];
 
-export const BREED_OPTIONS = {
-  dog: [
-    { id: "labrador", label: "Labrador" },
-    { id: "bulldog", label: "Bulldog" },
-    { id: "golden", label: "Golden Retriever" },
-    { id: "poodle", label: "Poodle" },
-    { id: "beagle", label: "Beagle" },
-    { id: "mestizo_dog", label: "Mestizo" },
-    { id: "otro_dog", label: "Otro" },
-  ],
-  cat: [
-    { id: "siames", label: "Siamés" },
-    { id: "persa", label: "Persa" },
-    { id: "comun", label: "Común europeo" },
-    { id: "mestizo_cat", label: "Mestizo" },
-    { id: "otro_cat", label: "Otro" },
-  ],
-};
+// Raza: lista única según RF-MA-01
+export const BREED_OPTIONS = [
+  { id: "sin_preferencia", label: "Sin preferencia" },
+  { id: "labrador", label: "Labrador" },
+  { id: "bulldog", label: "Bulldog" },
+  { id: "golden", label: "Golden Retriever" },
+  { id: "mestizo", label: "Mestizo" },
+  { id: "poodle", label: "Poodle" },
+  { id: "beagle", label: "Beagle" },
+  { id: "siames", label: "Siamés" },
+  { id: "persa", label: "Persa" },
+  { id: "comun", label: "Común" },
+  { id: "otra", label: "Otra" },
+];
 
 export const AGE_OPTIONS = [
-  { id: "puppy", label: "Cachorro", emoji: "🐣" },
-  { id: "young", label: "Joven", emoji: "⭐" },
-  { id: "adult", label: "Adulto", emoji: "🐾" },
-  { id: "senior", label: "Senior", emoji: "🔵" },
+  { id: "puppy", label: "Cachorro (0-1 año)", emoji: "🐣" },
+  { id: "young", label: "Joven (1-3 años)", emoji: "⭐" },
+  { id: "adult", label: "Adulto (3-7 años)", emoji: "🐾" },
+  { id: "senior", label: "Senior (+7 años)", emoji: "🔵" },
 ];
 
 export const SIZE_OPTIONS = [
@@ -68,7 +64,7 @@ export const COMPATIBILITY_OPTIONS = [
 export const SPECIAL_CONDITION_OPTIONS = [
   { id: "none", label: "Sin condición", emoji: "✅" },
   { id: "disability", label: "Con discapacidad", emoji: "♿" },
-  { id: "treatment", label: "En tratamiento", emoji: "💊" },
+  { id: "treatment", label: "En tratamiento médico", emoji: "💊" },
 ];
 
 export const HEALTH_STATUS_OPTIONS = [

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
   DndContext,
   closestCenter,
@@ -40,10 +39,10 @@ function SortablePhoto({ photo, index, onRemove }) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "relative group aspect-square rounded-xl overflow-hidden border-2 bg-white",
+        "relative group aspect-square rounded-xl overflow-hidden border bg-white shadow-sm",
         isDragging
-          ? "border-[#81af6d] shadow-xl z-10 opacity-90"
-          : "border-[#e4d5c4]"
+          ? "border-[#8b9e7e] shadow-lg z-10 opacity-90 border-2"
+          : "border-[#d5d0c8]"
       )}
     >
       <img
@@ -56,14 +55,14 @@ function SortablePhoto({ photo, index, onRemove }) {
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-1 left-1 w-7 h-7 bg-black/40 hover:bg-black/60 text-white rounded-lg flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-1.5 left-1.5 w-7 h-7 bg-black/40 hover:bg-black/60 text-white rounded-lg flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
       >
         <GripVertical size={14} />
       </div>
 
       {/* Principal badge */}
       {index === 0 && (
-        <span className="absolute bottom-1 left-1 bg-[#a9c99a] text-white text-[0.6rem] font-bold px-1.5 py-0.5 rounded">
+        <span className="absolute bottom-1.5 left-1.5 bg-[#8b9e7e] text-white text-[0.6rem] font-bold px-2 py-0.5 rounded">
           Principal
         </span>
       )}
@@ -72,7 +71,7 @@ function SortablePhoto({ photo, index, onRemove }) {
       <button
         type="button"
         onClick={() => onRemove(photo.id)}
-        className="absolute top-1 right-1 w-6 h-6 bg-black/50 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/40 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
       >
         <X size={12} />
       </button>
@@ -126,8 +125,8 @@ export function PhotoGallery({ photos, onPhotosChange }) {
   };
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-gray-500 text-center">
+    <div className="space-y-5">
+      <p className="text-sm text-[#a09890] text-center">
         Arrastra las fotos para reordenarlas. La primera será la foto principal.
       </p>
 
@@ -140,14 +139,15 @@ export function PhotoGallery({ photos, onPhotosChange }) {
           items={photos.map((p) => p.id)}
           strategy={rectSortingStrategy}
         >
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-4 justify-items-center">
+          <div className="flex flex-wrap gap-4 justify-center">
             {photos.map((photo, index) => (
-              <SortablePhoto
-                key={photo.id}
-                photo={photo}
-                index={index}
-                onRemove={removePhoto}
-              />
+              <div key={photo.id} className="w-28 h-28 sm:w-32 sm:h-32">
+                <SortablePhoto
+                  photo={photo}
+                  index={index}
+                  onRemove={removePhoto}
+                />
+              </div>
             ))}
 
             {/* Add more button */}
@@ -155,9 +155,9 @@ export function PhotoGallery({ photos, onPhotosChange }) {
               <button
                 type="button"
                 onClick={handleAddMore}
-                className="aspect-square w-full rounded-xl border-2 border-dashed border-[#d8e8d0] hover:border-[#81af6d] flex items-center justify-center transition-colors bg-[#fafdf8] hover:bg-[#f4f8f2]"
+                className="w-28 h-28 sm:w-32 sm:h-32 rounded-xl border-2 border-dashed border-[#c8d4be] hover:border-[#8b9e7e] flex items-center justify-center transition-all bg-white hover:bg-[#f5f8f2]"
               >
-                <Plus size={28} className="text-[#a9c99a]" />
+                <Plus size={28} className="text-[#b5c9a8]" />
               </button>
             )}
           </div>

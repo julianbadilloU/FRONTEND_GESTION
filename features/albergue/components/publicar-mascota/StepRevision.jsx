@@ -14,20 +14,13 @@ import {
 } from "@/features/albergue/constants/mascota-options";
 
 function getLabel(options, id) {
-  if (Array.isArray(options)) {
-    return options.find((o) => o.id === id)?.label || null;
-  }
-  // For breed options (object with dog/cat keys)
-  for (const group of Object.values(options)) {
-    const found = group.find((o) => o.id === id);
-    if (found) return found.label;
-  }
-  return null;
+  if (!id || !options) return null;
+  return options.find((o) => o.id === id)?.label || null;
 }
 
 function TagPill({ label }) {
   return (
-    <span className="inline-block bg-[#a9c99a]/30 text-[#4a7540] text-xs font-semibold px-3 py-1 rounded-full">
+    <span className="inline-block bg-[#8b9e7e]/20 text-[#5e7a50] text-xs font-semibold px-3 py-1.5 rounded-full">
       {label}
     </span>
   );
@@ -75,10 +68,10 @@ export function StepRevision({ formData, tags, photos }) {
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      <div className="bg-[#f5f2ed] rounded-2xl p-6 sm:p-8 space-y-6">
+      <div className="bg-[#f0ede8] rounded-2xl p-7 sm:p-10 space-y-7">
         {/* Nombre */}
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+          <p className="text-[0.7rem] font-bold uppercase tracking-widest text-[#a09890] mb-1.5">
             Nombre
           </p>
           <p className="text-lg font-semibold text-gray-900">
@@ -89,23 +82,23 @@ export function StepRevision({ formData, tags, photos }) {
         {/* Descripción */}
         {formData.descripcion && (
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-1">
+            <p className="text-[0.7rem] font-bold uppercase tracking-widest text-[#a09890] mb-1.5">
               Descripción
             </p>
-            <p className="text-sm text-gray-700">{formData.descripcion}</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{formData.descripcion}</p>
           </div>
         )}
 
         {/* Fotos */}
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+          <p className="text-[0.7rem] font-bold uppercase tracking-widest text-[#a09890] mb-3">
             Fotos ({photos.length})
           </p>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2.5 flex-wrap">
             {photos.map((photo, index) => (
               <div
                 key={photo.id}
-                className="w-16 h-16 rounded-lg overflow-hidden border border-[#e4d5c4]"
+                className="w-18 h-18 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-[#d5d0c8] shadow-sm"
               >
                 <img
                   src={photo.preview}
@@ -119,11 +112,11 @@ export function StepRevision({ formData, tags, photos }) {
 
         {/* Estado */}
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+          <p className="text-[0.7rem] font-bold uppercase tracking-widest text-[#a09890] mb-2">
             Estado
           </p>
-          <span className="inline-flex items-center gap-1.5 bg-[#a9c99a]/20 text-[#4a7540] text-sm font-semibold px-3 py-1 rounded-full">
-            <span className="w-2 h-2 bg-[#5e924e] rounded-full" />
+          <span className="inline-flex items-center gap-2 bg-[#8b9e7e]/15 text-[#5e7a50] text-sm font-semibold px-4 py-1.5 rounded-full">
+            <span className="w-2 h-2 bg-[#5e7a50] rounded-full" />
             Disponible
           </span>
         </div>
@@ -131,7 +124,7 @@ export function StepRevision({ formData, tags, photos }) {
         {/* Etiquetas */}
         {allTags.length > 0 && (
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">
+            <p className="text-[0.7rem] font-bold uppercase tracking-widest text-[#a09890] mb-3">
               Etiquetas
             </p>
             <div className="flex flex-wrap gap-2">
