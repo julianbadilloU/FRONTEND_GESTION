@@ -66,4 +66,4 @@ Debido a que el registro (GHCR) puede ser privado o público temporalmente, Azur
 3. **Docker** lee el `Dockerfile`, compila el App en Next.js, genera una mini-máquina virtual con Node 20 y almacena la nueva imagen.
 4. Esa imagen viaja a **GHCR**, obteniendo la etiqueta `:latest`.
 5. **Azure** recibe la señal, detiene el contenedor anterior y descarga/levanta el nuevo desde GHCR respondiendo en el puerto 8080.
-6. La aplicación está online.
+6. La aplicación está online
