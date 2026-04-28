@@ -14,3 +14,15 @@ export async function getMascotas() {
   const { data } = await apiClient.get("/api/mascotas");
   return data;
 }
+
+export async function updateMascotaEstado(id, payload) {
+  const { data } = await apiClient.patch(`/api/mascotas/${id}/estado`, payload);
+  return data;
+}
+
+export async function getMascotaById(id) {
+  const { data } = await apiClient.get(`/api/mascotas/${id}`);
+  return data;
+}
+
+
