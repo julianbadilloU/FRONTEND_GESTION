@@ -10,7 +10,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Variables de entorno para el build
-ENV NEXT_PUBLIC_API_URL=https://app-adopcion-backend-dev.azurewebsites.net/api
+ENV NEXT_PUBLIC_API_URL=https://app-adopcion-backend-dev.azurewebsites.net
 ENV NEXT_PUBLIC_APP_URL=https://app-adopcion-frontend-dev.azurewebsites.net
 RUN npm run build
 
@@ -28,7 +28,7 @@ COPY --from=builder /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 8080
-ENV PORT 8080
-ENV HOSTNAME "0.0.0.0"
+ENV PORT=8080
+ENV HOSTNAME=0.0.0.0
 
 CMD ["node", "server.js"]
