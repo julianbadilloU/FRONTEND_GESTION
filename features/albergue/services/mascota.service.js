@@ -25,4 +25,7 @@ export async function getMascotaById(id) {
   return data;
 }
 
-
+export async function updateMascota(id, payload) {
+  const { data } = await apiClient.put(`/api/mascotas/${id}`, payload);
+  return data;
+}
