@@ -2,15 +2,12 @@
 
 import {
   ANIMAL_TYPE_OPTIONS,
-  BREED_OPTIONS,
   AGE_OPTIONS,
   SIZE_OPTIONS,
-  COLOR_OPTIONS,
   SEX_OPTIONS,
   ENERGY_OPTIONS,
   COMPATIBILITY_OPTIONS,
   SPECIAL_CONDITION_OPTIONS,
-  HEALTH_STATUS_OPTIONS,
 } from "@/features/albergue/constants/mascota-options";
 
 function getLabel(options, id) {
@@ -32,17 +29,11 @@ export function StepRevision({ formData, tags, photos }) {
   const animalLabel = getLabel(ANIMAL_TYPE_OPTIONS, tags.animalType);
   if (animalLabel) allTags.push(animalLabel);
 
-  const breedLabel = getLabel(BREED_OPTIONS, tags.breed);
-  if (breedLabel) allTags.push(breedLabel);
-
   const ageLabel = getLabel(AGE_OPTIONS, tags.age);
   if (ageLabel) allTags.push(ageLabel);
 
   const sizeLabel = getLabel(SIZE_OPTIONS, tags.size);
   if (sizeLabel) allTags.push(sizeLabel);
-
-  const colorLabel = getLabel(COLOR_OPTIONS, tags.color);
-  if (colorLabel) allTags.push(colorLabel);
 
   const sexLabel = getLabel(SEX_OPTIONS, tags.sex);
   if (sexLabel) allTags.push(sexLabel);
@@ -56,15 +47,12 @@ export function StepRevision({ formData, tags, photos }) {
   );
   if (conditionLabel) allTags.push(conditionLabel);
 
-  (tags.compatibility || []).forEach((id) => {
-    const label = getLabel(COMPATIBILITY_OPTIONS, id);
-    if (label) allTags.push(label);
-  });
-
-  (tags.healthStatus || []).forEach((id) => {
-    const label = getLabel(HEALTH_STATUS_OPTIONS, id);
-    if (label) allTags.push(label);
-  });
+  (tags.compatibility || [])
+    .filter((id) => ["kids", "dogs", "cats"].includes(id))
+    .forEach((id) => {
+      const label = getLabel(COMPATIBILITY_OPTIONS, id);
+      if (label) allTags.push(label);
+    });
 
   return (
     <div className="w-full max-w-2xl mx-auto">

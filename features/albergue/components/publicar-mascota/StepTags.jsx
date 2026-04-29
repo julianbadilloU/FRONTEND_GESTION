@@ -99,11 +99,16 @@ function CheckTag({ option, checked, onToggle }) {
   );
 }
 
-function SectionLabel({ children, required }) {
+function SectionLabel({ children, required, comingSoon }) {
   return (
-    <h3 className="text-base font-bold text-gray-900">
+    <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
       {children}
       {required && <span className="text-red-400 ml-1">*</span>}
+      {comingSoon && (
+        <span className="ml-1 text-[0.65rem] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+          Próximamente
+        </span>
+      )}
     </h3>
   );
 }
@@ -148,22 +153,16 @@ export function StepTags({ tags, onTagChange }) {
         </div>
       </div>
 
-      {/* Raza */}
+      {/* Raza — pendiente de catálogo en backend */}
       {breedList.length > 0 && (
-        <div className="space-y-3">
-          <SectionLabel>Raza</SectionLabel>
+        <div className="space-y-3 opacity-60">
+          <SectionLabel comingSoon>Raza</SectionLabel>
           <select
-            value={tags.breed || ""}
-            onChange={(e) => onTagChange("breed", e.target.value)}
-            className="w-full max-w-sm border border-[#d5d0c8] focus:border-[#8b9e7e] focus:ring-2 focus:ring-[#8b9e7e]/10 rounded-xl py-3.5 px-4 text-sm text-gray-800 bg-white focus:outline-none transition-all appearance-none"
-            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}
+            disabled
+            value=""
+            className="w-full max-w-sm border border-[#d5d0c8] rounded-xl py-3.5 px-4 text-sm text-gray-500 bg-gray-50 cursor-not-allowed appearance-none"
           >
-            <option value="">Selecciona una raza</option>
-            {breedList.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.label}
-              </option>
-            ))}
+            <option value="">Disponible próximamente</option>
           </select>
         </div>
       )}
@@ -198,16 +197,16 @@ export function StepTags({ tags, onTagChange }) {
         </div>
       </div>
 
-      {/* Color */}
-      <div className="space-y-3">
-        <SectionLabel>Color</SectionLabel>
+      {/* Color — pendiente de catálogo en backend */}
+      <div className="space-y-3 opacity-60 pointer-events-none">
+        <SectionLabel comingSoon>Color</SectionLabel>
         <div className="flex flex-wrap gap-2.5">
           {COLOR_OPTIONS.map((opt) => (
             <PillTag
               key={opt.id}
               option={opt}
-              selected={tags.color === opt.id}
-              onSelect={handleSingleSelect("color")}
+              selected={false}
+              onSelect={() => {}}
             />
           ))}
         </div>
@@ -247,12 +246,29 @@ export function StepTags({ tags, onTagChange }) {
       <div className="space-y-3">
         <SectionLabel>Compatibilidad</SectionLabel>
         <div className="flex flex-wrap gap-2.5">
-          {COMPATIBILITY_OPTIONS.map((opt) => (
+          {COMPATIBILITY_OPTIONS.filter((o) =>
+            ["kids", "dogs", "cats"].includes(o.id),
+          ).map((opt) => (
             <PillTag
               key={opt.id}
               option={opt}
               selected={(tags.compatibility || []).includes(opt.id)}
               onSelect={handleMultiSelect("compatibility")}
+            />
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2.5 opacity-60 pointer-events-none pt-1">
+          <span className="text-[0.65rem] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-1 rounded-full self-center">
+            Próximamente
+          </span>
+          {COMPATIBILITY_OPTIONS.filter((o) =>
+            ["seniors", "disabled"].includes(o.id),
+          ).map((opt) => (
+            <PillTag
+              key={opt.id}
+              option={opt}
+              selected={false}
+              onSelect={() => {}}
             />
           ))}
         </div>
@@ -274,16 +290,16 @@ export function StepTags({ tags, onTagChange }) {
         </div>
       </div>
 
-      {/* Estado de salud */}
-      <div className="space-y-3">
-        <SectionLabel>Estado de salud</SectionLabel>
+      {/* Estado de salud — pendiente de catálogo en backend */}
+      <div className="space-y-3 opacity-60 pointer-events-none">
+        <SectionLabel comingSoon>Estado de salud</SectionLabel>
         <div className="space-y-2">
           {HEALTH_STATUS_OPTIONS.map((opt) => (
             <CheckTag
               key={opt.id}
               option={opt}
-              checked={(tags.healthStatus || []).includes(opt.id)}
-              onToggle={handleCheckToggle("healthStatus")}
+              checked={false}
+              onToggle={() => {}}
             />
           ))}
         </div>
