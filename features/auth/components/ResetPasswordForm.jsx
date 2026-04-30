@@ -53,7 +53,7 @@ export function ResetPasswordForm() {
       
       await apiClient.post("/api/auth/reset-password", {
         token,
-        nuevaPassword: password,
+        newPassword: password,
       });
 
       setSuccess(true);

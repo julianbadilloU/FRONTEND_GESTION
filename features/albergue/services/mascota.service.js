@@ -29,3 +29,16 @@ export async function updateMascota(id, payload) {
   const { data } = await apiClient.put(`/api/mascotas/${id}`, payload);
   return data;
 }
+
+export async function getMisMascotas(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const { data } = await apiClient.get(`/api/mascotas/mis-mascotas?${query}`);
+  return data;
+}
+
+export async function deleteMascota(id, motivo) {
+  const { data } = await apiClient.delete(`/api/mascotas/${id}`, {
+    data: { motivo },
+  });
+  return data;
+}

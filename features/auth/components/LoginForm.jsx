@@ -16,9 +16,6 @@ import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 export function LoginForm({ onSuccess }) {
   const [showPw, setShowPw] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [isBlocking, setIsBlocking] = useState(false);
-  const [countdown, setCountdown] = useState(null);
   const [serverError, setServerError] = useState(null);
 
   const {
@@ -31,31 +28,7 @@ export function LoginForm({ onSuccess }) {
     mode: "onSubmit",
   });
 
-  // Start lockout countdown
-  const startLockout = () => {
-    setIsBlocking(true);
-    let secs = 60;
-    setCountdown(secs);
-    const timer = setInterval(() => {
-      secs -= 1;
-      setCountdown(secs);
-      if (secs <= 0) {
-        clearInterval(timer);
-        setIsBlocking(false);
-        setAttempts(0);
-        setCountdown(null);
-      }
-    }, 1000);
-  };
-
-  const formatTime = (s) => {
-    const m = Math.floor(s / 60).toString().padStart(2, "0");
-    const sec = (s % 60).toString().padStart(2, "0");
-    return `${m}:${sec}`;
-  };
-
   const onSubmit = async (data) => {
-    if (isBlocking) return;
     setServerError(null);
 
     try {
@@ -74,18 +47,14 @@ export function LoginForm({ onSuccess }) {
       onSuccess?.(data.email);
     } catch (error) {
       if (error.response) {
-        const { status } = error.response;
+        const { status, data: errData } = error.response;
         if (status === 400) {
           setServerError("Error de validación (correo o contraseña en formato incorrecto).");
         } else if (status === 401) {
           setError("email", { type: "server", message: "Correo o contraseña incorrectos" });
           setError("password", { type: "server", message: "Correo o contraseña incorrectos" });
-          
-          const newAttempts = attempts + 1;
-          setAttempts(newAttempts);
-          if (newAttempts >= 3) startLockout();
         } else if (status === 403) {
-          startLockout();
+          setServerError(errData?.message || "Demasiados intentos. Cuenta bloqueada temporalmente. Intenta en 15 min.");
         } else if (status === 500) {
           setServerError("Error interno del servidor. Intenta de nuevo más tarde.");
         } else {
@@ -138,23 +107,14 @@ export function LoginForm({ onSuccess }) {
         </p>
       </div>
 
-      {isBlocking && countdown !== null && (
-        <div className="w-full max-w-sm">
-          <AuthAlert type="warn" title="Cuenta Bloqueada Temporalmente">
-            Demasiados intentos. Reintentar en{" "}
-            <span className="font-serif font-bold text-lg">{formatTime(countdown)}</span>
-          </AuthAlert>
-        </div>
-      )}
-
-      {!isBlocking && (serverError || errors.root?.message) && (
+      {(serverError || errors.root?.message) && (
         <div className="w-full max-w-sm">
           <AuthAlert type="error">{serverError ?? errors.root?.message}</AuthAlert>
         </div>
       )}
 
       <form
-        className={`w-full max-w-sm space-y-6 ${isBlocking ? "opacity-40 pointer-events-none grayscale" : ""}`}
+        className="w-full max-w-sm space-y-6"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
@@ -191,7 +151,7 @@ export function LoginForm({ onSuccess }) {
         <div className="flex justify-center pt-2">
           <AuthButton 
              type="submit" 
-             disabled={isSubmitting || isBlocking}
+             disabled={isSubmitting}
              className="w-auto px-16 py-3 rounded-full bg-[#a9c99a] hover:bg-[#81af6d] text-white shadow-none text-base normal-case tracking-normal font-semibold"
           >
             {isSubmitting ? "Ingresando..." : "Login"}

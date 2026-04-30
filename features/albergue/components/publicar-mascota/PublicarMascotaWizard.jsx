@@ -161,7 +161,7 @@ export function PublicarMascotaWizard() {
         nombre: formData.nombre,
         descripcion: formData.descripcion || "",
         fotos: photosBase64,
-        tags: Array.from(selectedTagIds),
+        tagsIds: Array.from(selectedTagIds),
       };
 
       await createMascota(payload);

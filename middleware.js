@@ -12,6 +12,27 @@ const PUBLIC_ROUTES = [
 
 const PROTECTED_PREFIXES = ["/adoptante", "/albergue", "/admin"];
 
+/**
+ * Decodifica el payload de un JWT sin verificar firma.
+ * @param {string} token
+ * @returns {object|null}
+ */
+function decodeJwtPayload(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+}
+
 export function middleware(request) {
   const { pathname } = request.nextUrl;
 
@@ -46,6 +67,35 @@ export function middleware(request) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // ── VALIDACIÓN DE ROL ──
+  const payload = decodeJwtPayload(accessToken);
+  const userRole = payload?.role?.toLowerCase();
+
+  const roleByPrefix = {
+    "/adoptante": "adoptante",
+    "/albergue": "albergue",
+    "/admin": "administrador",
+  };
+
+  const requiredRole = PROTECTED_PREFIXES.find((prefix) =>
+    pathname.startsWith(prefix)
+  )
+    ? roleByPrefix[
+        PROTECTED_PREFIXES.find((prefix) => pathname.startsWith(prefix))
+      ]
+    : null;
+
+  if (requiredRole && userRole !== requiredRole) {
+    // Redirigir al dashboard correspondiente según el rol
+    const redirectPath =
+      userRole === "adoptante"
+        ? "/adoptante/feed"
+        : userRole === "albergue"
+        ? "/albergue/mascotas"
+        : "/";
+    return NextResponse.redirect(new URL(redirectPath, request.url));
   }
 
   return NextResponse.next();
