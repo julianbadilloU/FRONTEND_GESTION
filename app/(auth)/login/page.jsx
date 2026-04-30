@@ -11,9 +11,16 @@ export default function LoginPage() {
   return (
     <AnimatePresence mode="wait">
       <LoginForm
-        onSuccess={(email) => {
-          // TODO: redirect to role-based dashboard once protected routes exist
-          router.push("/");
+        onSuccess={({ email, role }) => {
+          if (role === "adoptante") {
+            router.push("/adoptante/feed");
+          } else if (role === "albergue") {
+            router.push("/albergue/mascotas");
+          } else if (role === "administrador") {
+            router.push("/admin");
+          } else {
+            router.push("/");
+          }
         }}
       />
     </AnimatePresence>

@@ -39,12 +39,21 @@ export function LoginForm({ onSuccess }) {
 
       let accessToken = response.data;
       if (typeof accessToken === "object") {
-        accessToken = accessToken.token || accessToken.accessToken || accessToken.jwt || accessToken.data;
+        accessToken = accessToken.data?.token || accessToken.token || accessToken.accessToken || accessToken.jwt || accessToken.data;
       }
       
       saveSessionTokens({ accessToken });
 
-      onSuccess?.(data.email);
+      // Decodificar JWT para obtener rol y redirigir
+      let role = null;
+      try {
+        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        role = payload.role;
+      } catch {
+        role = null;
+      }
+
+      onSuccess?.({ email: data.email, role });
     } catch (error) {
       if (error.response) {
         const { status, data: errData } = error.response;

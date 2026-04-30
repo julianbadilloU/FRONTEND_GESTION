@@ -1,0 +1,16 @@
+
+> furmatch-frontend@0.1.0 dev
+> next dev --port 3001
+
+▲ Next.js 16.2.2 (Turbopack)
+- Local:         http://localhost:3001
+- Network:       http://192.168.20.45:3001
+- Environments: .env.local
+✓ Ready in 691ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+ GET /login 200 in 1283ms (next.js: 423ms, proxy.ts: 159ms, application-code: 701ms)
+ GET /login 200 in 1127ms (next.js: 932ms, proxy.ts: 7ms, application-code: 187ms)
+ GET /registro 200 in 304ms (next.js: 93ms, proxy.ts: 18ms, application-code: 193ms)
+
+C:\Users\elkaw\Desktop\Proyecto adopcion\App\FRONTEND_GESTION>
