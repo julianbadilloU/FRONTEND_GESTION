@@ -8,6 +8,9 @@ export const mascotaDatosBasicosSchema = z.object({
   descripcion: z
     .string()
     .max(1000, "Máximo 1000 caracteres")
+    .refine((v) => !v || v.trim().length >= 10, {
+      message: "La descripción debe tener al menos 10 caracteres.",
+    })
     .optional()
     .or(z.literal("")),
 });
