@@ -2,7 +2,9 @@ import { apiClient } from "@/lib/http/api-client";
 
 export async function getTags() {
   const { data } = await apiClient.get("/api/admin/etiquetas");
-  return data;
+  // El backend retorna { success: true, data: [...] }
+  // Extraemos el array interno
+  return data?.data || [];
 }
 
 export async function createTag(payload) {

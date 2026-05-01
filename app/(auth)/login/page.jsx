@@ -17,7 +17,7 @@ export default function LoginPage() {
           } else if (role === "albergue") {
             router.push("/albergue/mascotas");
           } else if (role === "administrador") {
-            router.push("/admin");
+            router.push("/admin/tags");
           } else {
             router.push("/");
           }
