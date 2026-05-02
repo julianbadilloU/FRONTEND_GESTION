@@ -45,18 +45,26 @@ export function PublicarMascotaWizard() {
   const [submitError, setSubmitError] = useState(null);
   const [stepError, setStepError] = useState(null);
   const [etiquetas, setEtiquetas] = useState([]);
+  const [etiquetasLoading, setEtiquetasLoading] = useState(true);
   const [etiquetasError, setEtiquetasError] = useState(false);
   const [photosProgress, setPhotosProgress] = useState({ done: 0, total: 0 });
 
   useEffect(() => {
     let cancelled = false;
     async function loadEtiquetas() {
+      setEtiquetasLoading(true);
       try {
         const response = await getEtiquetas();
         const list = response?.data || response || [];
-        if (!cancelled) setEtiquetas(list);
+        if (!cancelled) {
+          setEtiquetas(list);
+          setEtiquetasLoading(false);
+        }
       } catch {
-        if (!cancelled) setEtiquetasError(true);
+        if (!cancelled) {
+          setEtiquetasError(true);
+          setEtiquetasLoading(false);
+        }
       }
     }
     loadEtiquetas();
@@ -243,7 +251,13 @@ export function PublicarMascotaWizard() {
               <StepFotos photos={photos} onPhotosChange={setPhotos} />
             )}
             {step === 3 && (
-              <StepTags tags={tags} onTagChange={handleTagChange} />
+              <StepTags
+                tags={tags}
+                onTagChange={handleTagChange}
+                etiquetas={etiquetas}
+                etiquetasLoading={etiquetasLoading}
+                etiquetasError={etiquetasError}
+              />
             )}
             {step === 4 && (
               <StepRevision
