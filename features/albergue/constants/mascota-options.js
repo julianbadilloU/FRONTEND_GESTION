@@ -1,76 +1,79 @@
 // ──── Opciones del wizard de publicación de mascota (RF-MA-01) ────
+// NOTA: Los ids deben coincidir con los VALORES del backend (string en español)
+// para que sean compatibles con las opciones dinámicas de la BD.
 
 export const ANIMAL_TYPE_OPTIONS = [
-  { id: "dog", label: "Perro", emoji: "🐶" },
-  { id: "cat", label: "Gato", emoji: "🐱" },
+  { id: "Perro", label: "Perro", emoji: "🐶" },
+  { id: "Gato", label: "Gato", emoji: "🐱" },
 ];
 
 // Raza: lista única según RF-MA-01
 export const BREED_OPTIONS = [
-  { id: "sin_preferencia", label: "Sin preferencia" },
-  { id: "labrador", label: "Labrador" },
-  { id: "bulldog", label: "Bulldog" },
-  { id: "golden", label: "Golden Retriever" },
-  { id: "mestizo", label: "Mestizo" },
-  { id: "poodle", label: "Poodle" },
-  { id: "beagle", label: "Beagle" },
-  { id: "siames", label: "Siamés" },
-  { id: "persa", label: "Persa" },
-  { id: "comun", label: "Común" },
-  { id: "otra", label: "Otra" },
+  { id: "Sin preferencia", label: "Sin preferencia" },
+  { id: "Labrador", label: "Labrador" },
+  { id: "Bulldog", label: "Bulldog" },
+  { id: "Golden Retriever", label: "Golden Retriever" },
+  { id: "Mestizo", label: "Mestizo" },
+  { id: "Poodle", label: "Poodle" },
+  { id: "Beagle", label: "Beagle" },
+  { id: "Siamés", label: "Siamés" },
+  { id: "Persa", label: "Persa" },
+  { id: "Común", label: "Común" },
+  { id: "Otra", label: "Otra" },
 ];
 
 export const AGE_OPTIONS = [
-  { id: "puppy", label: "Cachorro (0-1 año)", emoji: "🐣" },
-  { id: "young", label: "Joven (1-3 años)", emoji: "⭐" },
-  { id: "adult", label: "Adulto (3-7 años)", emoji: "🐾" },
-  { id: "senior", label: "Senior (+7 años)", emoji: "🔵" },
+  { id: "Cachorro (0–1 año)", label: "Cachorro (0–1 año)", emoji: "🐣" },
+  { id: "Joven (1–3 años)", label: "Joven (1–3 años)", emoji: "⭐" },
+  { id: "Adulto (3–7 años)", label: "Adulto (3–7 años)", emoji: "🐾" },
+  { id: "Senior (+7 años)", label: "Senior (+7 años)", emoji: "🔵" },
 ];
 
 export const SIZE_OPTIONS = [
-  { id: "small", label: "Pequeño", emoji: "🐾" },
-  { id: "medium", label: "Mediano", emoji: "🐕" },
-  { id: "large", label: "Grande", emoji: "🦮" },
+  { id: "Pequeño", label: "Pequeño", emoji: "🐾" },
+  { id: "Mediano", label: "Mediano", emoji: "🐕" },
+  { id: "Grande", label: "Grande", emoji: "🦮" },
 ];
 
 export const COLOR_OPTIONS = [
-  { id: "black", label: "Negro", emoji: "⚫" },
-  { id: "white", label: "Blanco", emoji: "🤍" },
-  { id: "brown", label: "Café", emoji: "🟤" },
-  { id: "gray", label: "Gris", emoji: "🩶" },
-  { id: "orange", label: "Anaranjado", emoji: "🟠" },
-  { id: "multicolor", label: "Multicolor", emoji: "🌈" },
+  { id: "Negro", label: "Negro", emoji: "⚫" },
+  { id: "Blanco", label: "Blanco", emoji: "🤍" },
+  { id: "Café", label: "Café", emoji: "🟤" },
+  { id: "Gris", label: "Gris", emoji: "🩶" },
+  { id: "Anaranjado", label: "Anaranjado", emoji: "🟠" },
+  { id: "Multicolor", label: "Multicolor", emoji: "🌈" },
 ];
 
 export const SEX_OPTIONS = [
-  { id: "male", label: "Macho", emoji: "♂️" },
-  { id: "female", label: "Hembra", emoji: "♀️" },
+  { id: "Macho", label: "Macho", emoji: "♂️" },
+  { id: "Hembra", label: "Hembra", emoji: "♀️" },
 ];
 
 export const ENERGY_OPTIONS = [
-  { id: "calm", label: "Tranquilo", emoji: "😴" },
-  { id: "moderate", label: "Moderado", emoji: "🏃" },
-  { id: "active", label: "Muy activo", emoji: "⚡" },
+  { id: "Tranquilo", label: "Tranquilo", emoji: "😴" },
+  { id: "Moderado", label: "Moderado", emoji: "🏃" },
+  { id: "Muy activo", label: "Muy activo", emoji: "⚡" },
 ];
 
+// Compatibilidad unificada según RF-MA-01: una sola categoría "Compatibilidad" con 5 opciones
 export const COMPATIBILITY_OPTIONS = [
-  { id: "kids", label: "Niños", emoji: "👶" },
-  { id: "dogs", label: "Otros perros", emoji: "🐶" },
-  { id: "cats", label: "Gatos", emoji: "🐱" },
-  { id: "seniors", label: "Adultos mayores", emoji: "🧓" },
-  { id: "disabled", label: "Personas con discapacidad", emoji: "🧑‍🦽" },
+  { id: "Niños", label: "Niños", emoji: "👶" },
+  { id: "Otros perros", label: "Otros perros", emoji: "🐶" },
+  { id: "Gatos", label: "Gatos", emoji: "🐱" },
+  { id: "Adultos mayores", label: "Adultos mayores", emoji: "🧓" },
+  { id: "Personas con discapacidad", label: "Personas con discapacidad", emoji: "🧑‍🦽" },
 ];
 
 export const SPECIAL_CONDITION_OPTIONS = [
-  { id: "none", label: "Sin condición", emoji: "✅" },
-  { id: "disability", label: "Con discapacidad", emoji: "♿" },
-  { id: "treatment", label: "En tratamiento médico", emoji: "💊" },
+  { id: "Sin condición", label: "Sin condición", emoji: "✅" },
+  { id: "Con discapacidad", label: "Con discapacidad", emoji: "♿" },
+  { id: "En tratamiento médico", label: "En tratamiento médico", emoji: "💊" },
 ];
 
 export const HEALTH_STATUS_OPTIONS = [
-  { id: "vaccinated", label: "Vacunado", emoji: "💉" },
-  { id: "dewormed", label: "Desparasitado", emoji: "💊" },
-  { id: "sterilized", label: "Esterilizado", emoji: "🏥" },
+  { id: "Vacunado", label: "Vacunado", emoji: "💉" },
+  { id: "Desparasitado", label: "Desparasitado", emoji: "🔬" },
+  { id: "Esterilizado", label: "Esterilizado", emoji: "🏥" },
 ];
 
 export const WIZARD_STEPS = [

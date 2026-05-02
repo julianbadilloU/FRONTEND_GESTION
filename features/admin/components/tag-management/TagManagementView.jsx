@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Plus, Tag as TagIcon, Loader2 } from "lucide-react";
+import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { TagTable } from "./TagTable";
 import { TagFilters } from "./TagFilters";
 import { TagModal } from "./TagModal";
@@ -91,17 +92,20 @@ export function TagManagementView() {
             <TagIcon size={20} strokeWidth={2.5} />
             <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Configuración Base</span>
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 font-serif italic">Gestión de Tags</h1>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 font-serif italic">Gestión de Tags</h1>
           <p className="text-gray-500 text-sm">Administra el catálogo de etiquetas y ponderaciones para el algoritmo de matching.</p>
         </div>
 
-        <button 
-          onClick={handleCreate}
-          className="flex items-center justify-center gap-2 bg-[#8b9e7e] hover:bg-[#7a8e6e] text-white px-6 py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-[#8b9e7e]/20 transition-all active:scale-[0.98]"
-        >
-          <Plus size={18} />
-          Nuevo Tag
-        </button>
+        <div className="flex items-center gap-3">
+          <LogoutButton variant="full" />
+          <button 
+            onClick={handleCreate}
+            className="flex items-center justify-center gap-2 bg-[#8b9e7e] hover:bg-[#7a8e6e] text-white px-6 py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-[#8b9e7e]/20 transition-all active:scale-[0.98]"
+          >
+            <Plus size={18} />
+            Nuevo Tag
+          </button>
+        </div>
       </div>
 
       <TagFilters 

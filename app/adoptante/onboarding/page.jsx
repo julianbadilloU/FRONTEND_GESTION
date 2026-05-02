@@ -1,3 +1,4 @@
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { OnboardingWizard } from "@/features/adoptante/components/wizard/OnboardingWizard";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function OnboardingPage() {
-  return <OnboardingWizard />;
+  return (
+    <ClientAuthGuard allowedRoles={["adoptante"]}>
+      <OnboardingWizard />
+    </ClientAuthGuard>
+  );
 }
