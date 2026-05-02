@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Dog, Cat, Search, Filter, Heart, MapPin, Calendar, Zap } from "lucide-react";
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { getFeedMascotas, getMatchMascotas } from "@/features/adoptante/services/adoptante.service";
 
 function MascotaCard({ mascota, compatibilidad }) {
@@ -115,7 +116,8 @@ export default function FeedPage() {
   const error = feedError;
 
   return (
-    <div className="min-h-screen bg-[#fafaf8]">
+    <ClientAuthGuard allowedRoles={["adoptante"]}>
+      <div className="min-h-screen bg-[#fafaf8]">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -213,5 +215,6 @@ export default function FeedPage() {
         )}
       </div>
     </div>
+    </ClientAuthGuard>
   );
 }

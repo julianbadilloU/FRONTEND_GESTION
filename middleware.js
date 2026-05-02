@@ -72,11 +72,12 @@ export function middleware(request) {
   // ── VALIDACIÓN DE ROL ──
   const payload = decodeJwtPayload(accessToken);
   const userRole = payload?.role?.toLowerCase();
+  const userEstadoCuenta = payload?.estado_cuenta;
 
   const roleByPrefix = {
     "/adoptante": "adoptante",
     "/albergue": "albergue",
-    "/admin": "administrador",
+    "/admin": "admin",
   };
 
   const requiredRole = PROTECTED_PREFIXES.find((prefix) =>
@@ -96,6 +97,25 @@ export function middleware(request) {
         ? "/albergue/mascotas"
         : "/";
     return NextResponse.redirect(new URL(redirectPath, request.url));
+  }
+
+  // ── VALIDACIÓN DE PERFIL COMPLETO ──
+  // Si el perfil está incompleto y NO está yendo al onboarding, redirigir
+  if (
+    userEstadoCuenta === "perfil_incompleto" &&
+    !pathname.includes("/onboarding") &&
+    requiredRole
+  ) {
+    const onboardingPath =
+      userRole === "adoptante"
+        ? "/adoptante/onboarding"
+        : userRole === "albergue"
+        ? "/albergue/onboarding"
+        : null;
+
+    if (onboardingPath) {
+      return NextResponse.redirect(new URL(onboardingPath, request.url));
+    }
   }
 
   return NextResponse.next();

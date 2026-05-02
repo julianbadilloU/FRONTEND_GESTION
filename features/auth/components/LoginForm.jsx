@@ -44,16 +44,18 @@ export function LoginForm({ onSuccess }) {
       
       saveSessionTokens({ accessToken });
 
-      // Decodificar JWT para obtener rol y redirigir
+      // Decodificar JWT para obtener rol, estado_cuenta y redirigir
       let role = null;
+      let estadoCuenta = null;
       try {
         const payload = JSON.parse(atob(accessToken.split('.')[1]));
         role = payload.role;
+        estadoCuenta = payload.estado_cuenta;
       } catch {
         role = null;
       }
 
-      onSuccess?.({ email: data.email, role });
+      onSuccess?.({ email: data.email, role, estado_cuenta: estadoCuenta });
     } catch (error) {
       if (error.response) {
         const { status, data: errData } = error.response;
@@ -81,7 +83,7 @@ export function LoginForm({ onSuccess }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex flex-col items-center justify-center min-h-[50vh] space-y-6"
+      className="flex flex-col items-center justify-center min-h-[50vh] space-y-6 px-4"
     >
       {/* Mobile only: Logo + Title */}
       <div className="md:hidden flex flex-col items-center w-full mb-4">
