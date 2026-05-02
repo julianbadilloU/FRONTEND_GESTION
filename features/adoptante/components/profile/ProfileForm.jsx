@@ -14,7 +14,7 @@ function FieldLabel({ children, locked = false, htmlFor }) {
   return (
     <label
       htmlFor={htmlFor}
-      className="flex items-center gap-1 text-[0.62rem] font-semibold uppercase tracking-widest text-gray-400 mb-1 cursor-pointer"
+      className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1 cursor-pointer"
     >
       {children}
       {locked && (
@@ -159,9 +159,9 @@ export function ProfileForm({
           </div>
 
           {/* Grid de campos */}
-          <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-4">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
             {/* Nombre completo */}
-            <div className="col-span-2 sm:col-span-1">
+            <div>
               <FieldLabel htmlFor="f-nombre">Nombre Completo</FieldLabel>
               <FieldInput
                 id="f-nombre"
@@ -178,7 +178,7 @@ export function ProfileForm({
             </div>
 
             {/* Email — bloqueado */}
-            <div className="col-span-2 sm:col-span-1">
+            <div>
               <FieldLabel locked>Correo Electrónico</FieldLabel>
               <FieldInput
                 id="f-email"
@@ -187,13 +187,13 @@ export function ProfileForm({
                 disabled
                 readOnly
               />
-              <p className="text-[0.6rem] text-gray-400 mt-1 leading-relaxed">
+              <p className="text-[0.65rem] text-gray-400 mt-1 leading-relaxed">
                 Este campo no puede modificarse.
               </p>
             </div>
 
             {/* WhatsApp */}
-            <div className="col-span-2 sm:col-span-1">
+            <div>
               <FieldLabel htmlFor="f-wa">Número de WhatsApp</FieldLabel>
               <FieldInput
                 id="f-wa"
@@ -211,7 +211,7 @@ export function ProfileForm({
             </div>
 
             {/* Ciudad */}
-            <div className="col-span-2 sm:col-span-1">
+            <div>
               <FieldLabel htmlFor="f-ciudad">Ciudad</FieldLabel>
               <FieldInput
                 id="f-ciudad"
@@ -304,7 +304,7 @@ export function ProfileForm({
                 key={s}
                 type="button"
                 onClick={() => addTag(s)}
-                className="text-[0.65rem] text-gray-400 hover:text-[#5e7a50] hover:bg-[#e8f0e2] px-2 py-0.5 rounded-full border border-transparent hover:border-[#d4e0ca] transition-all"
+                className="text-xs text-gray-400 hover:text-[#5e7a50] hover:bg-[#e8f0e2] px-2 py-0.5 rounded-full border border-transparent hover:border-[#d4e0ca] transition-all"
               >
                 + {s}
               </button>

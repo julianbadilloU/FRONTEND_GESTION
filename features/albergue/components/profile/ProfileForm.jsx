@@ -13,7 +13,7 @@ function FieldLabel({ children, locked = false, htmlFor }) {
   return (
     <label
       htmlFor={htmlFor}
-      className="flex items-center gap-1 text-[0.62rem] font-semibold uppercase tracking-widest text-gray-400 mb-1 cursor-pointer"
+      className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1 cursor-pointer"
     >
       {children}
       {locked && (
@@ -119,7 +119,7 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
           </div>
 
           {/* Grid de campos */}
-          <div className="flex-1 grid grid-cols-2 gap-x-6 gap-y-4">
+          <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
 
             {/* Nombre del albergue */}
             <div>
@@ -145,7 +145,7 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
                 disabled
                 readOnly
               />
-              <p className="text-[0.6rem] text-gray-400 mt-1 leading-relaxed">
+              <p className="text-[0.65rem] text-gray-400 mt-1 leading-relaxed">
                 Este campo no puede modificarse. Contacta a soporte si necesitas realizar un cambio.
               </p>
             </div>
@@ -160,7 +160,7 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
                 disabled
                 readOnly
               />
-              <p className="text-[0.6rem] text-gray-400 mt-1 leading-relaxed">
+              <p className="text-[0.65rem] text-gray-400 mt-1 leading-relaxed">
                 Este campo no puede modificarse. Contacta a soporte si necesitas realizar un cambio.
               </p>
             </div>

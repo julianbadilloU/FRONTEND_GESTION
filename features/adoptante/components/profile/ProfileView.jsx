@@ -2,10 +2,10 @@ import { Lock, MapPin, Phone, Mail, User, Tag } from "lucide-react";
 import Image from "next/image";
 
 // ─── helper: fila de campo de solo lectura ───────────────────────────────────
-function Field({ label, value, locked = false, icon = null }) {
+function Field({ label, value, locked = false, icon = null, colSpan = 1 }) {
   return (
-    <div>
-      <p className="flex items-center gap-1 text-[0.62rem] font-semibold uppercase tracking-widest text-gray-400 mb-1">
+    <div className={colSpan === 2 ? "col-span-2" : ""}>
+      <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
         {label}
         {locked && (
           <>
@@ -52,7 +52,7 @@ export function ProfileView({ profile }) {
         </div>
 
         {/* Campos en grid 2 columnas */}
-        <div className="flex-1 grid grid-cols-2 gap-x-10 gap-y-5">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-5">
           <Field
             label="Nombre Completo"
             value={profile?.nombre_completo}
@@ -85,7 +85,7 @@ export function ProfileView({ profile }) {
       {/* Tags / Preferencias */}
       {tags.length > 0 && (
         <div className="mt-6 pt-6 border-t border-[#e4d5c4]">
-          <p className="flex items-center gap-1 text-[0.62rem] font-semibold uppercase tracking-widest text-gray-400 mb-3">
+          <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
             <Tag size={11} />
             Preferencias
           </p>

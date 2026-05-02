@@ -1,3 +1,4 @@
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { AdoptanteProfile } from "@/features/adoptante/components/profile/AdoptanteProfile";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function PerfilAdoptantePage() {
-  return <AdoptanteProfile />;
+  return (
+    <ClientAuthGuard allowedRoles={["adoptante"]}>
+      <AdoptanteProfile />
+    </ClientAuthGuard>
+  );
 }
