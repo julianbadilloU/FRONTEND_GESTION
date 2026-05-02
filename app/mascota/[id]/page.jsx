@@ -3,13 +3,43 @@
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Dog, Cat, ArrowLeft, MapPin, Calendar, Heart, Share2 } from "lucide-react";
+import { Dog, Cat, ArrowLeft, MapPin, Calendar, Heart, Share2, MessageCircle } from "lucide-react";
 import { getMascotaById } from "@/features/albergue/services/mascota.service";
+
+/**
+ * Obtiene el rol del usuario actual decodificando el JWT del localStorage.
+ * Retorna null si no hay token o es inválido.
+ */
+function useUserRole() {
+  if (typeof window === "undefined") return null;
+  try {
+    const token = window.localStorage.getItem("furmatch.access_token");
+    if (!token) return null;
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return payload?.role || payload?.rol || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Genera un enlace de WhatsApp con mensaje predefinido.
+ * Formato: https://wa.me/[número]?text=[mensaje_codificado]
+ * RF-MCH-02: el número debe incluir código de país (ej: +573001234567)
+ */
+function buildWhatsAppLink(whatsapp, nombreMascota, nombreAlbergue) {
+  if (!whatsapp) return null;
+  // Limpiar número: quitar espacios, guiones, paréntesis; mantener + y dígitos
+  const cleanNumber = whatsapp.replace(/[^+\d]/g, "");
+  const mensaje = `Hola ${nombreAlbergue}, vi a ${nombreMascota} en FurMatch y me gustaría saber más sobre la adopción. ¡Gracias!`;
+  return `https://wa.me/${cleanNumber.replace("+", "")}?text=${encodeURIComponent(mensaje)}`;
+}
 
 export default function MascotaDetallePage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id;
+  const userRole = useUserRole();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["mascota", id],
@@ -17,7 +47,7 @@ export default function MascotaDetallePage() {
     enabled: !!id,
   });
 
-  const mascota = data?.data;
+  const mascota = data;
 
   if (isLoading) {
     return (
@@ -45,7 +75,7 @@ export default function MascotaDetallePage() {
 
   const tipoTag = mascota.tags?.find((t) => t.nombre_tag === "Tipo de animal");
   const tamañoTag = mascota.tags?.find((t) => t.nombre_tag === "Tamaño");
-  const edadTag = mascota.tags?.find((t) => t.nombre_tag === "Rango de edad");
+  const edadTag = mascota.tags?.find((t) => t.nombre_tag === "Edad");
   const sexoTag = mascota.tags?.find((t) => t.nombre_tag === "Sexo");
   const energiaTag = mascota.tags?.find((t) => t.nombre_tag === "Nivel de energía");
 
@@ -161,12 +191,29 @@ export default function MascotaDetallePage() {
               </div>
             )}
 
-            {/* CTA */}
-            <div className="pt-4 border-t border-gray-50">
-              <button className="w-full py-3.5 bg-[#8b9e7e] hover:bg-[#7a8e6e] text-white font-semibold rounded-xl transition-colors">
-                Contactar albergue por WhatsApp
-              </button>
-            </div>
+      {/* CTA — Solo visible para adoptantes (no para albergue viendo su propia mascota) */}
+      {userRole !== "albergue" && (
+        <div className="pt-4 border-t border-gray-50">
+          {mascota.whatsapp_albergue ? (
+            <a
+              href={buildWhatsAppLink(mascota.whatsapp_albergue, mascota.nombre, mascota.nombre_albergue)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full py-3.5 bg-[#25D366] hover:bg-[#1da851] text-white font-semibold rounded-xl transition-colors"
+            >
+              <MessageCircle size={18} />
+              Contactar albergue por WhatsApp
+            </a>
+          ) : (
+            <button
+              disabled
+              className="w-full py-3.5 bg-gray-200 text-gray-400 font-semibold rounded-xl cursor-not-allowed"
+            >
+              Albergue sin WhatsApp configurado
+            </button>
+          )}
+        </div>
+      )}
           </div>
         </div>
       </div>
