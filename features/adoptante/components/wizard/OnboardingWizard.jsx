@@ -153,7 +153,7 @@ function CompletionScreen({ selections }) {
 
     async function submit() {
       try {
-        const { data: etiquetas } = await getEtiquetas();
+        const etiquetas = await getEtiquetas();
 
         const selectedTagIds = new Set();
         function addTag(categoria, valor) {
@@ -161,36 +161,66 @@ function CompletionScreen({ selections }) {
           if (tag) selectedTagIds.add(tag.id_opcion);
         }
 
+        // ── Tipo de animal ──
         if (selections.animalType === "dog") addTag("Tipo de animal", "Perro");
         if (selections.animalType === "cat") addTag("Tipo de animal", "Gato");
         if (selections.animalType === "both") {
           addTag("Tipo de animal", "Perro");
           addTag("Tipo de animal", "Gato");
+          addTag("Tipo de animal", "Sin preferencia");
         }
 
+        // ── Tamaño ──
         if (selections.size === "small") addTag("Tamaño", "Pequeño");
         if (selections.size === "medium") addTag("Tamaño", "Mediano");
         if (selections.size === "large") addTag("Tamaño", "Grande");
+        if (selections.size === "any") addTag("Tamaño", "Sin preferencia");
 
+        // ── Sexo ──
         if (selections.sex === "male") addTag("Sexo", "Macho");
         if (selections.sex === "female") addTag("Sexo", "Hembra");
+        if (selections.sex === "any") addTag("Sexo", "Sin preferencia");
 
-        if (selections.age === "puppy") addTag("Rango de edad", "Cachorro (0-1)");
-        if (selections.age === "young") addTag("Rango de edad", "Joven (1-3)");
-        if (selections.age === "adult") addTag("Rango de edad", "Adulto (3-7)");
-        if (selections.age === "senior") addTag("Rango de edad", "Senior (7+)");
+        // ── Edad ──
+        if (selections.age === "puppy") addTag("Edad", "Cachorro (0–1 año)");
+        if (selections.age === "young") addTag("Edad", "Joven (1–3 años)");
+        if (selections.age === "adult") addTag("Edad", "Adulto (3–7 años)");
+        if (selections.age === "senior") addTag("Edad", "Senior (+7 años)");
+        if (selections.age === "any") addTag("Edad", "Sin preferencia");
 
-        if (selections.energy === "calm") addTag("Nivel de energía", "Bajo (Tranquilo)");
-        if (selections.energy === "moderate") addTag("Nivel de energía", "Medio");
-        if (selections.energy === "active") addTag("Nivel de energía", "Alto (Muy activo)");
+        // ── Nivel de energía ──
+        if (selections.energy === "calm") addTag("Nivel de energía", "Tranquilo");
+        if (selections.energy === "moderate") addTag("Nivel de energía", "Moderado");
+        if (selections.energy === "active") addTag("Nivel de energía", "Muy activo");
+        if (selections.energy === "any") addTag("Nivel de energía", "Sin preferencia");
 
-        if (selections.compatibility === "kids") addTag("Convivencia con niños", "Recomendado");
-        if (selections.compatibility === "dogs") addTag("Relación con perros", "Sociable");
-        if (selections.compatibility === "cats") addTag("Relación con gatos", "Sociable");
+        // ── Compatibilidad ──
+        if (selections.compatibility === "kids") addTag("Compatibilidad", "Niños");
+        if (selections.compatibility === "dogs") addTag("Compatibilidad", "Otros perros");
+        if (selections.compatibility === "cats") addTag("Compatibilidad", "Gatos");
+        if (selections.compatibility === "seniors") addTag("Compatibilidad", "Adultos mayores");
+        if (selections.compatibility === "disabled") addTag("Compatibilidad", "Personas con discapacidad");
+        if (selections.compatibility === "none") addTag("Compatibilidad", "Ninguna");
 
-        if (selections.specialCondition === "disabled_pet") addTag("Condición Especial", "Discapacidad motriz");
-        if (selections.specialCondition === "medical_treatment") addTag("Condición Especial", "Tratamiento crónico");
-        if (selections.specialCondition === "healthy_only") addTag("Condición Especial", "Ninguna");
+        // ── Aceptación de condición especial ──
+        if (selections.specialCondition === "disabled_pet") addTag("Aceptación de condición especial", "Acepto mascotas con discapacidad");
+        if (selections.specialCondition === "medical_treatment") addTag("Aceptación de condición especial", "Acepto mascotas en tratamiento médico");
+        if (selections.specialCondition === "healthy_only") addTag("Aceptación de condición especial", "Solo mascotas sanas");
+
+        // ── Entorno del adoptante ──
+        if (selections.residence === "apt_no_balcony") addTag("Entorno del adoptante", "Apartamento sin balcón");
+        if (selections.residence === "apt_balcony") addTag("Entorno del adoptante", "Apartamento con balcón");
+        if (selections.residence === "house_no_yard") addTag("Entorno del adoptante", "Casa sin jardín");
+        if (selections.residence === "house_yard") addTag("Entorno del adoptante", "Casa con jardín");
+
+        // ── Experiencia previa ──
+        if (selections.experience === "first_time") addTag("Experiencia previa", "Primera vez adoptando");
+        if (selections.experience === "experienced") addTag("Experiencia previa", "Con experiencia en mascotas");
+
+        // ── Disponibilidad de tiempo ──
+        if (selections.time === "home") addTag("Disponibilidad de tiempo", "Trabajo en casa");
+        if (selections.time === "outside_full") addTag("Disponibilidad de tiempo", "Trabajo fuera (tiempo completo)");
+        if (selections.time === "outside_part") addTag("Disponibilidad de tiempo", "Trabajo fuera (medio tiempo)");
 
         const payload = {
           nombre_completo: selections.personalData?.fullName || "",
