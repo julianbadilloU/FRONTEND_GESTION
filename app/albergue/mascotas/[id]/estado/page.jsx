@@ -1,3 +1,4 @@
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { MascotaEstadoView } from "@/features/albergue/components/mascota-estado/MascotaEstadoView";
 
 export const metadata = {
@@ -5,5 +6,9 @@ export const metadata = {
 };
 
 export default function MascotaEstadoPage() {
-  return <MascotaEstadoView />;
+  return (
+    <ClientAuthGuard allowedRoles={["albergue"]}>
+      <MascotaEstadoView />
+    </ClientAuthGuard>
+  );
 }

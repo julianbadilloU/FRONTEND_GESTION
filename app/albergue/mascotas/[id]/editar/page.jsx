@@ -1,3 +1,4 @@
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { EditarMascotaForm } from "@/features/albergue/components/editar-mascota/EditarMascotaForm";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function EditarMascotaPage() {
-  return <EditarMascotaForm />;
+  return (
+    <ClientAuthGuard allowedRoles={["albergue"]}>
+      <EditarMascotaForm />
+    </ClientAuthGuard>
+  );
 }

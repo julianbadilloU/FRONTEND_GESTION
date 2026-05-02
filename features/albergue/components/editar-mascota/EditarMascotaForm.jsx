@@ -15,7 +15,13 @@ import { PhotoGallery } from "@/features/albergue/components/publicar-mascota/Ph
 import {
   getMascotaById,
   updateMascota,
+  getEtiquetas,
 } from "@/features/albergue/services/mascota.service";
+import {
+  buildTagsIds,
+  mapBackendTagsToSlugs,
+} from "@/features/albergue/utils/mascota-tag-mapping";
+import { compressAndEncodePhotos } from "@/features/albergue/utils/photo-utils";
 import { cn } from "@/lib/utils/cn";
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -61,8 +67,27 @@ export function EditarMascotaForm() {
 
   const [tags, setTags] = useState({});
   const [photos, setPhotos] = useState([]);
-  const [existingPhotos, setExistingPhotos] = useState([]);
+  const [originalPhotos, setOriginalPhotos] = useState([]);
   const [toast, setToast] = useState(null);
+  const [etiquetas, setEtiquetas] = useState([]);
+  const [etiquetasError, setEtiquetasError] = useState(false);
+  const [photosProgress, setPhotosProgress] = useState({ done: 0, total: 0 });
+
+  // Cargar etiquetas del backend
+  useEffect(() => {
+    let cancelled = false;
+    async function loadEtiquetas() {
+      try {
+        const response = await getEtiquetas();
+        const list = response?.data || response || [];
+        if (!cancelled) setEtiquetas(list);
+      } catch {
+        if (!cancelled) setEtiquetasError(true);
+      }
+    }
+    loadEtiquetas();
+    return () => { cancelled = true; };
+  }, []);
 
   // Cargar datos de la mascota
   const {
@@ -79,12 +104,13 @@ export function EditarMascotaForm() {
     mutationFn: (payload) => updateMascota(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["mascota", id] });
-      queryClient.invalidateQueries({ queryKey: ["mascotas"] });
+      queryClient.invalidateQueries({ queryKey: ["mis-mascotas"] });
       showToast("Mascota actualizada exitosamente");
       setTimeout(() => router.push("/albergue/mascotas"), 1500);
     },
-    onError: () => {
-      showToast("Error al actualizar la mascota");
+    onError: (err) => {
+      const msg = err?.response?.data?.message || "Error al actualizar la mascota";
+      showToast(msg);
     },
   });
 
@@ -112,32 +138,26 @@ export function EditarMascotaForm() {
       descripcion: mascota.descripcion || "",
     });
 
-    // Inicializar tags desde la mascota
-    setTags({
-      animalType: mascota.tipo_animal || "",
-      breed: mascota.raza || "",
-      age: mascota.edad || "",
-      size: mascota.tamano || "",
-      color: mascota.color || "",
-      sex: mascota.sexo || "",
-      energy: mascota.energia || "",
-      compatibility: mascota.compatibilidad || [],
-      specialCondition: mascota.condicion_especial || "",
-      healthStatus: mascota.estado_salud || [],
-    });
+    // Inicializar tags desde la mascota (mapear de backend a slugs)
+    if (etiquetas.length > 0 && mascota.tags) {
+      const mappedTags = mapBackendTagsToSlugs(mascota.tags, etiquetas);
+      setTags(mappedTags);
+    }
 
-    // Fotos existentes (desde URLs del servidor)
+    // Fotos existentes (con id_foto para tracking)
     if (mascota.fotos && Array.isArray(mascota.fotos)) {
-      const existing = mascota.fotos.map((url, i) => ({
-        id: `existing-${i}`,
-        url,
-        preview: url,
+      const existing = mascota.fotos.map((foto, i) => ({
+        id: `existing-${foto.id_foto}`,
+        id_foto: foto.id_foto,
+        url: foto.url_foto,
+        preview: foto.url_foto,
         isExisting: true,
+        orden: foto.orden ?? i,
       }));
-      setExistingPhotos(existing);
+      setOriginalPhotos(existing);
       setPhotos(existing);
     }
-  }, [mascota, reset]);
+  }, [mascota, etiquetas, reset]);
 
   const handleTagChange = useCallback((key, value) => {
     setTags((prev) => ({ ...prev, [key]: value }));
@@ -147,21 +167,66 @@ export function EditarMascotaForm() {
     setPhotos(newPhotos);
   }, []);
 
-  const onSubmit = (data) => {
-    const newFotos = photos
-      .filter((p) => !p.isExisting)
-      .map((p) => p.file);
+  const onSubmit = async (data) => {
+    // 1. Calcular tagsIds
+    const tagsIds = buildTagsIds(tags, etiquetas);
 
-    const keepFotos = photos
-      .filter((p) => p.isExisting)
-      .map((p) => p.url);
+    // 2. Detectar fotos eliminadas
+    const currentExistingIds = new Set(
+      photos.filter((p) => p.isExisting).map((p) => p.id_foto)
+    );
+    const fotosEliminadas = originalPhotos
+      .filter((p) => !currentExistingIds.has(p.id_foto))
+      .map((p) => p.id_foto);
 
+    // 3. Procesar fotos nuevas (base64) y existentes (reordenamiento)
+    const nuevasFotos = photos.filter((p) => !p.isExisting);
+    const fotosExistentes = photos.filter((p) => p.isExisting);
+
+    let fotosPayload = [];
+
+    // Fotos existentes que quedan (para reordenar)
+    for (let i = 0; i < fotosExistentes.length; i++) {
+      fotosPayload.push({
+        id_foto: fotosExistentes[i].id_foto,
+        orden: i,
+      });
+    }
+
+    // Fotos nuevas: comprimir y convertir a base64
+    if (nuevasFotos.length > 0) {
+      try {
+        const base64Photos = await compressAndEncodePhotos(
+          nuevasFotos.map((p) => p.file),
+          (done, total) => setPhotosProgress({ done, total })
+        );
+        for (let i = 0; i < base64Photos.length; i++) {
+          fotosPayload.push({
+            base64: base64Photos[i],
+            orden: fotosExistentes.length + i,
+          });
+        }
+      } catch {
+        showToast("Error al procesar las fotos. Intenta con imágenes más pequeñas.");
+        return;
+      }
+    }
+
+    // 4. Validar que hay al menos 1 foto
+    const totalFotos = fotosExistentes.length + nuevasFotos.length;
+    if (totalFotos < 1) {
+      showToast("La mascota debe tener al menos una foto.");
+      return;
+    }
+
+    // 5. Construir payload
     const payload = {
       nombre: data.nombre,
-      descripcion: data.descripcion,
-      ...tags,
-      fotos: newFotos,
-      fotos_existentes: keepFotos,
+      descripcion: data.descripcion || undefined,
+      tagsIds,
+      fotos: fotosPayload,
+      fotos_eliminadas: fotosEliminadas,
+      updated_at: mascota?.updated_at,
     };
 
     updateMutation.mutate(payload);
@@ -211,6 +276,12 @@ export function EditarMascotaForm() {
           </div>
         </div>
 
+        {etiquetasError && (
+          <div className="mb-4 p-3 bg-amber-50 text-amber-700 text-sm rounded-xl text-center border border-amber-200">
+            No se pudo cargar el catálogo de etiquetas. Algunas opciones pueden no estar disponibles.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="space-y-8">
             {/* Datos básicos */}
@@ -223,7 +294,7 @@ export function EditarMascotaForm() {
                 <div>
                   <label
                     htmlFor="m-nombre"
-                    className="block text-[0.62rem] font-semibold uppercase tracking-widest text-gray-400 mb-1"
+                    className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1"
                   >
                     Nombre <span className="text-red-400">*</span>
                   </label>
@@ -244,7 +315,7 @@ export function EditarMascotaForm() {
                 <div className="sm:col-span-2">
                   <label
                     htmlFor="m-desc"
-                    className="block text-[0.62rem] font-semibold uppercase tracking-widest text-gray-400 mb-1"
+                    className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1"
                   >
                     Descripción{" "}
                     <span className="normal-case font-normal tracking-normal text-gray-300">
@@ -278,6 +349,11 @@ export function EditarMascotaForm() {
                 photos={photos}
                 onPhotosChange={handlePhotosChange}
               />
+              {updateMutation.isPending && photosProgress.total > 0 && (
+                <div className="mt-2 text-center text-sm text-gray-600">
+                  Procesando fotos: {photosProgress.done} de {photosProgress.total}…
+                </div>
+              )}
             </div>
 
             {/* Tags */}
@@ -285,7 +361,7 @@ export function EditarMascotaForm() {
               <h2 className="text-lg font-bold text-gray-900 mb-6">
                 Características
               </h2>
-              <StepTags tags={tags} onTagChange={handleTagChange} />
+              <StepTags tags={tags} onTagChange={handleTagChange} etiquetas={etiquetas} />
             </div>
           </div>
 
@@ -299,7 +375,7 @@ export function EditarMascotaForm() {
             </Link>
             <button
               type="submit"
-              disabled={updateMutation.isPending}
+              disabled={updateMutation.isPending || etiquetas.length === 0}
               className="px-6 py-2.5 rounded-full bg-[#81af6d] hover:bg-[#5e924e] text-white text-sm font-semibold transition-colors disabled:opacity-70 flex items-center gap-2"
             >
               {updateMutation.isPending ? (

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Dog, Plus, Pencil, ToggleRight, Eye, Search, Trash2, X } from "lucide-react";
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { getMisMascotas, deleteMascota } from "@/features/albergue/services/mascota.service";
 
 function EstadoBadge({ estado }) {
@@ -74,7 +75,8 @@ export default function MisMascotasPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafaf8]">
+    <ClientAuthGuard allowedRoles={["albergue"]}>
+      <div className="min-h-screen bg-[#fafaf8]">
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -172,31 +174,31 @@ export default function MisMascotasPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1 sm:gap-2">
                           <button
                             onClick={() => router.push(`/mascota/${mascota.id_mascota}`)}
-                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             title="Ver"
                           >
                             <Eye size={16} />
                           </button>
                           <button
                             onClick={() => router.push(`/albergue/mascotas/${mascota.id_mascota}/editar`)}
-                            className="p-2 text-gray-400 hover:text-[#7a9e6a] hover:bg-[#f0f5ec] rounded-lg transition-colors"
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-[#7a9e6a] hover:bg-[#f0f5ec] rounded-lg transition-colors"
                             title="Editar"
                           >
                             <Pencil size={16} />
                           </button>
                           <button
                             onClick={() => router.push(`/albergue/mascotas/${mascota.id_mascota}/estado`)}
-                            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                             title="Cambiar estado"
                           >
                             <ToggleRight size={16} />
                           </button>
                           <button
                             onClick={() => abrirModalEliminar(mascota)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Eliminar"
                           >
                             <Trash2 size={16} />
@@ -282,5 +284,6 @@ export default function MisMascotasPage() {
         )}
       </div>
     </div>
+    </ClientAuthGuard>
   );
 }
