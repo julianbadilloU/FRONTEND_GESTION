@@ -64,7 +64,7 @@ Crear `.env.local` a partir de `.env.example`.
 ```env
 NEXT_PUBLIC_APP_NAME=FurMatch
 NEXT_PUBLIC_APP_URL=http://localhost:3001
-NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_API_URL=http://localhost:3002
 ```
 
 ## Scripts listos

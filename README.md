@@ -6,7 +6,7 @@ Base de trabajo del equipo frontend para FurMatch.
 
 - Proyecto en `Next.js 16` con `React 19`.
 - Frontend configurado en `http://localhost:3001`.
-- Backend actual esperado en `http://localhost:3002`.
+- Backend actual esperado en `http://localhost:3000`.
 - Estructura modular lista para auth, adoptante, albergue y admin.
 - No se dejaron vistas de documentacion dentro de la app.
 
@@ -29,7 +29,7 @@ Crear `.env.local` a partir de `.env.example`.
 ```env
 NEXT_PUBLIC_APP_NAME=FurMatch
 NEXT_PUBLIC_APP_URL=http://localhost:3001
-NEXT_PUBLIC_API_URL=http://localhost:3002
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
 ## Scripts
