@@ -1,22 +1,33 @@
 /**
  * CompatibilityBadge
  * Muestra el porcentaje de compatibilidad con estilos visuales
- * según el nivel: alto (≥80%), medio (50–79%), bajo (<50%).
+ * según el nivel:
+ *   - Excelente match : 80–100% → verde
+ *   - Buen match      : 60–79%  → amarillo
+ *   - Match aceptable : 30–59%  → naranja
+ *   - Compatibilidad baja: <30% → gris
  *
- * Sprint 4 – HU-MT-01: Motor de matching por tags
+ * Sprint 4 – HU-MT-01: Motor de matching por tags (Frontend)
  */
 
-import { Zap, TrendingUp, Minus } from "lucide-react";
+import { Zap, Star, TrendingUp, Minus } from "lucide-react";
 
 /**
  * Retorna la configuración visual según el nivel de compatibilidad.
+ *
+ * Niveles definidos por la tarea HU-MT-01 (Frontend):
+ *   ≥ 80  → "alto"      – verde     – Excelente match
+ *   60-79 → "bueno"     – amarillo  – Buen match
+ *   30-59 → "aceptable" – naranja   – Match aceptable
+ *   < 30  → "bajo"      – gris      – Compatibilidad baja
+ *
  * @param {number} pct - Porcentaje 0-100
  */
 export function getCompatibilityLevel(pct) {
   if (pct >= 80) {
     return {
       level: "alto",
-      label: "Alta compatibilidad",
+      label: "Excelente match",
       badgeBg: "bg-[#4a7c59]",
       badgeText: "text-white",
       barColor: "bg-[#4a7c59]",
@@ -25,10 +36,22 @@ export function getCompatibilityLevel(pct) {
       glowClass: "shadow-[0_0_12px_rgba(74,124,89,0.45)]",
     };
   }
-  if (pct >= 50) {
+  if (pct >= 60) {
     return {
-      level: "medio",
-      label: "Buena compatibilidad",
+      level: "bueno",
+      label: "Buen match",
+      badgeBg: "bg-[#c9a52d]",
+      badgeText: "text-white",
+      barColor: "bg-[#c9a52d]",
+      ringColor: "ring-[#c9a52d]/30",
+      icon: Star,
+      glowClass: "shadow-[0_0_12px_rgba(201,165,45,0.40)]",
+    };
+  }
+  if (pct >= 30) {
+    return {
+      level: "aceptable",
+      label: "Match aceptable",
       badgeBg: "bg-[#d4841b]",
       badgeText: "text-white",
       barColor: "bg-[#d4841b]",
@@ -56,13 +79,13 @@ export function getCompatibilityLevel(pct) {
 export function CompatibilityBadge({ pct }) {
   if (pct === null || pct === undefined) return null;
 
-  const { badgeBg, badgeText, icon: Icon, glowClass } = getCompatibilityLevel(pct);
+  const { badgeBg, badgeText, icon: Icon, glowClass, label } = getCompatibilityLevel(pct);
 
   return (
     <div
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${badgeBg} ${badgeText} ${glowClass}`}
       aria-label={`${pct}% de compatibilidad`}
-      title={`${pct}% de compatibilidad`}
+      title={label}
     >
       <Icon size={11} strokeWidth={2.5} />
       {pct}% match

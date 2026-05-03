@@ -22,11 +22,13 @@ function MascotaCard({ mascota, compatibilidad }) {
   const pct = compatibilidad ?? null;
   const level = pct !== null ? getCompatibilityLevel(pct) : null;
 
-  // Borde de tarjeta según nivel de compatibilidad
+  // Borde de tarjeta según nivel de compatibilidad (HU-MT-01 Frontend)
   const borderClass =
     level?.level === "alto"
       ? "border-[#4a7c59]/40 hover:border-[#4a7c59]/70"
-      : level?.level === "medio"
+      : level?.level === "bueno"
+      ? "border-[#c9a52d]/40 hover:border-[#c9a52d]/70"
+      : level?.level === "aceptable"
       ? "border-[#d4841b]/30 hover:border-[#d4841b]/60"
       : "border-gray-100 hover:border-gray-200";
 

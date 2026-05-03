@@ -1,14 +1,16 @@
 /**
  * MatchCompatibility.test.jsx
  *
- * Sprint 4 – HU-MT-01: Motor de matching por tags
+ * Sprint 4 – HU-MT-01: Motor de matching por tags (Frontend)
  *
- * Prueba el flujo COMPLETO:
- *   1. AdoptanteProfile actualiza preferencias (tags)
- *   2. onSuccess invalida ["match"] en el QueryClient
- *   3. El feed recalcula la compatibilidad automáticamente
- *
- * También prueba la lógica de getCompatibilityLevel de forma aislada.
+ * Cubre:
+ *   SUITE 1 — getCompatibilityLevel: lógica pura de niveles y umbrales
+ *             80-100% verde (alto), 60-79% amarillo (bueno),
+ *             30-59% naranja (aceptable), <30% gris (bajo)
+ *   SUITE 2 — CompatibilityBadge: renderizado y accesibilidad
+ *   SUITE 3 — CompatibilityBar: barra de progreso
+ *   SUITE 4 — Tests de visualización de compatibilidad (colores por nivel)
+ *   SUITE 5 — Flujo completo: preferencias → invalidación → recálculo
  */
 
 import React from 'react';
@@ -32,6 +34,7 @@ vi.mock('@/features/shared/components/ClientAuthGuard', () => ({
 
 // ──────────────────────────────────────────────────────────────────────────────
 // SUITE 1 — Lógica pura de niveles de compatibilidad
+// Umbrales HU-MT-01: ≥80 alto, 60-79 bueno, 30-59 aceptable, <30 bajo
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe('getCompatibilityLevel — lógica pura de niveles', () => {
@@ -44,38 +47,73 @@ describe('getCompatibilityLevel — lógica pura de niveles', () => {
     ));
   });
 
-  it('retorna level="alto" para pct ≥ 80', () => {
+  // ── Nivel alto (verde, 80-100%) ───────────────────────────────────────────
+  it('retorna level="alto" para pct = 80 (límite inferior)', () => {
     expect(getCompatibilityLevel(80).level).toBe('alto');
+  });
+
+  it('retorna level="alto" para pct = 95', () => {
     expect(getCompatibilityLevel(95).level).toBe('alto');
+  });
+
+  it('retorna level="alto" para pct = 100', () => {
     expect(getCompatibilityLevel(100).level).toBe('alto');
   });
 
-  it('retorna level="medio" para 50 ≤ pct < 80', () => {
-    expect(getCompatibilityLevel(50).level).toBe('medio');
-    expect(getCompatibilityLevel(65).level).toBe('medio');
-    expect(getCompatibilityLevel(79).level).toBe('medio');
+  // ── Nivel bueno (amarillo, 60-79%) ────────────────────────────────────────
+  it('retorna level="bueno" para pct = 60 (límite inferior)', () => {
+    expect(getCompatibilityLevel(60).level).toBe('bueno');
   });
 
-  it('retorna level="bajo" para pct < 50', () => {
+  it('retorna level="bueno" para pct = 70', () => {
+    expect(getCompatibilityLevel(70).level).toBe('bueno');
+  });
+
+  it('retorna level="bueno" para pct = 79 (límite superior)', () => {
+    expect(getCompatibilityLevel(79).level).toBe('bueno');
+  });
+
+  // ── Nivel aceptable (naranja, 30-59%) ─────────────────────────────────────
+  it('retorna level="aceptable" para pct = 30 (límite inferior)', () => {
+    expect(getCompatibilityLevel(30).level).toBe('aceptable');
+  });
+
+  it('retorna level="aceptable" para pct = 45', () => {
+    expect(getCompatibilityLevel(45).level).toBe('aceptable');
+  });
+
+  it('retorna level="aceptable" para pct = 59 (límite superior)', () => {
+    expect(getCompatibilityLevel(59).level).toBe('aceptable');
+  });
+
+  // ── Nivel bajo (gris, <30%) ───────────────────────────────────────────────
+  it('retorna level="bajo" para pct = 0', () => {
     expect(getCompatibilityLevel(0).level).toBe('bajo');
-    expect(getCompatibilityLevel(25).level).toBe('bajo');
-    expect(getCompatibilityLevel(49).level).toBe('bajo');
   });
 
-  it('el nivel "alto" usa colores verdes', () => {
-    const config = getCompatibilityLevel(85);
-    expect(config.badgeBg).toContain('#4a7c59');
-    expect(config.barColor).toContain('#4a7c59');
+  it('retorna level="bajo" para pct = 15', () => {
+    expect(getCompatibilityLevel(15).level).toBe('bajo');
   });
 
-  it('el nivel "medio" usa colores naranja', () => {
-    const config = getCompatibilityLevel(65);
-    expect(config.badgeBg).toContain('#d4841b');
+  it('retorna level="bajo" para pct = 29 (límite superior)', () => {
+    expect(getCompatibilityLevel(29).level).toBe('bajo');
   });
 
-  it('el nivel "bajo" usa colores grises', () => {
-    const config = getCompatibilityLevel(20);
-    expect(config.badgeBg).toContain('gray');
+  // ── Labels correctos ──────────────────────────────────────────────────────
+  it('el nivel "alto" tiene label "Excelente match"', () => {
+    expect(getCompatibilityLevel(85).label).toBe('Excelente match');
+  });
+
+  it('el nivel "bueno" tiene label "Buen match"', () => {
+    expect(getCompatibilityLevel(65).label).toBe('Buen match');
+  });
+
+  it('el nivel "aceptable" tiene label "Match aceptable"', () => {
+    expect(getCompatibilityLevel(40).label).toBe('Match aceptable');
+  });
+
+  it('el nivel "bajo" tiene label "Compatibilidad baja"', () => {
+    expect(getCompatibilityLevel(10).label).toBe('Compatibilidad baja');
   });
 });
 
@@ -93,15 +131,24 @@ describe('CompatibilityBadge — renderizado del componente', () => {
     ));
   });
 
-  it('muestra el porcentaje correcto', () => {
+  it('muestra el porcentaje correcto para nivel alto', () => {
     render(<CompatibilityBadge pct={85} />);
     expect(screen.getByText('85% match')).toBeInTheDocument();
   });
 
+  it('muestra el porcentaje correcto para nivel bueno', () => {
+    render(<CompatibilityBadge pct={70} />);
+    expect(screen.getByText('70% match')).toBeInTheDocument();
+  });
+
+  it('muestra el porcentaje correcto para nivel aceptable', () => {
+    render(<CompatibilityBadge pct={45} />);
+    expect(screen.getByText('45% match')).toBeInTheDocument();
+  });
+
   it('tiene aria-label accesible con el porcentaje', () => {
     render(<CompatibilityBadge pct={70} />);
-    const badge = screen.getByLabelText('70% de compatibilidad');
-    expect(badge).toBeInTheDocument();
+    expect(screen.getByLabelText('70% de compatibilidad')).toBeInTheDocument();
   });
 
   it('no renderiza nada si pct es null', () => {
@@ -147,17 +194,126 @@ describe('CompatibilityBar — barra de progreso', () => {
     const { container } = render(<CompatibilityBar pct={null} />);
     expect(container.firstChild).toBeNull();
   });
+
+  it('muestra aria-label con el label correcto para nivel bueno', () => {
+    render(<CompatibilityBar pct={65} />);
+    expect(screen.getByLabelText('Buen match')).toBeInTheDocument();
+  });
+
+  it('muestra aria-label con el label correcto para nivel aceptable', () => {
+    render(<CompatibilityBar pct={40} />);
+    expect(screen.getByLabelText('Match aceptable')).toBeInTheDocument();
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
-// SUITE 4 — Flujo completo: preferencias → invalidación → recálculo
+// SUITE 4 — Tests de VISUALIZACIÓN de compatibilidad (colores por nivel)
+// HU-MT-01 Frontend: badge visual destacado con colores según nivel
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('Tests de visualización de compatibilidad — colores por nivel', () => {
+  let getCompatibilityLevel;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    ({ getCompatibilityLevel } = await import(
+      '@/features/adoptante/components/feed/CompatibilityBadge'
+    ));
+  });
+
+  // ── Verde: 80-100% ────────────────────────────────────────────────────────
+  it('nivel alto (80-100%) usa color verde en badge', () => {
+    expect(getCompatibilityLevel(85).badgeBg).toContain('#4a7c59');
+  });
+
+  it('nivel alto (80-100%) usa color verde en barra', () => {
+    expect(getCompatibilityLevel(90).barColor).toContain('#4a7c59');
+  });
+
+  it('nivel alto tiene efecto glow verde', () => {
+    expect(getCompatibilityLevel(95).glowClass).toContain('74,124,89');
+  });
+
+  // ── Amarillo: 60-79% ─────────────────────────────────────────────────────
+  it('nivel bueno (60-79%) usa color amarillo en badge', () => {
+    expect(getCompatibilityLevel(70).badgeBg).toContain('#c9a52d');
+  });
+
+  it('nivel bueno (60-79%) usa color amarillo en barra', () => {
+    expect(getCompatibilityLevel(65).barColor).toContain('#c9a52d');
+  });
+
+  it('nivel bueno tiene efecto glow amarillo', () => {
+    expect(getCompatibilityLevel(75).glowClass).toContain('201,165,45');
+  });
+
+  // ── Naranja: 30-59% ───────────────────────────────────────────────────────
+  it('nivel aceptable (30-59%) usa color naranja en badge', () => {
+    expect(getCompatibilityLevel(45).badgeBg).toContain('#d4841b');
+  });
+
+  it('nivel aceptable (30-59%) usa color naranja en barra', () => {
+    expect(getCompatibilityLevel(50).barColor).toContain('#d4841b');
+  });
+
+  it('nivel aceptable tiene efecto glow naranja', () => {
+    expect(getCompatibilityLevel(35).glowClass).toContain('212,132,27');
+  });
+
+  // ── Gris: <30% ───────────────────────────────────────────────────────────
+  it('nivel bajo (<30%) usa color gris en badge', () => {
+    expect(getCompatibilityLevel(20).badgeBg).toContain('gray');
+  });
+
+  it('nivel bajo (<30%) usa color gris en barra', () => {
+    expect(getCompatibilityLevel(10).barColor).toContain('gray');
+  });
+
+  it('nivel bajo NO tiene efecto glow', () => {
+    expect(getCompatibilityLevel(5).glowClass).toBe('');
+  });
+
+  // ── Texto blanco en todos los niveles ────────────────────────────────────
+  it('todos los niveles usan texto blanco', () => {
+    [85, 70, 45, 10].forEach(pct => {
+      expect(getCompatibilityLevel(pct).badgeText).toBe('text-white');
+    });
+  });
+
+  // ── Límites exactos de umbral ─────────────────────────────────────────────
+  it('pct=80 es verde (no amarillo)', () => {
+    const config = getCompatibilityLevel(80);
+    expect(config.level).toBe('alto');
+    expect(config.badgeBg).toContain('#4a7c59');
+  });
+
+  it('pct=60 es amarillo (no naranja)', () => {
+    const config = getCompatibilityLevel(60);
+    expect(config.level).toBe('bueno');
+    expect(config.badgeBg).toContain('#c9a52d');
+  });
+
+  it('pct=30 es naranja (no gris)', () => {
+    const config = getCompatibilityLevel(30);
+    expect(config.level).toBe('aceptable');
+    expect(config.badgeBg).toContain('#d4841b');
+  });
+
+  it('pct=29 es gris (no naranja)', () => {
+    const config = getCompatibilityLevel(29);
+    expect(config.level).toBe('bajo');
+    expect(config.badgeBg).toContain('gray');
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// SUITE 5 — Flujo completo: preferencias → invalidación → recálculo
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar', () => {
   const mockInvalidateQueries = vi.fn();
   const mockMutate = vi.fn();
 
-  // Perfil mock con tags vacíos (sin preferencias)
   const mockProfileSinPreferencias = {
     nombre_completo: 'Ana García',
     email: 'ana@example.com',
@@ -206,7 +362,6 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
       getMatchMascotas: vi.fn().mockResolvedValue({ data: [] }),
     }));
 
-    // Mock de MATCH_QUERY_KEY desde feed/page
     vi.doMock('@/app/adoptante/feed/page', () => ({
       MATCH_QUERY_KEY: ['match'],
       FEED_QUERY_KEY_PREFIX: 'feed',
@@ -220,11 +375,9 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
     );
     render(<AdoptanteProfile />);
 
-    // Clic en editar
     const editBtn = await screen.findByText('Editar');
     fireEvent.click(editBtn);
 
-    // Enviar el formulario
     const submitBtn = await screen.findByText('Guardar Cambios');
     fireEvent.click(submitBtn);
 
@@ -241,20 +394,16 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
     );
     render(<AdoptanteProfile />);
 
-    // Clic en editar
     const editBtn = await screen.findByText('Editar');
     fireEvent.click(editBtn);
 
-    // Guardar (el payload siempre incluye `tags: []` desde el formulario)
     const submitBtn = await screen.findByText('Guardar Cambios');
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      // Debe invalidar el perfil
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({ queryKey: ['adoptanteProfile'] })
       );
-      // Y también el matching
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({ queryKey: ['match'] })
       );
@@ -262,8 +411,6 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
   });
 
   it('la invalidación de ["match"] hace que el feed recalcule la compatibilidad', async () => {
-    // Este test verifica que invalidateQueries se llame con exactamente
-    // la misma queryKey que usa el feed para la query de matching
     const { AdoptanteProfile } = await import(
       '@/features/adoptante/components/profile/AdoptanteProfile'
     );
@@ -276,8 +423,6 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
     fireEvent.click(submitBtn);
 
     await waitFor(() => {
-      // Verificar que la queryKey de invalidación coincide exactamente
-      // con MATCH_QUERY_KEY = ["match"] (definido en feed/page.jsx)
       const matchInvalidationCalls = mockInvalidateQueries.mock.calls.filter(
         ([arg]) => JSON.stringify(arg?.queryKey) === JSON.stringify(['match'])
       );
@@ -286,12 +431,9 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
   });
 
   it('NO debe invalidar ["match"] si el payload no incluye tags', async () => {
-    // Simular una actualización SIN campo tags (no debería pasar en la práctica
-    // pero garantiza que la lógica condicional funciona)
     vi.doMock('@/features/adoptante/services/adoptante.service', () => ({
       getAdoptanteProfile: vi.fn().mockResolvedValue(mockProfileSinPreferencias),
       updateAdoptanteProfile: vi.fn().mockImplementation(async (payload) => {
-        // Simular payload sin tags
         const payloadSinTags = { ...payload };
         delete payloadSinTags.tags;
         return { success: true };
@@ -300,14 +442,10 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
       getMatchMascotas: vi.fn().mockResolvedValue({ data: [] }),
     }));
 
-    // La función handleSave siempre incluye tags desde el formulario,
-    // por lo que en flujo normal SIEMPRE se invalida match.
-    // Aquí verificamos que el mecanismo condicional existe en el código.
     const { AdoptanteProfile } = await import(
       '@/features/adoptante/components/profile/AdoptanteProfile'
     );
 
-    // El componente debe montarse sin errores
     const { container } = render(<AdoptanteProfile />);
     expect(container).toBeTruthy();
   });
