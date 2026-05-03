@@ -11,6 +11,8 @@ import {
   getAdoptanteProfile,
   updateAdoptanteProfile,
 } from "../../services/adoptante.service";
+// Clave de matching — invalidar cache al cambiar preferencias (Sprint 4 HU-MT-01)
+import { MATCH_QUERY_KEY } from "@/app/adoptante/feed/page";
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ message }) {
@@ -45,8 +47,16 @@ export function AdoptanteProfile() {
 
   const updateMutation = useMutation({
     mutationFn: updateAdoptanteProfile,
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      // Siempre refrescar perfil
       queryClient.invalidateQueries({ queryKey: ["adoptanteProfile"] });
+
+      // Si el payload incluye cambios de tags (preferencias), invalidar matching
+      // para que el motor recalcule automáticamente al volver al feed
+      if (variables?.tags !== undefined) {
+        queryClient.invalidateQueries({ queryKey: MATCH_QUERY_KEY });
+      }
+
       showToast("Perfil actualizado exitosamente");
       setIsEditing(false);
       setFotoPreview(null);
