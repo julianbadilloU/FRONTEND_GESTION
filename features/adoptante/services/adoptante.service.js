@@ -60,3 +60,24 @@ export async function deshacerDescarte(idMascota) {
   const { data } = await apiClient.delete(`/api/mascotas/${idMascota}/descarte`);
   return extractData(data);
 }
+
+export async function getRecomendaciones(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const { data } = await apiClient.get(`/api/recomendaciones?${query}`);
+  return extractData(data);
+}
+
+export async function registrarMeInteresa(id) {
+  const { data } = await apiClient.post(`/api/recomendaciones/${id}/me-interesa`);
+  return extractData(data);
+}
+
+export async function registrarDescartar(id) {
+  const { data } = await apiClient.post(`/api/recomendaciones/${id}/descartar`);
+  return extractData(data);
+}
+
+export async function deshacerRecomendacion() {
+  const { data } = await apiClient.post(`/api/recomendaciones/deshacer`);
+  return extractData(data);
+}

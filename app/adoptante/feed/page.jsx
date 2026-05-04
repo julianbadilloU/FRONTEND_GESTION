@@ -7,6 +7,7 @@ import { Dog, Cat, Search, Filter, Heart, MapPin, Calendar, RefreshCw } from "lu
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { getFeedMascotas, getMatchMascotas } from "@/features/adoptante/services/adoptante.service";
 import { CompatibilityBadge, CompatibilityBar, getCompatibilityLevel } from "@/features/adoptante/components/feed/CompatibilityBadge";
+import { SwipeFeed } from "@/features/adoptante/components/feed/SwipeFeed";
 
 // ─── Constantes de queryKey (única fuente de verdad) ──────────────────────────
 export const MATCH_QUERY_KEY = ["match"];
@@ -117,6 +118,7 @@ function MascotaCard({ mascota, compatibilidad }) {
 // ─── Página principal del Feed ─────────────────────────────────────────────────
 export default function FeedPage() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("para-ti");
   const [filtros, setFiltros] = useState({ tipo: "", tamaño: "", edad: "" });
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -195,19 +197,45 @@ export default function FeedPage() {
               </button>
 
               {/* Botón filtros */}
-              <button
-                id="btn-filtros"
-                onClick={() => setMostrarFiltros((v) => !v)}
-                className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                <Filter size={16} />
-                Filtros
-              </button>
+              {activeTab === "explorar" && (
+                <button
+                  id="btn-filtros"
+                  onClick={() => setMostrarFiltros((v) => !v)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <Filter size={16} />
+                  Filtros
+                </button>
+              )}
             </div>
           </div>
 
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 mb-6">
+            <button
+              onClick={() => setActiveTab("para-ti")}
+              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
+                activeTab === "para-ti"
+                  ? "border-[#81af6d] text-[#5a7d4a]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Para ti
+            </button>
+            <button
+              onClick={() => setActiveTab("explorar")}
+              className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
+                activeTab === "explorar"
+                  ? "border-[#81af6d] text-[#5a7d4a]"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              Explorar
+            </button>
+          </div>
+
           {/* Panel de filtros */}
-          {mostrarFiltros && (
+          {activeTab === "explorar" && mostrarFiltros && (
             <div className="bg-white rounded-xl border border-gray-100 p-4 mb-6 flex flex-wrap gap-3">
               <select
                 id="filtro-tipo"
@@ -255,34 +283,41 @@ export default function FeedPage() {
             </div>
           )}
 
-          {/* Grid de mascotas */}
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-2xl h-80 animate-pulse" />
-              ))}
-            </div>
-          ) : error ? (
-            <div className="text-center py-20">
-              <p className="text-red-500 font-medium">Error al cargar las mascotas.</p>
-              <p className="text-gray-400 text-sm mt-1">Intenta de nuevo más tarde.</p>
-            </div>
-          ) : mascotas.length === 0 ? (
-            <div className="text-center py-20">
-              <Search size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500 font-medium">No se encontraron mascotas con estos filtros.</p>
-              <p className="text-gray-400 text-sm mt-1">Prueba con otros criterios de búsqueda.</p>
-            </div>
+          {/* Contenido según Tab */}
+          {activeTab === "para-ti" ? (
+            <SwipeFeed />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {mascotas.map((mascota) => (
-                <MascotaCard
-                  key={mascota.id_mascota}
-                  mascota={mascota}
-                  compatibilidad={compatibilidadMap.get(mascota.id_mascota) ?? null}
-                />
-              ))}
-            </div>
+            <>
+              {/* Grid de mascotas */}
+              {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl h-80 animate-pulse" />
+                  ))}
+                </div>
+              ) : error ? (
+                <div className="text-center py-20">
+                  <p className="text-red-500 font-medium">Error al cargar las mascotas.</p>
+                  <p className="text-gray-400 text-sm mt-1">Intenta de nuevo más tarde.</p>
+                </div>
+              ) : mascotas.length === 0 ? (
+                <div className="text-center py-20">
+                  <Search size={48} className="mx-auto text-gray-300 mb-4" />
+                  <p className="text-gray-500 font-medium">No se encontraron mascotas con estos filtros.</p>
+                  <p className="text-gray-400 text-sm mt-1">Prueba con otros criterios de búsqueda.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {mascotas.map((mascota) => (
+                    <MascotaCard
+                      key={mascota.id_mascota}
+                      mascota={mascota}
+                      compatibilidad={compatibilidadMap.get(mascota.id_mascota) ?? null}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
