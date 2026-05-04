@@ -96,6 +96,16 @@ export function SwipeCard({
   const pct = compatibilidad;
   const level = pct !== null && pct !== undefined ? getCompatibilityLevel(pct) : null;
 
+  // Aplicar estilos visuales según nivel de compatibilidad (HU-MT-01)
+  const borderClass =
+    level?.level === "alto"
+      ? "border-4 border-[#4a7c59]/60 shadow-[0_0_20px_rgba(74,124,89,0.2)]"
+      : level?.level === "bueno"
+      ? "border-4 border-[#c9a52d]/60 shadow-[0_0_20px_rgba(201,165,45,0.2)]"
+      : level?.level === "aceptable"
+      ? "border-4 border-[#d4841b]/50 shadow-[0_0_20px_rgba(212,132,27,0.2)]"
+      : "border border-gray-100 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.18)]";
+
   async function swipeOut(direction) {
     const targetX = direction === "like" ? EXIT_DISTANCE : -EXIT_DISTANCE;
     await controls.start({
@@ -158,7 +168,7 @@ export function SwipeCard({
           y: stackStyles.y,
         }}
         transition={{ type: "spring", stiffness: 260, damping: 28 }}
-        className={`w-full h-full bg-white rounded-3xl overflow-hidden shadow-[0_18px_50px_-12px_rgba(0,0,0,0.18)] border border-gray-100 ${
+        className={`w-full h-full bg-white rounded-3xl overflow-hidden transition-colors duration-300 ${borderClass} ${
           isTop ? "cursor-grab active:cursor-grabbing" : "pointer-events-none"
         }`}
       >
