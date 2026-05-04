@@ -45,3 +45,18 @@ export async function getMatchMascotas() {
   const { data } = await apiClient.get("/api/mascotas/match");
   return extractData(data);
 }
+
+export async function registerInteres(idMascota) {
+  const { data } = await apiClient.post(`/api/mascotas/${idMascota}/interes`);
+  return extractData(data);
+}
+
+export async function registerDescarte(idMascota) {
+  const { data } = await apiClient.post(`/api/mascotas/${idMascota}/descarte`);
+  return extractData(data);
+}
+
+export async function deshacerDescarte(idMascota) {
+  const { data } = await apiClient.delete(`/api/mascotas/${idMascota}/descarte`);
+  return extractData(data);
+}

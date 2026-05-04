@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Heart, Bell, User, Search, LogOut, Menu, X } from "lucide-react";
+import { Heart, Bell, User, Search, LogOut, Menu, X, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -13,6 +13,7 @@ import { getAdoptanteProfile } from "@/features/adoptante/services/adoptante.ser
 import { getNotificaciones } from "@/features/shared/services/notificacion.service";
 
 const NAV_LINKS = [
+  { href: "/adoptante/descubrir", label: "Descubrir", icon: Sparkles },
   { href: "/adoptante/feed", label: "Explorar", icon: Search },
   { href: "/adoptante/matches", label: "Matches", icon: Heart },
   { href: "/adoptante/notificaciones", label: "Notificaciones", icon: Bell },
