@@ -448,4 +448,3 @@ export function AlbergueNavbar() {
     </header>
   );
 }
->>>>>>> origin/develop
