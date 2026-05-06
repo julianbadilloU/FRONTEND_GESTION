@@ -1,13 +1,15 @@
-"use client";
-
-import { Suspense } from "react"; // 1. Importamos Suspense
+import { Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
+
 import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
 
 export default function ResetPasswordPage() {
   return (
-    // El fallback puede ser un spinner o simplemente null
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Cargando...</div>}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-8 h-8 border-2 border-[#a9c99a] border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
       <AnimatePresence mode="wait">
         <ResetPasswordForm />
       </AnimatePresence>

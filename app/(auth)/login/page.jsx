@@ -11,9 +11,29 @@ export default function LoginPage() {
   return (
     <AnimatePresence mode="wait">
       <LoginForm
-        onSuccess={(email) => {
-          // TODO: redirect to role-based dashboard once protected routes exist
-          router.push("/");
+        onSuccess={({ email, role, estado_cuenta }) => {
+          // Si el perfil está incompleto, redirigir al onboarding correspondiente
+          if (estado_cuenta === "perfil_incompleto") {
+            if (role === "adoptante") {
+              router.push("/adoptante/onboarding");
+            } else if (role === "albergue") {
+              router.push("/albergue/onboarding");
+            } else {
+              router.push("/");
+            }
+            return;
+          }
+
+          // Perfil completo → redirigir al dashboard según rol
+          if (role === "adoptante") {
+            router.push("/adoptante/feed");
+          } else if (role === "albergue") {
+            router.push("/albergue/mascotas");
+          } else if (role === "admin") {
+            router.push("/admin/tags");
+          } else {
+            router.push("/");
+          }
         }}
       />
     </AnimatePresence>

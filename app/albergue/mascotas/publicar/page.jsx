@@ -1,3 +1,4 @@
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { PublicarMascotaWizard } from "@/features/albergue/components/publicar-mascota/PublicarMascotaWizard";
 
 export const metadata = {
@@ -5,5 +6,9 @@ export const metadata = {
 };
 
 export default function PublicarMascotaPage() {
-  return <PublicarMascotaWizard />;
+  return (
+    <ClientAuthGuard allowedRoles={["albergue"]}>
+      <PublicarMascotaWizard />
+    </ClientAuthGuard>
+  );
 }

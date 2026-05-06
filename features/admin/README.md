@@ -1,11 +1,21 @@
-# features/admin
+# Module Admin
 
-Modulo para `HU-ADM-*` y `HU-REP-01`.
+Este módulo contiene las funcionalidades administrativas del sistema FurMatch.
 
-Trabajo sugerido dentro de este dominio:
+## Funcionalidades Implementadas
 
-- gestion de cuentas
-- gestion de tags y pesos
-- supervision de mascotas publicadas
-- configuracion del sistema
-- dashboard admin y exportaciones
+### Gestión de Catálogo de Tags (HU-ADM-02)
+Permite a los administradores gestionar las etiquetas utilizadas por el algoritmo de matching.
+- **Ruta**: `/admin/tags`
+- **Componentes**: `TagManagementView`, `TagTable`, `TagFilters`, `TagModal`.
+- **Esquemas**: `tag.schemas.js` (Zod).
+- **Servicios**: `tag.service.js`.
+
+## Estructura
+```text
+features/admin/
+  components/
+    tag-management/
+  schemas/
+  services/
+```

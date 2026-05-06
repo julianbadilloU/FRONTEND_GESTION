@@ -6,7 +6,7 @@ function Field({ label, value, locked = false, icon = null, colSpan = 1 }) {
   return (
     <div className={colSpan === 2 ? "col-span-2" : "col-span-1"}>
       {/* Label */}
-      <p className="flex items-center gap-1 text-[0.62rem] font-semibold uppercase tracking-widest text-gray-400 mb-1">
+      <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
         {label}
         {locked && (
           <>
@@ -51,7 +51,7 @@ export function ProfileView({ profile, logoSrc }) {
         </div>
 
         {/* Campos en grid 2 columnas */}
-        <div className="flex-1 grid grid-cols-2 gap-x-10 gap-y-5">
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-5">
           <Field label="Nombre del Albergue"    value={profile.name}        />
           <Field label="NIT"                     value={profile.nit}         locked />
           <Field label="Correo Electrónico"      value={profile.email}       locked />

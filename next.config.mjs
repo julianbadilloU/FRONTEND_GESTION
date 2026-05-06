@@ -1,13 +1,31 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-
-const projectRoot = dirname(fileURLToPath(import.meta.url));
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
   turbopack: {
-    root: projectRoot,
+    root: process.cwd(),
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.dog.ceo',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn2.thecatapi.com',
+        pathname: '/**',
+      },
+    ],
   },
 };
 

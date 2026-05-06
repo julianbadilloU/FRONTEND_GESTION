@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,7 +9,13 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils/cn";
 import { mascotaDatosBasicosSchema } from "@/features/albergue/schemas/mascota.schemas";
-import { createMascota, getEtiquetas } from "@/features/albergue/services/mascota.service";
+import {
+  createMascota,
+  getEtiquetas,
+  parseMascotaError,
+} from "@/features/albergue/services/mascota.service";
+import { buildTagsIds } from "@/features/albergue/utils/mascota-tag-mapping";
+import { compressAndEncodePhotos } from "@/features/albergue/utils/photo-utils";
 
 import { WizardStepper } from "./WizardStepper";
 import { StepDatosBasicos } from "./StepDatosBasicos";
@@ -38,6 +44,34 @@ export function PublicarMascotaWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
   const [stepError, setStepError] = useState(null);
+  const [etiquetas, setEtiquetas] = useState([]);
+  const [etiquetasLoading, setEtiquetasLoading] = useState(true);
+  const [etiquetasError, setEtiquetasError] = useState(false);
+  const [photosProgress, setPhotosProgress] = useState({ done: 0, total: 0 });
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadEtiquetas() {
+      setEtiquetasLoading(true);
+      try {
+        const response = await getEtiquetas();
+        const list = response?.data || response || [];
+        if (!cancelled) {
+          setEtiquetas(list);
+          setEtiquetasLoading(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setEtiquetasError(true);
+          setEtiquetasLoading(false);
+        }
+      }
+    }
+    loadEtiquetas();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const {
     register,
@@ -100,87 +134,36 @@ export function PublicarMascotaWizard() {
   const handlePublish = async () => {
     setSubmitError(null);
     setIsSubmitting(true);
+    setPhotosProgress({ done: 0, total: photos.length });
 
     try {
-      const etiquetasResponse = await getEtiquetas();
-      const etiquetas = etiquetasResponse?.data || etiquetasResponse || [];
+      const tagsIds = buildTagsIds(tags, etiquetas);
 
-      const selectedTagIds = new Set();
-
-      function addTag(categoria, valor) {
-        const tag = etiquetas.find(
-          (t) => t.categoria === categoria && t.valor === valor
+      if (tagsIds.length === 0) {
+        setSubmitError(
+          "No se pudo asociar ninguna etiqueta válida. Recarga la página e intenta de nuevo.",
         );
-        if (tag) selectedTagIds.add(tag.id_opcion);
+        setIsSubmitting(false);
+        return;
       }
 
-      if (tags.animalType === "dog") addTag("Tipo de animal", "Perro");
-      if (tags.animalType === "cat") addTag("Tipo de animal", "Gato");
-
-      if (tags.age === "puppy") addTag("Rango de edad", "Cachorro (0-1)");
-      if (tags.age === "young") addTag("Rango de edad", "Joven (1-3)");
-      if (tags.age === "adult") addTag("Rango de edad", "Adulto (3-7)");
-      if (tags.age === "senior") addTag("Rango de edad", "Senior (7+)");
-
-      if (tags.sex === "male") addTag("Sexo", "Macho");
-      if (tags.sex === "female") addTag("Sexo", "Hembra");
-
-      if (tags.size === "small") addTag("Tamaño", "Pequeño");
-      if (tags.size === "medium") addTag("Tamaño", "Mediano");
-      if (tags.size === "large") addTag("Tamaño", "Grande");
-
-      if (tags.energy === "calm") addTag("Nivel de energía", "Bajo (Tranquilo)");
-      if (tags.energy === "moderate") addTag("Nivel de energía", "Medio");
-      if (tags.energy === "active") addTag("Nivel de energía", "Alto (Muy activo)");
-
-      if (tags.specialCondition === "none") addTag("Condición Especial", "Ninguna");
-      if (tags.specialCondition === "disability") addTag("Condición Especial", "Discapacidad motriz");
-      if (tags.specialCondition === "treatment") addTag("Condición Especial", "Tratamiento crónico");
-
-      (tags.compatibility || []).forEach((c) => {
-        if (c === "kids") addTag("Convivencia con niños", "Recomendado");
-        if (c === "dogs") addTag("Relación con perros", "Sociable");
-        if (c === "cats") addTag("Relación con gatos", "Sociable");
-        if (c === "seniors") addTag("Convivencia con adultos mayores", "Recomendado");
-        if (c === "disabled") addTag("Convivencia con personas con discapacidad", "Recomendado");
-      });
-
-      const photosBase64 = await Promise.all(
-        photos.map(
-          (photo) =>
-            new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.readAsDataURL(photo.file);
-            })
-        )
+      const photosBase64 = await compressAndEncodePhotos(photos, (done, total) =>
+        setPhotosProgress({ done, total }),
       );
 
-      const formData = getValues();
+      const formValues = getValues();
       const payload = {
-        nombre: formData.nombre,
-        descripcion: formData.descripcion || "",
+        nombre: formValues.nombre,
+        descripcion: formValues.descripcion || undefined,
         fotos: photosBase64,
-        tags: Array.from(selectedTagIds),
+        tagsIds,
       };
 
       await createMascota(payload);
       router.push("/albergue/mascotas");
     } catch (err) {
-      if (err.response?.status === 409) {
-        const limite = err.response?.data?.limite || 50;
-        setSubmitError(`Has alcanzado el límite de ${limite} mascotas activas. Para publicar una nueva mascota, cambia el estado de una existente a 'Adoptado' o elimínala.`);
-      } else if (err.response?.status === 202) {
-        // Indexación tardó más de 3s pero mascota publicada
-        setSubmitError("Tu mascota fue publicada correctamente. La indexación en el buscador puede tardar unos minutos.");
-        setTimeout(() => router.push("/albergue/mascotas"), 3000);
-        return;
-      } else {
-        setSubmitError(
-          "Ocurrió un error al publicar la mascota. No se guardó ningún dato. Por favor, intenta de nuevo."
-        );
-      }
-    } finally {
+      const parsed = parseMascotaError(err);
+      setSubmitError(parsed.message);
       setIsSubmitting(false);
     }
   };
@@ -268,7 +251,13 @@ export function PublicarMascotaWizard() {
               <StepFotos photos={photos} onPhotosChange={setPhotos} />
             )}
             {step === 3 && (
-              <StepTags tags={tags} onTagChange={handleTagChange} />
+              <StepTags
+                tags={tags}
+                onTagChange={handleTagChange}
+                etiquetas={etiquetas}
+                etiquetasLoading={etiquetasLoading}
+                etiquetasError={etiquetasError}
+              />
             )}
             {step === 4 && (
               <StepRevision
@@ -283,23 +272,37 @@ export function PublicarMascotaWizard() {
         {/* Publish button (step 4 only) */}
         {step === TOTAL_STEPS && (
           <div className="mt-10 max-w-2xl mx-auto w-full">
+            {etiquetasError && (
+              <div className="mb-4 p-3 bg-amber-50 text-amber-700 text-sm rounded-xl text-center border border-amber-200">
+                No se pudo cargar el catálogo de etiquetas. Recarga la página antes de publicar.
+              </div>
+            )}
             {submitError && (
               <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200">
                 {submitError}
               </div>
             )}
+            {isSubmitting && photosProgress.total > 0 && photosProgress.done < photosProgress.total && (
+              <div className="mb-4 text-center text-sm text-gray-600">
+                Procesando fotos: {photosProgress.done} de {photosProgress.total}…
+              </div>
+            )}
             <button
               type="button"
               onClick={handlePublish}
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2.5 bg-[#8b9e7e] hover:bg-[#7a8e6e] disabled:opacity-50 transition-colors text-white font-semibold py-4 rounded-2xl text-base shadow-sm"
+              disabled={isSubmitting || etiquetas.length === 0}
+              className="w-full flex items-center justify-center gap-2.5 bg-[#8b9e7e] hover:bg-[#7a8e6e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-white font-semibold py-4 rounded-2xl text-base shadow-sm"
             >
               {isSubmitting ? (
                 <Loader2 size={20} className="animate-spin" />
               ) : (
                 <Check size={20} />
               )}
-              {isSubmitting ? "Publicando..." : "Publicar Mascota"}
+              {isSubmitting
+                ? photosProgress.done < photosProgress.total
+                  ? "Procesando fotos..."
+                  : "Publicando..."
+                : "Publicar Mascota"}
             </button>
           </div>
         )}

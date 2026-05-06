@@ -1,3 +1,4 @@
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { AlbergueWizard } from "@/features/albergue/components/wizard/AlbergueWizard";
 
 export const metadata = {
@@ -7,6 +8,8 @@ export const metadata = {
 
 export default function AlbergueOnboardingPage() {
   return (
-    <AlbergueWizard />
+    <ClientAuthGuard allowedRoles={["albergue"]}>
+      <AlbergueWizard />
+    </ClientAuthGuard>
   );
 }

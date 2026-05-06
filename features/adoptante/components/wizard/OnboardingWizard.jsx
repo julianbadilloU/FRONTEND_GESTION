@@ -12,6 +12,9 @@ import { cn } from "@/lib/utils/cn";
 import { PersonalDataStep } from "./PersonalDataStep";
 import { getEtiquetas, createAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
 
+// ─────────────────────────────────────────────
+// Tarjeta con imagen (paso de preferencia de raza)
+// ─────────────────────────────────────────────
 function ImageCard({ option, selected, onSelect }) {
   return (
     <button
@@ -41,6 +44,9 @@ function ImageCard({ option, selected, onSelect }) {
   );
 }
 
+// ─────────────────────────────────────────────
+// Tarjeta de color (paso de preferencia de color)
+// ─────────────────────────────────────────────
 function ColorCard({ option, selected, onSelect }) {
   return (
     <button
@@ -53,7 +59,9 @@ function ColorCard({ option, selected, onSelect }) {
           : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
       )}
     >
+      {/* Swatch */}
       {option.type === "multicolor" ? (
+        // Composición multicolor igual al mockup
         <div className="relative w-full aspect-square">
           <div
             className="absolute rounded-xl"
@@ -83,8 +91,10 @@ function ColorCard({ option, selected, onSelect }) {
         />
       )}
 
+      {/* Label */}
       <span className="text-sm font-medium text-gray-700">{option.label}</span>
 
+      {/* Indicador de selección */}
       {selected && (
         <span className="absolute top-2 right-2 w-5 h-5 bg-[#5e924e] rounded-full flex items-center justify-center shadow">
           <Check size={11} color="white" strokeWidth={3} />
@@ -94,6 +104,9 @@ function ColorCard({ option, selected, onSelect }) {
   );
 }
 
+// ─────────────────────────────────────────────
+// Tarjeta de emoji (resto de pasos)
+// ─────────────────────────────────────────────
 function EmojiCard({ option, selected, onSelect }) {
   return (
     <button
@@ -126,6 +139,9 @@ function EmojiCard({ option, selected, onSelect }) {
   );
 }
 
+// ─────────────────────────────────────────────
+// Pantalla de finalización
+// ─────────────────────────────────────────────
 function CompletionScreen({ selections }) {
   const router = useRouter();
   const called = useRef(false);
@@ -137,7 +153,7 @@ function CompletionScreen({ selections }) {
 
     async function submit() {
       try {
-        const { data: etiquetas } = await getEtiquetas();
+        const etiquetas = await getEtiquetas();
 
         const selectedTagIds = new Set();
         function addTag(categoria, valor) {
@@ -145,36 +161,66 @@ function CompletionScreen({ selections }) {
           if (tag) selectedTagIds.add(tag.id_opcion);
         }
 
+        // ── Tipo de animal ──
         if (selections.animalType === "dog") addTag("Tipo de animal", "Perro");
         if (selections.animalType === "cat") addTag("Tipo de animal", "Gato");
         if (selections.animalType === "both") {
           addTag("Tipo de animal", "Perro");
           addTag("Tipo de animal", "Gato");
+          addTag("Tipo de animal", "Sin preferencia");
         }
 
+        // ── Tamaño ──
         if (selections.size === "small") addTag("Tamaño", "Pequeño");
         if (selections.size === "medium") addTag("Tamaño", "Mediano");
         if (selections.size === "large") addTag("Tamaño", "Grande");
+        if (selections.size === "any") addTag("Tamaño", "Sin preferencia");
 
+        // ── Sexo ──
         if (selections.sex === "male") addTag("Sexo", "Macho");
         if (selections.sex === "female") addTag("Sexo", "Hembra");
+        if (selections.sex === "any") addTag("Sexo", "Sin preferencia");
 
-        if (selections.age === "puppy") addTag("Rango de edad", "Cachorro (0-1)");
-        if (selections.age === "young") addTag("Rango de edad", "Joven (1-3)");
-        if (selections.age === "adult") addTag("Rango de edad", "Adulto (3-7)");
-        if (selections.age === "senior") addTag("Rango de edad", "Senior (7+)");
+        // ── Edad ──
+        if (selections.age === "puppy") addTag("Edad", "Cachorro (0–1 año)");
+        if (selections.age === "young") addTag("Edad", "Joven (1–3 años)");
+        if (selections.age === "adult") addTag("Edad", "Adulto (3–7 años)");
+        if (selections.age === "senior") addTag("Edad", "Senior (+7 años)");
+        if (selections.age === "any") addTag("Edad", "Sin preferencia");
 
-        if (selections.energy === "calm") addTag("Nivel de energía", "Bajo (Tranquilo)");
-        if (selections.energy === "moderate") addTag("Nivel de energía", "Medio");
-        if (selections.energy === "active") addTag("Nivel de energía", "Alto (Muy activo)");
+        // ── Nivel de energía ──
+        if (selections.energy === "calm") addTag("Nivel de energía", "Tranquilo");
+        if (selections.energy === "moderate") addTag("Nivel de energía", "Moderado");
+        if (selections.energy === "active") addTag("Nivel de energía", "Muy activo");
+        if (selections.energy === "any") addTag("Nivel de energía", "Sin preferencia");
 
-        if (selections.compatibility === "kids") addTag("Convivencia con niños", "Recomendado");
-        if (selections.compatibility === "dogs") addTag("Relación con perros", "Sociable");
-        if (selections.compatibility === "cats") addTag("Relación con gatos", "Sociable");
+        // ── Compatibilidad ──
+        if (selections.compatibility === "kids") addTag("Compatibilidad", "Niños");
+        if (selections.compatibility === "dogs") addTag("Compatibilidad", "Otros perros");
+        if (selections.compatibility === "cats") addTag("Compatibilidad", "Gatos");
+        if (selections.compatibility === "seniors") addTag("Compatibilidad", "Adultos mayores");
+        if (selections.compatibility === "disabled") addTag("Compatibilidad", "Personas con discapacidad");
+        if (selections.compatibility === "none") addTag("Compatibilidad", "Ninguna");
 
-        if (selections.specialCondition === "disabled_pet") addTag("Condición Especial", "Discapacidad motriz");
-        if (selections.specialCondition === "medical_treatment") addTag("Condición Especial", "Tratamiento crónico");
-        if (selections.specialCondition === "healthy_only") addTag("Condición Especial", "Ninguna");
+        // ── Aceptación de condición especial ──
+        if (selections.specialCondition === "disabled_pet") addTag("Aceptación de condición especial", "Acepto mascotas con discapacidad");
+        if (selections.specialCondition === "medical_treatment") addTag("Aceptación de condición especial", "Acepto mascotas en tratamiento médico");
+        if (selections.specialCondition === "healthy_only") addTag("Aceptación de condición especial", "Solo mascotas sanas");
+
+        // ── Entorno del adoptante ──
+        if (selections.residence === "apt_no_balcony") addTag("Entorno del adoptante", "Apartamento sin balcón");
+        if (selections.residence === "apt_balcony") addTag("Entorno del adoptante", "Apartamento con balcón");
+        if (selections.residence === "house_no_yard") addTag("Entorno del adoptante", "Casa sin jardín");
+        if (selections.residence === "house_yard") addTag("Entorno del adoptante", "Casa con jardín");
+
+        // ── Experiencia previa ──
+        if (selections.experience === "first_time") addTag("Experiencia previa", "Primera vez adoptando");
+        if (selections.experience === "experienced") addTag("Experiencia previa", "Con experiencia en mascotas");
+
+        // ── Disponibilidad de tiempo ──
+        if (selections.time === "home") addTag("Disponibilidad de tiempo", "Trabajo en casa");
+        if (selections.time === "outside_full") addTag("Disponibilidad de tiempo", "Trabajo fuera (tiempo completo)");
+        if (selections.time === "outside_part") addTag("Disponibilidad de tiempo", "Trabajo fuera (medio tiempo)");
 
         const payload = {
           nombre_completo: selections.personalData?.fullName || "",
@@ -197,13 +243,16 @@ function CompletionScreen({ selections }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden p-6 w-full">
+      {/* Decorative background circles */}
       <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-[#f4f8f2] rounded-full opacity-60" />
       <div className="absolute -bottom-52 -right-32 w-[700px] h-[700px] bg-[#f4f8f2] rounded-full opacity-60" />
 
+      {/* Decorative icons floating */}
       <PawPrint className="absolute top-[35%] left-[8%] text-[#d8e8d0] rotate-[-25deg] opacity-70" size={54} strokeWidth={1.5} />
       <Bone className="absolute top-[30%] left-[18%] text-[#d8e8d0] rotate-12 opacity-60" size={32} strokeWidth={1.5} />
       <PawPrint className="absolute bottom-[20%] left-[25%] text-[#d8e8d0] rotate-12 opacity-60" size={40} strokeWidth={1.5} />
       <Bone className="absolute bottom-[25%] left-[30%] text-[#d8e8d0] rotate-45 opacity-40" size={24} strokeWidth={1.5} />
+
       <PawPrint className="absolute bottom-[28%] right-[25%] text-[#d8e8d0] rotate-[-15deg] opacity-70" size={48} strokeWidth={1.5} />
       <Bone className="absolute bottom-[22%] right-[32%] text-[#d8e8d0] rotate-[35deg] opacity-50" size={28} strokeWidth={1.5} />
       <PawPrint className="absolute bottom-[35%] right-[10%] text-[#d8e8d0] rotate-12 opacity-40" size={24} strokeWidth={1.5} />
@@ -217,22 +266,23 @@ function CompletionScreen({ selections }) {
         <h1 className="text-[2.5rem] font-bold text-gray-900 text-center mb-6">
           {error ? "Uy!" : "Listo!"}
         </h1>
-
+        
         <p className="text-gray-500 text-center text-lg leading-relaxed px-4">
           {error ? error : <>Estamos personalizando tu perfil<br className="hidden sm:block" />con tus preferencias</>}
         </p>
 
         {error ? (
           <div className="mt-10">
-            <button
+             <button
               onClick={() => window.location.reload()}
               className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-[#a9c99a] hover:bg-[#81af6d] text-white shadow-md transition-all duration-200"
-            >
-              <AlertCircle size={18} />
-              Reintentar
-            </button>
+             >
+               <AlertCircle size={18} />
+               Reintentar
+             </button>
           </div>
         ) : (
+          /* Loading spinner ring */
           <div className="mt-16 relative flex items-center justify-center">
             <div className="w-10 h-10 border-[3px] border-[#d8e8d0] border-t-[#81af6d] rounded-full animate-spin" />
           </div>
@@ -242,6 +292,9 @@ function CompletionScreen({ selections }) {
   );
 }
 
+// ─────────────────────────────────────────────
+// Wizard principal
+// ─────────────────────────────────────────────
 export function OnboardingWizard() {
   const {
     stepIndex,
@@ -262,12 +315,12 @@ export function OnboardingWizard() {
 
   if (isComplete) return <CompletionScreen selections={selections} />;
 
-  const isColorStep = currentStep.variant === "color";
-  const isImageStep = currentStep.variant === "image";
-  const isFormStep = currentStep.variant === "form";
+  const isColorStep    = currentStep.variant === "color";
+  const isImageStep    = currentStep.variant === "image";
+  const isFormStep     = currentStep.variant === "form";
 
-  const optionsCount = currentStep.options?.length || 0;
-  let emojiGridClass = "grid-cols-2 sm:grid-cols-4";
+  const optionsCount   = currentStep.options?.length || 0;
+  let emojiGridClass   = "grid-cols-2 sm:grid-cols-4";
   if (optionsCount === 2) {
     emojiGridClass = "grid-cols-1 sm:grid-cols-2 max-w-md mx-auto";
   } else if (optionsCount === 3) {
@@ -280,17 +333,21 @@ export function OnboardingWizard() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
+      {/* ── Header ── */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        {/* Logo */}
         <Link href="/" className="flex items-center gap-2 text-gray-800 shrink-0">
           <Dog size={20} />
           <span className="font-bold text-base tracking-tight">FurMatch</span>
         </Link>
 
+        {/* Título central */}
         <h1 className="text-lg font-bold text-gray-900 hidden sm:block">
           Encuentra tu{" "}
           <span className="font-serif italic font-normal text-[#5e924e]">match</span>
         </h1>
 
+        {/* Botón Siguiente */}
         <button
           onClick={next}
           disabled={!canProceed}
@@ -306,6 +363,7 @@ export function OnboardingWizard() {
         </button>
       </header>
 
+      {/* ── Barra de progreso ── */}
       <div className="h-1 bg-gray-100 w-full">
         <motion.div
           className="h-full bg-[#81af6d]"
@@ -314,6 +372,7 @@ export function OnboardingWizard() {
         />
       </div>
 
+      {/* ── Contador de pasos ── */}
       <div className="flex items-center justify-between px-6 pt-4 text-xs text-gray-400">
         <button
           onClick={prev}
@@ -334,6 +393,7 @@ export function OnboardingWizard() {
         </span>
       </div>
 
+      {/* ── Contenido del paso ── */}
       <main className="flex-1 flex flex-col items-center px-6 pt-6 pb-12 w-full max-w-3xl mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
@@ -344,10 +404,12 @@ export function OnboardingWizard() {
             transition={{ duration: 0.25, ease: "easeOut" }}
             className="w-full"
           >
+            {/* Pregunta */}
             <h2 className="text-xl font-bold text-gray-800 text-center mb-8">
               {currentStep.question}
             </h2>
 
+            {/* Contenido según el tipo de paso */}
             {isFormStep ? (
               <PersonalDataStep
                 selection={currentSelection}
@@ -378,11 +440,11 @@ export function OnboardingWizard() {
                     )}
                   >
                     <div className="absolute left-0 top-0 h-full w-32 overflow-hidden opacity-80 group-hover:opacity-100 transition-opacity hidden md:block">
-                      <img
-                        src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&q=80&w=400"
-                        alt="Pets"
+                       <img 
+                        src="https://images.unsplash.com/photo-1450778869180-41d0601e046e?auto=format&fit=crop&q=80&w=400" 
+                        alt="Pets" 
                         className="w-full h-full object-cover"
-                      />
+                       />
                     </div>
                     <span className="text-lg font-bold text-gray-700 relative z-10">Sin preferencia</span>
                     {currentSelection === "any" && (
@@ -394,6 +456,7 @@ export function OnboardingWizard() {
                 )}
               </div>
             ) : isColorStep ? (
+              // Color: siempre 4 columnas (como el mockup)
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {currentStep.options.map((option) => (
                   <ColorCard
@@ -405,6 +468,7 @@ export function OnboardingWizard() {
                 ))}
               </div>
             ) : (
+              // Emoji: grid dinámico según cantidad de opciones
               <div className={cn("grid gap-4 w-full", emojiGridClass)}>
                 {currentStep.options.map((option) => (
                   <EmojiCard

@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FurMatch — Editar Mascota</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f3ee;
+    --card-bg: #edeae3;
+    --green: #7a9e7e;
+    --green-dark: #5a7a5e;
+    --text: #2d2d2d;
+    --text-muted: #888;
+    --label: #6b6b6b;
+    --border: #ddd9d0;
+    --border-focus: #7a9e7e;
+    --footer-bg: #dde3d8;
+    --white: #fff;
+    --error: #c0392b;
+    --error-bg: #fdf0ee;
+    --input-bg: #ffffff;
+    --disabled-bg: #f0ede7;
+    --shadow: 0 2px 16px rgba(0,0,0,0.07);
+    --toast-bg: #3a5c3e;
+    --warning: #c07a2b;
+    --warning-bg: #fdf5ee;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* NAV */
+  nav {
+    background: var(--bg);
+    padding: 0 48px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--green-dark);
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 22px; height: 22px;
+    background: var(--green);
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon::after {
+    content: '♥'; color: white; font-size: 10px;
+    transform: rotate(45deg); display: block; line-height: 1;
+  }
+
+  nav ul { list-style: none; display: flex; gap: 36px; }
+  nav ul a { text-decoration: none; color: var(--text); font-size: 14px; font-weight: 500; transition: color .2s; }
+  nav ul a:hover { color: var(--green-dark); }
+
+  .nav-account {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 500; cursor: pointer; color: var(--text);
+  }
+
+  /* MAIN */
+  main {
+    flex: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 40px 24px 80px;
+  }
+
+  /* PAGE HEADER */
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+    white-space: nowrap;
+  }
+
+  .btn-back:hover { border-color: var(--text); color: var(--text); }
+
+  .page-header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--text);
+  }
+
+  /* CARD */
+  .edit-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 36px;
+    box-shadow: var(--shadow);
+    animation: fadeUp .4s ease both;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* SECTIONS */
+  .section-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--label);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .section-hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: -8px;
+    margin-bottom: 14px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* FOTOS */
+  .photos-grid {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .photo-card {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    background: var(--white);
+    flex-shrink: 0;
+    transition: border-color .2s, transform .15s;
+  }
+
+  .photo-card:hover { border-color: var(--green); }
+
+  .photo-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-order-badge {
+    position: absolute;
+    top: 7px; left: 7px;
+    background: rgba(0,0,0,.55);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 2px 7px;
+    backdrop-filter: blur(4px);
+  }
+
+  .photo-actions {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,.6));
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px 8px 8px;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+
+  .photo-card:hover .photo-actions { opacity: 1; }
+
+  .photo-btn {
+    background: rgba(255,255,255,.9);
+    border: none;
+    border-radius: 6px;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+    transition: background .15s;
+  }
+
+  .photo-btn:hover { background: white; }
+  .photo-btn.delete:hover { background: var(--error); color: white; }
+
+  .photo-add-card {
+    width: 130px;
+    height: 130px;
+    border-radius: 12px;
+    border: 2px dashed var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    transition: border-color .2s, color .2s, background .2s;
+    flex-shrink: 0;
+  }
+
+  .photo-add-card:hover {
+    border-color: var(--green);
+    color: var(--green-dark);
+    background: rgba(122,158,126,.06);
+  }
+
+  .photo-add-icon {
+    font-size: 24px;
+    line-height: 1;
+    color: inherit;
+  }
+
+  .photos-warning {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--warning-bg);
+    border: 1px solid #e8c49a;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 12px;
+    color: var(--warning);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  /* FIELDS */
+  .fields-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 24px;
+    align-content: start;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+
+  .field-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--label);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .required-star { color: var(--error); }
+
+  .field input,
+  .field textarea,
+  .field select {
+    background: var(--input-bg);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    transition: border-color .2s, box-shadow .2s;
+    outline: none;
+    width: 100%;
+  }
+
+  .field input:focus,
+  .field textarea:focus,
+  .field select:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(122,158,126,.15);
+  }
+
+  .field input.error,
+  .field textarea.error,
+  .field select.error { border-color: var(--error); background: var(--error-bg); }
+
+  .field input.valid,
+  .field textarea.valid { border-color: var(--green); }
+
+  .field textarea { resize: vertical; min-height: 100px; }
+
+  .field-counter {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  .field-error {
+    font-size: 11px;
+    color: var(--error);
+    line-height: 1.4;
+    display: none;
+  }
+
+  .field-error.visible { display: block; }
+
+  /* ESTADO BADGE */
+  .estado-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+
+  .estado-badge.disponible  { background: #e6f4e8; color: #2d6e35; }
+  .estado-badge.en_proceso  { background: #fef3e2; color: #a06010; }
+  .estado-badge.adoptado    { background: #e8eaf6; color: #3949ab; }
+  .estado-badge.pausado     { background: #f5f5f5; color: #666; }
+
+  /* TAGS */
+  .tags-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tag-category { display: flex; flex-direction: column; gap: 8px; }
+
+  .tag-category-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--label);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+
+  .tag-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .tag-chip {
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    color: var(--label);
+    transition: all .18s;
+    user-select: none;
+  }
+
+  .tag-chip:hover { border-color: var(--green); color: var(--green-dark); }
+
+  .tag-chip.selected {
+    background: var(--green);
+    color: white;
+    border-color: transparent;
+  }
+
+  .tag-chip[data-cat="especie"].selected   { background: #d4856a; }
+  .tag-chip[data-cat="raza"].selected      { background: #7a9e7e; }
+  .tag-chip[data-cat="edad"].selected      { background: #7ea8c4; }
+  .tag-chip[data-cat="tamano"].selected    { background: #c4b56a; }
+  .tag-chip[data-cat="salud"].selected     { background: #7a9e7e; }
+  .tag-chip[data-cat="personalidad"].selected { background: #b47eb3; }
+  .tag-chip[data-cat="entorno"].selected   { background: #d4856a; }
+
+  .tags-loading {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ACTIONS */
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn-cancel {
+    padding: 11px 24px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+
+  .btn-cancel:hover { border-color: var(--text-muted); background: rgba(0,0,0,.04); }
+
+  .btn-save {
+    padding: 11px 24px;
+    border-radius: 100px;
+    background: var(--green);
+    color: white;
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-save:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+  .btn-save:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-save .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none;
+  }
+
+  .btn-save.loading .spinner { display: block; }
+  .btn-save.loading .btn-text { display: none; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SKELETON */
+  .skeleton {
+    background: linear-gradient(90deg, #e0ddd6 25%, #edeae3 50%, #e0ddd6 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 8px;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    background: var(--toast-bg);
+    color: white;
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 9999;
+    pointer-events: none;
+    max-width: 360px;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: var(--error); }
+  .toast.warning { background: var(--warning); }
+  .toast-icon { font-size: 18px; flex-shrink: 0; }
+  .toast-body { display: flex; flex-direction: column; gap: 2px; }
+  .toast-title { font-weight: 600; }
+  .toast-msg { font-size: 13px; opacity: .9; }
+
+  /* FOOTER */
+  footer {
+    background: var(--footer-bg);
+    padding: 24px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    font-size: 13px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--green-dark);
+  }
+
+  .footer-contact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .footer-icons { display: flex; gap: 10px; }
+
+  .footer-icons a {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: border-color .2s, color .2s;
+  }
+
+  .footer-icons a:hover { border-color: var(--green); color: var(--green); }
+
+  /* DRAG & DROP */
+  .photo-card { cursor: grab; }
+  .photo-card:active { cursor: grabbing; }
+  .photo-card.dragging { opacity: .35; transform: scale(.96); transition: opacity .15s, transform .15s; }
+  .photo-card.drag-over { border-color: var(--green); box-shadow: 0 0 0 3px rgba(122,158,126,.3); }
+
+  /* PROGRESO DE FOTO */
+  .photo-progress-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.55);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 8px; color: white; font-size: 12px; font-weight: 600;
+    border-radius: 10px;
+  }
+  .photo-progress-bar {
+    width: 72%; height: 4px;
+    background: rgba(255,255,255,.3);
+    border-radius: 2px; overflow: hidden;
+  }
+  .photo-progress-fill {
+    height: 100%; background: white; border-radius: 2px;
+    transition: width .15s ease;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-icon"></div>
+    FurMatch
+  </a>
+  <ul>
+    <li><a href="#">Mis mascotas</a></li>
+    <li><a href="#">Solicitudes</a></li>
+    <li><a href="#">Novedades</a></li>
+  </ul>
+  <div class="nav-account">
+    Mi Albergue
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+  </div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <button class="btn-back" id="btn-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      Volver
+    </button>
+    <h1>Editar Mascota</h1>
+  </div>
+
+  <div class="edit-card">
+
+    <!-- ── FOTOS ───────────────────────────────────────────── -->
+    <section>
+      <p class="section-title">
+        Fotos <span class="required-star">*</span>
+      </p>
+      <p class="section-hint">Mínimo 1 · Máximo 5 · JPG, PNG o WEBP · Usa las flechas para reordenar</p>
+
+      <div class="photos-grid" id="photos-grid">
+        <!-- Skeletons mientras carga -->
+        <div class="photo-card skeleton" style="border:none"></div>
+        <div class="photo-card skeleton" style="border:none"></div>
+        <div class="photo-card skeleton" style="border:none;opacity:.6"></div>
+      </div>
+
+      <div class="photos-warning" id="fotos-warning" style="display:none">
+        ⚠ Se requiere al menos una foto para guardar.
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── DATOS BÁSICOS ──────────────────────────────────── -->
+    <section>
+      <p class="section-title">Información de la mascota</p>
+      <div class="fields-grid">
+
+        <!-- Nombre -->
+        <div class="field">
+          <label class="field-label" for="nombre">
+            Nombre <span class="required-star">*</span>
+          </label>
+          <input type="text" id="nombre" name="nombre" value=""
+                 placeholder="Nombre de la mascota" maxlength="100"
+                 aria-describedby="nombre-error" />
+          <span class="field-error" id="nombre-error">El nombre es requerido (mín. 2 caracteres).</span>
+        </div>
+
+        <!-- Estado de adopción -->
+        <div class="field">
+          <label class="field-label" for="estado">Estado de adopción</label>
+          <select id="estado" name="estado">
+            <option value="disponible">🟢 Disponible</option>
+            <option value="en_proceso">🟡 En proceso</option>
+            <option value="adoptado">🔵 Adoptado</option>
+            <option value="pausado">⚪ Pausado</option>
+          </select>
+        </div>
+
+        <!-- Descripción -->
+        <div class="field full">
+          <label class="field-label" for="descripcion">
+            Descripción <span class="required-star">*</span>
+          </label>
+          <textarea id="descripcion" name="descripcion"
+                    placeholder="Cuéntanos sobre la personalidad, historia y necesidades de la mascota..."
+                    maxlength="1000" rows="4"
+                    aria-describedby="descripcion-error"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="field-error" id="descripcion-error" style="display:none">La descripción debe tener al menos 10 caracteres.</span>
+            <span class="field-counter" id="desc-counter" style="margin-left:auto">0/1000</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <!-- ── TAGS ───────────────────────────────────────────── -->
+    <section>
+      <p class="section-title">Tags de la mascota</p>
+      <div id="tags-container">
+        <p class="tags-loading">Cargando opciones de tags...</p>
+      </div>
+    </section>
+
+    <!-- ── ACCIONES ───────────────────────────────────────── -->
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" id="btn-cancel">Cancelar</button>
+      <button type="button" class="btn-save" id="btn-save">
+        <span class="btn-text">Guardar Cambios</span>
+        <span class="spinner"></span>
+      </button>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo">
+    <div class="logo-icon" style="width:16px;height:16px;"></div>
+    FurMatch
+  </div>
+  <div class="footer-contact">
+    Contact Us
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 7L2 7"/></svg>
+    info@furmatch.com
+  </div>
+  <div class="footer-icons">
+    <a href="#" aria-label="Facebook">f</a>
+    <a href="#" aria-label="Twitter">𝕏</a>
+    <a href="#" aria-label="GitHub">⌥</a>
+  </div>
+</footer>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="alert" aria-live="polite">
+  <span class="toast-icon" id="toast-icon">✓</span>
+  <div class="toast-body">
+    <span class="toast-title" id="toast-title"></span>
+    <span class="toast-msg"  id="toast-msg"></span>
+  </div>
+</div>
+
+<!-- Input file oculto para fotos -->
+<input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp" multiple style="display:none" />
+
+<script>
+'use strict';
+// ── CONFIG ───────────────────────────────────────────────────
+const API_BASE  = 'http://localhost:3000';
+const TOKEN_KEY = 'furmatch.access_token';
+
+function getToken() { return localStorage.getItem(TOKEN_KEY); }
+
+// ID de la mascota desde query param: ?id=<uuid>
+const MASCOTA_ID = new URLSearchParams(window.location.search).get('id') || 'DEMO-UUID';
+
+// ── ESTADO GLOBAL ────────────────────────────────────────────
+let mascotaActual   = null;  // datos originales del GET
+let fotosActuales   = [];    // [{ id_foto?, url_foto?, base64?, orden, _eliminar? }]
+let fotosEliminadas = [];    // UUIDs de fotos a eliminar
+let selectedTagIds  = new Set(); // UUIDs de tags seleccionados
+
+// ── HTTP CLIENT ──────────────────────────────────────────────
+async function apiFetch(path, opts = {}) {
+  const token = getToken();
+  return fetch(`${API_BASE}${path}`, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...opts.headers,
+    },
+  });
+}
+
+// ── TOAST ────────────────────────────────────────────────────
+function showToast(title, msg = '', type = 'success') {
+  const toast = document.getElementById('toast');
+  const icons = { success: '✓', error: '✕', warning: '⚠' };
+  document.getElementById('toast-icon').textContent  = icons[type] || '✓';
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-msg').textContent   = msg;
+  toast.className = `toast ${type}`;
+  toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toast.classList.remove('show'), 4500);
+}
+
+// ── FOTOS — DRAG & DROP + FLECHAS ────────────────────────────
+let dragSrcIdx = null;
+
+function renderPhotos() {
+  const grid = document.getElementById('photos-grid');
+  grid.innerHTML = '';
+
+  fotosActuales.forEach((foto, idx) => {
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.dataset.idx = idx;
+    card.draggable = true;
+
+    const img = document.createElement('img');
+    img.src = foto.base64 || foto.url_foto || '';
+    img.alt = `Foto ${foto.orden}`;
+    img.draggable = false; // evita conflicto con drag de la card
+    card.appendChild(img);
+
+    // Badge de orden
+    const badge = document.createElement('span');
+    badge.className = 'photo-order-badge';
+    badge.textContent = foto.orden;
+    card.appendChild(badge);
+
+    // Botones (flechas + eliminar)
+    const actions = document.createElement('div');
+    actions.className = 'photo-actions';
+
+    if (idx > 0) {
+      const btnL = document.createElement('button');
+      btnL.className = 'photo-btn'; btnL.innerHTML = '←'; btnL.title = 'Mover antes';
+      btnL.addEventListener('click', e => { e.stopPropagation(); movePhoto(idx, idx - 1); });
+      actions.appendChild(btnL);
+    }
+
+    const btnD = document.createElement('button');
+    btnD.className = 'photo-btn delete'; btnD.innerHTML = '✕'; btnD.title = 'Eliminar foto';
+    btnD.addEventListener('click', e => { e.stopPropagation(); deletePhoto(idx); });
+    actions.appendChild(btnD);
+
+    if (idx < fotosActuales.length - 1) {
+      const btnR = document.createElement('button');
+      btnR.className = 'photo-btn'; btnR.innerHTML = '→'; btnR.title = 'Mover después';
+      btnR.addEventListener('click', e => { e.stopPropagation(); movePhoto(idx, idx + 1); });
+      actions.appendChild(btnR);
+    }
+
+    card.appendChild(actions);
+
+    // ── Drag & Drop ──
+    card.addEventListener('dragstart', e => {
+      dragSrcIdx = idx;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', idx);
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+      grid.querySelectorAll('.photo-card').forEach(c => c.classList.remove('drag-over'));
+    });
+
+    card.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      grid.querySelectorAll('.photo-card').forEach(c => c.classList.remove('drag-over'));
+      card.classList.add('drag-over');
+    });
+
+    card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
+
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      if (dragSrcIdx !== null && dragSrcIdx !== idx) {
+        movePhoto(dragSrcIdx, idx);
+      }
+      dragSrcIdx = null;
+    });
+
+    grid.appendChild(card);
+  });
+
+  // Tarjeta "Agregar foto"
+  if (fotosActuales.length < 5) {
+    const addCard = document.createElement('div');
+    addCard.className = 'photo-add-card';
+    addCard.id = 'add-card';
+    addCard.innerHTML = `<span class="photo-add-icon">+</span><span>Agregar foto</span>`;
+    addCard.addEventListener('click', () => document.getElementById('foto-input').click());
+    grid.appendChild(addCard);
+  }
+
+  document.getElementById('fotos-warning').style.display =
+    fotosActuales.length === 0 ? 'flex' : 'none';
+}
+
+function movePhoto(fromIdx, toIdx) {
+  const [foto] = fotosActuales.splice(fromIdx, 1);
+  fotosActuales.splice(toIdx, 0, foto);
+  fotosActuales.forEach((f, i) => { f.orden = i + 1; });
+  renderPhotos();
+}
+
+function deletePhoto(idx) {
+  const foto = fotosActuales[idx];
+  if (foto.id_foto) fotosEliminadas.push(foto.id_foto);
+  fotosActuales.splice(idx, 1);
+  fotosActuales.forEach((f, i) => { f.orden = i + 1; });
+  renderPhotos();
+}
+
+// Input de nuevas fotos con progreso
+document.getElementById('foto-input').addEventListener('change', function () {
+  const files    = Array.from(this.files);
+  const maxNuevo = 5 - fotosActuales.length;
+
+  if (maxNuevo <= 0) {
+    showToast('Límite alcanzado', 'Ya tienes 5 fotos, elimina alguna para agregar otra.', 'warning');
+    this.value = ''; return;
+  }
+  if (files.length > maxNuevo) {
+    showToast('Límite de fotos', `Solo puedes agregar ${maxNuevo} foto(s) más.`, 'warning');
+  }
+
+  const validas = files.slice(0, maxNuevo).filter(f => {
+    if (!['image/jpeg','image/png','image/webp'].includes(f.type)) {
+      showToast('Formato inválido', `${f.name}: solo JPG, PNG o WEBP.`, 'error'); return false;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      showToast('Imagen muy grande', `${f.name}: máximo 5 MB.`, 'error'); return false;
+    }
+    return true;
+  });
+
+  if (!validas.length) { this.value = ''; return; }
+
+  // Mostrar tarjeta de progreso por cada archivo
+  let procesadas = 0;
+  validas.forEach((file, i) => {
+    // Placeholder con barra de progreso mientras lee
+    const placeholderIdx = fotosActuales.length + i;
+    const grid = document.getElementById('photos-grid');
+    const progressCard = document.createElement('div');
+    progressCard.className = 'photo-card';
+    progressCard.id = `progress-card-${i}`;
+    progressCard.innerHTML = `
+      <div class="photo-progress-overlay">
+        <span>Cargando...</span>
+        <div class="photo-progress-bar">
+          <div class="photo-progress-fill" id="fill-${i}" style="width:0%"></div>
+        </div>
+      </div>`;
+    // Insertar antes del botón agregar
+    const addCard = document.getElementById('add-card');
+    if (addCard) grid.insertBefore(progressCard, addCard);
+    else grid.appendChild(progressCard);
+
+    const reader = new FileReader();
+    reader.onprogress = e => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 100);
+        const fill = document.getElementById(`fill-${i}`);
+        if (fill) fill.style.width = `${pct}%`;
+      }
+    };
+    reader.onload = e => {
+      // Quitar placeholder
+      document.getElementById(`progress-card-${i}`)?.remove();
+      fotosActuales.push({ base64: e.target.result, orden: fotosActuales.length + 1 });
+      procesadas++;
+      if (procesadas === validas.length) renderPhotos();
+    };
+    reader.onerror = () => {
+      document.getElementById(`progress-card-${i}`)?.remove();
+      showToast('Error de lectura', `No se pudo leer ${file.name}.`, 'error');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  this.value = '';
+});
+
+// ── TAGS ─────────────────────────────────────────────────────
+// tagsByCat: { categoria: [{ id_opcion, valor }] }
+// selectedIds: string[] de id_opcion ya activos en la mascota
+function renderTags(tagsByCat, selectedIds) {
+  selectedTagIds = new Set(selectedIds);
+  const container = document.getElementById('tags-container');
+  container.innerHTML = '';
+
+  if (Object.keys(tagsByCat).length === 0) {
+    container.innerHTML = '<p class="tags-loading">No hay tags disponibles.</p>';
+    return;
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'tags-categories';
+
+  Object.entries(tagsByCat).forEach(([categoria, opciones]) => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'tag-category';
+
+    const label = document.createElement('span');
+    label.className = 'tag-category-label';
+    label.textContent = categoria;
+    catDiv.appendChild(label);
+
+    const optsDiv = document.createElement('div');
+    optsDiv.className = 'tag-options';
+
+    opciones.forEach(op => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'tag-chip' + (selectedTagIds.has(op.id_opcion) ? ' selected' : '');
+      chip.dataset.cat = categoria.toLowerCase().replace(/\s+/g, '');
+      chip.dataset.id  = op.id_opcion;
+      chip.textContent = op.valor;
+      chip.setAttribute('aria-pressed', String(selectedTagIds.has(op.id_opcion)));
+
+      chip.addEventListener('click', () => {
+        if (selectedTagIds.has(op.id_opcion)) {
+          selectedTagIds.delete(op.id_opcion);
+          chip.classList.remove('selected');
+          chip.setAttribute('aria-pressed', 'false');
+        } else {
+          selectedTagIds.add(op.id_opcion);
+          chip.classList.add('selected');
+          chip.setAttribute('aria-pressed', 'true');
+        }
+      });
+
+      optsDiv.appendChild(chip);
+    });
+
+    catDiv.appendChild(optsDiv);
+    wrapper.appendChild(catDiv);
+  });
+
+  container.appendChild(wrapper);
+}
+
+// Obtiene TODOS los tags disponibles desde GET /api/etiquetas
+// Retorna { categoria: [{ id_opcion, valor }] }
+async function fetchAllTags() {
+  try {
+    const res = await apiFetch('/api/etiquetas');
+    if (!res.ok) return {};
+    const { data } = await res.json();
+    const byCat = {};
+    (data || []).forEach(t => {
+      const cat = t.categoria || 'General';
+      if (!byCat[cat]) byCat[cat] = [];
+      byCat[cat].push({ id_opcion: t.id_opcion, valor: t.valor });
+    });
+    return byCat;
+  } catch {
+    return {};
+  }
+}
+
+// ── CARGA INICIAL ────────────────────────────────────────────
+async function loadMascota() {
+  try {
+    // Lanzar ambas peticiones en paralelo
+    const [mascotaRes, tagsByCat] = await Promise.all([
+      apiFetch(`/api/mascotas/${MASCOTA_ID}`),
+      fetchAllTags(),
+    ]);
+
+    if (mascotaRes.status === 404) {
+      showToast('Mascota no encontrada', 'Verifica el ID e intenta de nuevo.', 'error');
+      renderPhotos();
+      renderTags({}, []);
+      return;
+    }
+    if (!mascotaRes.ok) throw new Error(`HTTP ${mascotaRes.status}`);
+
+    const { data } = await mascotaRes.json();
+    mascotaActual = data;
+
+    // Campos básicos
+    document.getElementById('nombre').value      = data.nombre          || '';
+    document.getElementById('descripcion').value = data.descripcion     || '';
+    document.getElementById('estado').value      = data.estado_adopcion || 'disponible';
+    updateDescCounter();
+
+    // Fotos — ordenadas por campo orden
+    fotosActuales = (data.fotos || [])
+      .sort((a, b) => a.orden - b.orden)
+      .map(f => ({ id_foto: f.id_foto, url_foto: f.url_foto, orden: f.orden }));
+    renderPhotos();
+
+    // Tags — catálogo completo con los de la mascota preseleccionados
+    const selectedIds = (data.tags || []).map(t => t.id_opcion);
+
+    // Si el catálogo llegó vacío (error o sin datos), fallback a los tags actuales
+    const catalogoFinal = Object.keys(tagsByCat).length > 0
+      ? tagsByCat
+      : (() => {
+          const fallback = {};
+          (data.tags || []).forEach(t => {
+            const cat = t.categoria || t.nombre_tag || 'General';
+            if (!fallback[cat]) fallback[cat] = [];
+            fallback[cat].push({ id_opcion: t.id_opcion, valor: t.valor });
+          });
+          return fallback;
+        })();
+
+    renderTags(catalogoFinal, selectedIds);
+
+  } catch (err) {
+    console.error('Error cargando mascota:', err);
+    showToast('Error de conexión', 'No se pudo cargar la mascota del servidor.', 'error');
+    renderPhotos();
+    renderTags({}, []);
+  }
+}
+
+// ── VALIDACIONES ─────────────────────────────────────────────
+function showFieldError(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('visible', show);
+}
+
+function validateNombre() {
+  const v = document.getElementById('nombre').value.trim();
+  const ok = v.length >= 2;
+  document.getElementById('nombre').classList.toggle('error', !ok);
+  document.getElementById('nombre').classList.toggle('valid',  ok);
+  showFieldError('nombre-error', !ok);
+  return ok;
+}
+
+function validateDescripcion() {
+  const v = document.getElementById('descripcion').value.trim();
+  const ok = v.length >= 10;
+  document.getElementById('descripcion').classList.toggle('error', !ok);
+  document.getElementById('descripcion').classList.toggle('valid',  ok);
+  const errEl = document.getElementById('descripcion-error');
+  if (errEl) errEl.style.display = ok ? 'none' : 'block';
+  return ok;
+}
+
+function validateFotos() {
+  const ok = fotosActuales.length > 0;
+  document.getElementById('fotos-warning').style.display = ok ? 'none' : 'flex';
+  return ok;
+}
+
+function updateDescCounter() {
+  const len = document.getElementById('descripcion').value.length;
+  document.getElementById('desc-counter').textContent = `${len}/1000`;
+}
+
+// Listeners en tiempo real
+document.getElementById('nombre').addEventListener('input', validateNombre);
+document.getElementById('descripcion').addEventListener('input', () => {
+  updateDescCounter();
+  validateDescripcion();
+});
+
+// ── GUARDAR ──────────────────────────────────────────────────
+document.getElementById('btn-save').addEventListener('click', async () => {
+  const v1 = validateNombre();
+  const v2 = validateDescripcion();
+  const v3 = validateFotos();
+
+  if (!v1 || !v2 || !v3) {
+    showToast('Revisa el formulario', 'Hay campos con errores o falta al menos una foto.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-save');
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    const body = {
+      nombre:           document.getElementById('nombre').value.trim(),
+      descripcion:      document.getElementById('descripcion').value.trim(),
+      estado_adopcion:  document.getElementById('estado').value,
+      fotos:            fotosActuales.map(f => {
+        if (f.id_foto && !f.base64) return { orden: f.orden, id_foto: f.id_foto };
+        return { orden: f.orden, base64: f.base64 };
+      }),
+      fotos_eliminadas: fotosEliminadas,
+      tagsIds:          Array.from(selectedTagIds),
+      updated_at:       mascotaActual?.updated_at || new Date().toISOString(),
+    };
+
+    const res = await apiFetch(`/api/mascotas/${MASCOTA_ID}`, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+
+    if (res.status === 409) {
+      // Conflicto de concurrencia optimista
+      showToast(
+        'Datos desactualizados',
+        'Otro usuario modificó esta mascota. Recarga la página para ver la versión más reciente.',
+        'warning'
+      );
+      return;
+    }
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `Error ${res.status}`);
+    }
+
+    showToast('¡Cambios guardados!', 'El perfil de la mascota fue actualizado correctamente.', 'success');
+    // Actualizar updated_at local para futura edición sin recargar
+    const { data } = await res.json().catch(() => ({ data: null }));
+    if (data?.updated_at) mascotaActual.updated_at = data.updated_at;
+    fotosEliminadas = [];
+
+  } catch (err) {
+    showToast('Error al guardar', err.message || 'Intenta de nuevo.', 'error');
+  } finally {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+});
+
+// ── CANCELAR / VOLVER ────────────────────────────────────────
+document.getElementById('btn-cancel').addEventListener('click', () => history.back());
+document.getElementById('btn-back').addEventListener('click',   () => history.back());
+
+// ── INICIALIZAR ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', loadMascota);
+</script>
+</body>
+</html>
