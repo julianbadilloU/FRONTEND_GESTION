@@ -1,0 +1,591 @@
+"use client";
+
+import { useState, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Users,
+  Phone,
+  MapPin,
+  Calendar,
+  ChevronRight,
+  Dog,
+  Check,
+  X,
+  History,
+  Loader2,
+  AlertCircle,
+  MessageCircle,
+} from "lucide-react";
+import { cn } from "@/lib/utils/cn";
+import {
+  getMisCandidatos,
+  getCandidatosPorMascota,
+  contactarAdoptante,
+  buildWhatsAppUrl,
+} from "@/features/albergue/services/candidatos.service";
+import { WhatsAppContactButton, WhatsAppIcon } from "./WhatsAppContactButton";
+import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
+
+// ── Demo data (used when backend endpoint is not available yet) ────────────────
+const DEMO_MASCOTAS = [
+  { id_mascota: 1, nombre: "Luna", foto: null, candidatos_count: 8 },
+  { id_mascota: 2, nombre: "Rocky", foto: null, candidatos_count: 5 },
+  { id_mascota: 3, nombre: "Mia", foto: null, candidatos_count: 12 },
+];
+
+const DEMO_CANDIDATOS = [
+  {
+    id_match: 101, id_adoptante: 1, nombre_completo: "Ana García",
+    ciudad: "Ciudad de México", whatsapp_adoptante: "3001234567",
+    foto_perfil: null, puntaje: 95, estado: "pendiente",
+    fecha: "2026-03-15T10:00:00Z",
+    tags: ["Casa con jardín", "Con experiencia", "Tranquilo"],
+    historial_contactos: [],
+    veces_contactado: 0,
+  },
+  {
+    id_match: 102, id_adoptante: 2, nombre_completo: "Carlos Mendez",
+    ciudad: "Guadalajara", whatsapp_adoptante: "3109876543",
+    foto_perfil: null, puntaje: 88, estado: "contactado",
+    fecha: "2026-03-14T09:00:00Z",
+    tags: ["Activo", "Patio grande", "Con experiencia"],
+    historial_contactos: [
+      { fecha: "2026-03-16T14:30:00Z", mensaje: "Primer contacto vía WhatsApp." },
+    ],
+    veces_contactado: 1,
+  },
+  {
+    id_match: 103, id_adoptante: 3, nombre_completo: "María López",
+    ciudad: "Monterrey", whatsapp_adoptante: "3205551234",
+    foto_perfil: null, puntaje: 82, estado: "pendiente",
+    fecha: "2026-03-13T08:00:00Z",
+    tags: ["Familia con niños", "Casa con jardín"],
+    historial_contactos: [],
+    veces_contactado: 0,
+  },
+  {
+    id_match: 104, id_adoptante: 4, nombre_completo: "Roberto Díaz",
+    ciudad: "Puebla", whatsapp_adoptante: "3314443322",
+    foto_perfil: null, puntaje: 78, estado: "pendiente",
+    fecha: "2026-03-12T07:00:00Z",
+    tags: ["Trabajo remoto", "Tranquilo", "Primer mascota"],
+    historial_contactos: [],
+    veces_contactado: 0,
+  },
+  {
+    id_match: 105, id_adoptante: 5, nombre_completo: "Sofía Torres",
+    ciudad: "Querétaro", whatsapp_adoptante: "4421112233",
+    foto_perfil: null, puntaje: 74, estado: "pendiente",
+    fecha: "2026-03-11T06:00:00Z",
+    tags: ["Departamento", "Con experiencia", "Tranquilo"],
+    historial_contactos: [],
+    veces_contactado: 0,
+  },
+];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function formatDate(iso) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("es-MX", {
+    day: "numeric", month: "short", year: "numeric",
+  });
+}
+
+function getBarColor(pct) {
+  if (pct >= 80) return "#4a7c59";
+  if (pct >= 60) return "#c9a52d";
+  if (pct >= 30) return "#d4841b";
+  return "#9ca3af";
+}
+
+// ── ContactadoBadge ───────────────────────────────────────────────────────────
+function ContactadoBadge({ fecha }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
+      <Check size={11} strokeWidth={3} />
+      Contactado {fecha ? formatDate(fecha) : ""}
+    </span>
+  );
+}
+
+// ── PendienteBadge ────────────────────────────────────────────────────────────
+function PendienteBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
+      Pendiente
+    </span>
+  );
+}
+
+// ── HistorialTable ────────────────────────────────────────────────────────────
+function HistorialTable({ historial }) {
+  if (!historial || historial.length === 0) {
+    return (
+      <p className="text-xs text-gray-400 italic py-2">Sin contactos registrados.</p>
+    );
+  }
+  return (
+    <table className="w-full text-xs" aria-label="Historial de contactos">
+      <thead>
+        <tr className="text-left text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
+          <th className="pb-2 pr-4">Fecha</th>
+          <th className="pb-2">Mensaje</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-50">
+        {historial.map((h, i) => (
+          <tr key={i}>
+            <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">
+              {formatDate(h.fecha)}
+            </td>
+            <td className="py-2 text-gray-700">{h.mensaje}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+// ── CandidatoDetailPanel ──────────────────────────────────────────────────────
+function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose }) {
+  if (!candidato) return null;
+  const yaContactado = candidato.estado === "contactado";
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        key={candidato.id_match}
+        initial={{ opacity: 0, x: 32 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 32 }}
+        className="bg-white rounded-3xl border border-[#e5e0d8] shadow-sm p-6 space-y-5 sticky top-6"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-[#f0ede8] flex items-center justify-center overflow-hidden flex-shrink-0">
+              {candidato.foto_perfil ? (
+                <img src={candidato.foto_perfil} alt={candidato.nombre_completo} className="w-full h-full object-cover" />
+              ) : (
+                <Users size={22} className="text-[#8b9e7e]" />
+              )}
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-base">{candidato.nombre_completo}</h3>
+              <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                <MapPin size={10} /> {candidato.ciudad}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+            aria-label="Cerrar panel"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Status badge */}
+        <div>
+          {yaContactado
+            ? <ContactadoBadge fecha={candidato.historial_contactos?.at(-1)?.fecha} />
+            : <PendienteBadge />
+          }
+        </div>
+
+        {/* WhatsApp number */}
+        <div className="bg-[#f7faf5] rounded-2xl p-4 space-y-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">WhatsApp</p>
+          <div className="flex items-center gap-2">
+            <WhatsAppIcon size={14} className="text-[#25D366]" />
+            <span
+              className="text-sm font-semibold text-gray-800 font-mono"
+              id={`whatsapp-number-${candidato.id_match}`}
+            >
+              {candidato.whatsapp_adoptante || "No disponible"}
+            </span>
+          </div>
+        </div>
+
+        {/* Compatibility */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">Compatibilidad</p>
+          <div className="flex items-center gap-3">
+            <div
+              className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden"
+              role="progressbar"
+              aria-valuenow={candidato.puntaje}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`${candidato.puntaje}% de compatibilidad`}
+            >
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${Math.min(candidato.puntaje, 100)}%`, backgroundColor: getBarColor(candidato.puntaje) }}
+              />
+            </div>
+            <span className="text-sm font-bold" style={{ color: getBarColor(candidato.puntaje) }}>
+              {candidato.puntaje}%
+            </span>
+          </div>
+        </div>
+
+        {/* Tags */}
+        {candidato.tags?.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">Preferencias</p>
+            <div className="flex flex-wrap gap-1.5">
+              {candidato.tags.map((tag) => (
+                <span key={tag} className="text-xs font-medium bg-[#f0ede8] text-[#6b7280] px-2.5 py-1 rounded-full">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Veces contactado */}
+        <div className="bg-gray-50 rounded-2xl px-4 py-3 flex items-center justify-between">
+          <span className="text-xs text-gray-500 font-medium">Veces contactado</span>
+          <span className="text-sm font-bold text-gray-900">{candidato.veces_contactado ?? 0}</span>
+        </div>
+
+        {/* Historial */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890] flex items-center gap-1.5">
+            <History size={11} /> Historial de contactos
+          </p>
+          <HistorialTable historial={candidato.historial_contactos} />
+        </div>
+
+        {/* Action button */}
+        <WhatsAppContactButton
+          idMatch={candidato.id_match}
+          adoptante={candidato}
+          nombreMascota={nombreMascota}
+          estadoInicial={candidato.estado}
+          onContactado={onContactado}
+          className="w-full justify-center py-3"
+        />
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+// ── CandidatoRow ──────────────────────────────────────────────────────────────
+function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContactado }) {
+  const yaContactado = candidato.estado === "contactado";
+  const ultimoContacto = candidato.historial_contactos?.at(-1);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "bg-white rounded-2xl border transition-all duration-200 cursor-pointer hover:shadow-sm",
+        isSelected ? "border-[#8b9e7e] shadow-sm" : "border-[#ece7e0] hover:border-[#c5bdb3]"
+      )}
+      onClick={() => onSelect(candidato)}
+    >
+      <div className="flex items-center gap-4 p-4">
+        {/* Avatar */}
+        <div className="w-11 h-11 rounded-xl bg-[#f0ede8] flex items-center justify-center overflow-hidden flex-shrink-0">
+          {candidato.foto_perfil ? (
+            <img src={candidato.foto_perfil} alt={candidato.nombre_completo} className="w-full h-full object-cover" />
+          ) : (
+            <Users size={18} className="text-[#8b9e7e]" />
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="font-semibold text-gray-900 text-sm truncate">{candidato.nombre_completo}</span>
+            <span className="text-xs text-gray-400 flex-shrink-0">{candidato.ciudad}</span>
+            <span className="text-xs text-gray-300 flex-shrink-0">{formatDate(candidato.fecha)}</span>
+          </div>
+
+          {/* Status */}
+          <div className="mb-2">
+            {yaContactado
+              ? <ContactadoBadge fecha={ultimoContacto?.fecha} />
+              : <PendienteBadge />
+            }
+          </div>
+
+          {/* Compatibility bar */}
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${Math.min(candidato.puntaje, 100)}%`, backgroundColor: getBarColor(candidato.puntaje) }}
+              />
+            </div>
+            <span className="text-xs font-bold" style={{ color: getBarColor(candidato.puntaje) }}>
+              {candidato.puntaje}%
+            </span>
+          </div>
+
+          {/* Tags */}
+          {candidato.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {candidato.tags.slice(0, 3).map((tag) => (
+                <span key={tag} className="text-[10px] font-medium bg-[#f0ede8] text-[#6b7280] px-2 py-0.5 rounded-full">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Action */}
+        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+          <WhatsAppContactButton
+            idMatch={candidato.id_match}
+            adoptante={candidato}
+            nombreMascota={nombreMascota}
+            estadoInicial={candidato.estado}
+            onContactado={onContactado}
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ── Main View ─────────────────────────────────────────────────────────────────
+export function CandidatosView() {
+  const queryClient = useQueryClient();
+  const [selectedMascota, setSelectedMascota] = useState(DEMO_MASCOTAS[0]);
+  const [selectedCandidato, setSelectedCandidato] = useState(null);
+  const [candidatosMap, setCandidatosMap] = useState(() => {
+    // Initialize with demo data keyed by mascota id
+    return { [DEMO_MASCOTAS[0].id_mascota]: DEMO_CANDIDATOS };
+  });
+
+  // Toast state
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+  const showToast = useCallback((message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: "", type: "success" }), 3500);
+  }, []);
+
+  // Fetch mascotas list (with fallback to demo)
+  const { data: mascotasData } = useQuery({
+    queryKey: ["mis-mascotas-candidatos"],
+    queryFn: () => getMisCandidatos().catch(() => ({ data: DEMO_MASCOTAS })),
+    staleTime: 30_000,
+  });
+  const mascotas = mascotasData?.data ?? DEMO_MASCOTAS;
+
+  // Fetch candidatos for selected mascota (with fallback to demo)
+  const { data: candidatosData, isLoading: loadingCandidatos } = useQuery({
+    queryKey: ["candidatos", selectedMascota?.id_mascota],
+    queryFn: () =>
+      getCandidatosPorMascota(selectedMascota.id_mascota).catch(() => ({
+        data: DEMO_CANDIDATOS,
+      })),
+    enabled: !!selectedMascota,
+    staleTime: 20_000,
+  });
+
+  const candidatos =
+    candidatosData?.data ??
+    candidatosMap[selectedMascota?.id_mascota] ??
+    [];
+
+  // Handle contact registered — update local state optimistically
+  const handleContactado = useCallback((idMatch) => {
+    const now = new Date().toISOString();
+    const nuevoMensaje = { fecha: now, mensaje: "Contactado vía WhatsApp." };
+
+    // Update query cache
+    queryClient.setQueryData(["candidatos", selectedMascota?.id_mascota], (old) => {
+      if (!old?.data) return old;
+      return {
+        ...old,
+        data: old.data.map((c) =>
+          c.id_match === idMatch
+            ? {
+                ...c,
+                estado: "contactado",
+                veces_contactado: (c.veces_contactado ?? 0) + 1,
+                historial_contactos: [...(c.historial_contactos ?? []), nuevoMensaje],
+              }
+            : c
+        ),
+      };
+    });
+
+    // Update selected candidato if it's the one contacted
+    setSelectedCandidato((prev) => {
+      if (prev?.id_match !== idMatch) return prev;
+      return {
+        ...prev,
+        estado: "contactado",
+        veces_contactado: (prev.veces_contactado ?? 0) + 1,
+        historial_contactos: [...(prev.historial_contactos ?? []), nuevoMensaje],
+      };
+    });
+
+    showToast(`Contacto con WhatsApp registrado correctamente ✓`);
+  }, [selectedMascota, queryClient, showToast]);
+
+  const handleSelectMascota = (mascota) => {
+    setSelectedMascota(mascota);
+    setSelectedCandidato(null);
+  };
+
+  return (
+    <ClientAuthGuard allowedRoles={["albergue"]}>
+      <div className="min-h-screen bg-[#fafaf8]">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900">Candidatos</h1>
+            <p className="text-gray-500 text-sm mt-1">
+              Adoptantes compatibles con tus mascotas
+            </p>
+          </div>
+
+          <div className="flex gap-6">
+            {/* Left: Mascotas sidebar */}
+            <aside className="w-72 flex-shrink-0 space-y-2">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890] px-1 mb-3">
+                Mis Mascotas
+              </p>
+              {mascotas.map((m) => (
+                <button
+                  key={m.id_mascota}
+                  id={`mascota-btn-${m.id_mascota}`}
+                  onClick={() => handleSelectMascota(m)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all",
+                    selectedMascota?.id_mascota === m.id_mascota
+                      ? "bg-white border border-[#8b9e7e] shadow-sm"
+                      : "bg-white border border-transparent hover:border-[#e0dbd3]"
+                  )}
+                >
+                  <div className="w-10 h-10 rounded-xl bg-[#f0ede8] flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {m.foto ? (
+                      <img src={m.foto} alt={m.nombre} className="w-full h-full object-cover" />
+                    ) : (
+                      <Dog size={18} className="text-[#8b9e7e]" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-gray-900 truncate">{m.nombre}</p>
+                    <p className="text-xs text-gray-400">{m.especie || ""}</p>
+                  </div>
+                  <span className="text-xs font-bold bg-[#f0ede8] text-[#8b9e7e] w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">
+                    {m.candidatos_count ?? 0}
+                  </span>
+                </button>
+              ))}
+            </aside>
+
+            {/* Center: Candidatos list */}
+            <div className="flex-1 min-w-0">
+              {/* Mascota header */}
+              {selectedMascota && (
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-[#f0ede8] flex items-center justify-center overflow-hidden">
+                    {selectedMascota.foto ? (
+                      <img src={selectedMascota.foto} alt={selectedMascota.nombre} className="w-full h-full object-cover" />
+                    ) : (
+                      <Dog size={16} className="text-[#8b9e7e]" />
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">{selectedMascota.nombre}</h2>
+                    <p className="text-sm text-gray-400">
+                      {candidatos.length} Candidato{candidatos.length !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Candidatos */}
+              {loadingCandidatos ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-white rounded-2xl h-24 animate-pulse border border-[#ece7e0]" />
+                  ))}
+                </div>
+              ) : candidatos.length === 0 ? (
+                <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-[#e0dbd3]">
+                  <Users size={40} className="mx-auto text-gray-300 mb-3" />
+                  <p className="text-gray-500 font-medium">Sin candidatos aún</p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    Cuando adoptantes muestren interés en {selectedMascota?.nombre}, aparecerán aquí.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {candidatos.map((c) => (
+                    <CandidatoRow
+                      key={c.id_match}
+                      candidato={c}
+                      nombreMascota={selectedMascota?.nombre}
+                      isSelected={selectedCandidato?.id_match === c.id_match}
+                      onSelect={setSelectedCandidato}
+                      onContactado={handleContactado}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Detail panel */}
+            <div className="w-80 flex-shrink-0">
+              {selectedCandidato ? (
+                <CandidatoDetailPanel
+                  candidato={selectedCandidato}
+                  nombreMascota={selectedMascota?.nombre}
+                  onContactado={handleContactado}
+                  onClose={() => setSelectedCandidato(null)}
+                />
+              ) : (
+                <div className="bg-white rounded-3xl border border-dashed border-[#e0dbd3] p-8 text-center space-y-3">
+                  <MessageCircle size={36} className="mx-auto text-gray-200" />
+                  <p className="text-sm text-gray-400">
+                    Selecciona un candidato para ver su detalle y contactarlo
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Toast */}
+        <AnimatePresence>
+          {toast.show && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={cn(
+                "fixed bottom-8 right-8 z-[100] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border",
+                toast.type === "success"
+                  ? "bg-emerald-900 border-emerald-800 text-white"
+                  : "bg-rose-900 border-rose-800 text-white"
+              )}
+              role="alert"
+              aria-live="polite"
+            >
+              {toast.type === "success"
+                ? <Check size={18} className="text-emerald-400" />
+                : <X size={18} className="text-rose-400" />
+              }
+              <span className="text-sm font-bold">{toast.message}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </ClientAuthGuard>
+  );
+}
