@@ -398,11 +398,16 @@ export function CandidatosView() {
     [];
 
   // Handle contact registered — update local state optimistically
-  const handleContactado = useCallback((idMatch) => {
+  const handleContactado = useCallback((idMatch, errorMsg) => {
+    if (errorMsg) {
+      showToast(errorMsg, "error");
+      return;
+    }
+
     const now = new Date().toISOString();
     const nuevoMensaje = { fecha: now, mensaje: "Contactado vía WhatsApp." };
 
-    // Update query cache
+    // Update query cache optimistically
     queryClient.setQueryData(["candidatos", selectedMascota?.id_mascota], (old) => {
       if (!old?.data) return old;
       return {
@@ -419,6 +424,9 @@ export function CandidatosView() {
         ),
       };
     });
+
+    // Invalidate queries to get official history from backend
+    queryClient.invalidateQueries({ queryKey: ["candidatos", selectedMascota?.id_mascota] });
 
     // Update selected candidato if it's the one contacted
     setSelectedCandidato((prev) => {

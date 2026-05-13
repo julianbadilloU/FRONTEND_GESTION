@@ -36,10 +36,10 @@ export async function getMisCandidatos() {
 /**
  * HU-WA-01: Registra el contacto WhatsApp con un adoptante.
  * Actualiza el estado del match a "contactado".
- * Endpoint: POST /api/matches/:idMatch/contactar
+ * Endpoint: POST /api/matches/:idMatch/contact
  */
 export async function contactarAdoptante(idMatch) {
-  const { data } = await apiClient.post(`/api/matches/${idMatch}/contactar`);
+  const { data } = await apiClient.post(`/api/matches/${idMatch}/contact`);
   return extractData(data);
 }
 

@@ -9,7 +9,7 @@
  *   SUITE 3 — Flujo de contacto: clic → modal → confirmar → backend → WhatsApp
  *   SUITE 4 — Estado de carga (botón deshabilitado durante llamada)
  *   SUITE 5 — Badge "Contactado" tras contacto exitoso
- *   SUITE 6 — Fallback: abre WhatsApp aunque el backend falle
+ *   SUITE 6 — Error: NO abre WhatsApp si el backend falla
  */
 
 import React from "react";
@@ -501,9 +501,11 @@ describe("WhatsAppContactButton — badge Contactado tras contacto", () => {
 
 // ── SUITE 6 — Fallback: abre WhatsApp aunque el backend falle ────────────────
 
-describe("WhatsAppContactButton — fallback cuando backend falla", () => {
+describe("WhatsAppContactButton — manejo de errores del backend", () => {
   let WhatsAppContactButton;
-  const mockContactarFail = vi.fn().mockRejectedValue(new Error("Network error"));
+  const mockContactarFail = vi.fn().mockRejectedValue({
+    response: { data: { message: "Error de servidor personalizado" } }
+  });
   const mockOpen = vi.fn();
 
   const adoptante = {
@@ -527,7 +529,7 @@ describe("WhatsAppContactButton — fallback cuando backend falla", () => {
     ));
   });
 
-  it("abre WhatsApp aunque el backend lance error", async () => {
+  it("NO abre WhatsApp si el backend lanza error", async () => {
     render(
       <WhatsAppContactButton
         idMatch={40}
@@ -542,15 +544,11 @@ describe("WhatsAppContactButton — fallback cuando backend falla", () => {
     fireEvent.click(screen.getByText("Abrir WhatsApp"));
 
     await waitFor(() => {
-      expect(mockOpen).toHaveBeenCalledWith(
-        expect.stringContaining("wa.me"),
-        "_blank",
-        "noopener,noreferrer"
-      );
+      expect(mockOpen).not.toHaveBeenCalled();
     });
   });
 
-  it('actualiza el estado a "Contactado" aunque el backend falle', async () => {
+  it('mantiene el estado "Contactar" (no cambia a Contactado) si falla', async () => {
     render(
       <WhatsAppContactButton
         idMatch={41}
@@ -565,11 +563,12 @@ describe("WhatsAppContactButton — fallback cuando backend falla", () => {
     fireEvent.click(screen.getByText("Abrir WhatsApp"));
 
     await waitFor(() => {
-      expect(screen.getByText("Contactado")).toBeInTheDocument();
+      expect(screen.getByText("Contactar")).toBeInTheDocument();
+      expect(screen.queryByText("Contactado")).not.toBeInTheDocument();
     });
   });
 
-  it("llama al callback onContactado aunque el backend falle", async () => {
+  it("llama al callback onContactado con el mensaje de error", async () => {
     const onContactado = vi.fn();
     render(
       <WhatsAppContactButton
@@ -586,7 +585,7 @@ describe("WhatsAppContactButton — fallback cuando backend falla", () => {
     fireEvent.click(screen.getByText("Abrir WhatsApp"));
 
     await waitFor(() => {
-      expect(onContactado).toHaveBeenCalledWith(42);
+      expect(onContactado).toHaveBeenCalledWith(42, "Error de servidor personalizado");
     });
   });
 });

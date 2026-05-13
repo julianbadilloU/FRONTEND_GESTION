@@ -135,7 +135,7 @@ export function WhatsAppContactButton({
       // 1. Registrar contacto en backend
       await contactarAdoptante(idMatch);
 
-      // 2. Construir URL de WhatsApp y abrir en nueva pestaña
+      // 2. Construir URL de WhatsApp y abrir en nueva pestaña (SOLO TRAS ÉXITO)
       const url = buildWhatsAppUrl(
         adoptante?.whatsapp_adoptante,
         adoptante?.nombre_completo,
@@ -148,22 +148,22 @@ export function WhatsAppContactButton({
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
 
-      // 4. Notificar al padre para actualizar lista
+      // 4. Notificar al padre para actualizar lista e historial
       onContactado?.(idMatch);
+      setShowModal(false);
     } catch (err) {
-      // Si el backend no está disponible, igual abrir WhatsApp
+      // Manejar errores del backend y mostrar mensaje
       console.error("[WhatsAppContactButton] Error al registrar contacto:", err);
-      const url = buildWhatsAppUrl(
-        adoptante?.whatsapp_adoptante,
-        adoptante?.nombre_completo,
-        nombreMascota
-      );
-      window.open(url, "_blank", "noopener,noreferrer");
-      setEstado("contactado");
-      onContactado?.(idMatch);
+      
+      // Intentar obtener mensaje de error del backend
+      const errorMsg = err.response?.data?.message || "No se pudo registrar el contacto. Intenta de nuevo.";
+      
+      // Notificar al componente padre del error para mostrar en UI (toast)
+      onContactado?.(idMatch, errorMsg);
+      
+      setShowModal(false);
     } finally {
       setLoading(false);
-      setShowModal(false);
     }
   };
 
