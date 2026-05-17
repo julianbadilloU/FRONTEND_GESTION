@@ -208,14 +208,15 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     expect(card.className).toMatch(/border-\[#4a7c59\]/);
   });
 
-  it('la tarjeta de compatibilidad media debe tener borde naranja', async () => {
+  it('la tarjeta de compatibilidad "bueno" (62%) debe tener borde amarillo', async () => {
     setupUseQueryMocks();
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    // pct=62 → nivel "bueno" (60-79) → borde amarillo #c9a52d (HU-MT-01)
     const card = document.getElementById('mascota-card-2');
     expect(card).not.toBeNull();
-    expect(card.className).toMatch(/border-\[#d4841b\]/);
+    expect(card.className).toMatch(/border-\[#c9a52d\]/);
   });
 
   // ── Botón "Actualizar match" ──────────────────────────────────────────────────
