@@ -94,7 +94,7 @@ export function MatchDetail({ matchData, isLoading, error }) {
   }
 
   const { mascota, albergue, estado, puntaje_compatibilidad, fecha_match } = matchData;
-  const foto = mascota?.fotos?.[0] ?? null;
+  const foto = mascota?.fotos?.[0]?.url ?? null;  // fotos es array de {id_foto, url, orden}
   const pct = puntaje_compatibilidad ?? null;
   const msgConfig = ESTADO_MENSAJES[estado] ?? ESTADO_MENSAJES.pendiente;
   const MsgIcon = msgConfig.icon;

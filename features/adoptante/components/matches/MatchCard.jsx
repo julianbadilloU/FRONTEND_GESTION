@@ -67,23 +67,27 @@ export function EstadoBadge({ estado }) {
 
 /**
  * Tarjeta de match individual.
+ * Campos del backend (GET /api/match):
+ *   - puntaje       : número de compatibilidad (en la lista)
+ *   - fecha         : fecha del match (en la lista)
+ *   - mascota.foto  : string directo con la URL de la foto (en la lista)
  *
  * @param {{
  *   match: {
  *     id_match: number,
  *     estado: string,
- *     puntaje_compatibilidad: number,
- *     fecha_match: string,
- *     mascota: { id_mascota: number, nombre: string, fotos: string[] },
+ *     puntaje: number,
+ *     fecha: string,
+ *     mascota: { id_mascota: number, nombre: string, foto: string },
  *     albergue: { nombre_albergue: string, whatsapp: string }
  *   },
  *   onClick: () => void
  * }} props
  */
 export function MatchCard({ match, onClick }) {
-  const { mascota, albergue, estado, puntaje_compatibilidad, fecha_match } = match;
-  const foto = mascota?.fotos?.[0] ?? null;
-  const pct = puntaje_compatibilidad ?? null;
+  const { mascota, albergue, estado, puntaje, fecha } = match;
+  const foto = mascota?.foto ?? null;          // string directo en la lista
+  const pct = puntaje ?? null;
 
   const handleWhatsApp = (e) => {
     e.stopPropagation();
@@ -144,7 +148,7 @@ export function MatchCard({ match, onClick }) {
         <div className="flex items-center gap-4 mt-2 text-xs text-gray-400 flex-wrap">
           <span className="flex items-center gap-1">
             <Calendar size={11} />
-            {new Date(fecha_match).toLocaleDateString("es-CO", {
+            {new Date(fecha).toLocaleDateString("es-CO", {
               day: "2-digit",
               month: "short",
               year: "numeric",

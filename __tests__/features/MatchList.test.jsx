@@ -41,15 +41,16 @@ vi.mock("@/features/adoptante/services/match.service", () => ({
 
 // ── Helpers de datos ────────────────────────────────────────────────────────
 
+// Estructura real del backend GET /api/match (lista)
 const createMockMatch = (id, overrides = {}) => ({
   id_match: id,
   estado: "pendiente",
-  puntaje_compatibilidad: 75,
-  fecha_match: "2026-04-15T10:00:00.000Z",
+  puntaje: 75,                              // campo real: "puntaje"
+  fecha: "2026-04-15T10:00:00.000Z",        // campo real: "fecha"
   mascota: {
     id_mascota: id * 10,
     nombre: `Mascota ${id}`,
-    fotos: id === 1 ? ["https://img/foto1.jpg"] : [],
+    foto: id === 1 ? "https://img/foto1.jpg" : null,  // campo real: "foto" string
   },
   albergue: {
     nombre_albergue: "Patitas Felices",
@@ -60,9 +61,9 @@ const createMockMatch = (id, overrides = {}) => ({
 
 const defaultMatchesData = {
   data: [
-    createMockMatch(1, { estado: "pendiente", puntaje_compatibilidad: 85 }),
-    createMockMatch(2, { estado: "aceptado", puntaje_compatibilidad: 65 }),
-    createMockMatch(3, { estado: "adoptado", puntaje_compatibilidad: 90 }),
+    createMockMatch(1, { estado: "pendiente", puntaje: 85 }),
+    createMockMatch(2, { estado: "aceptado", puntaje: 65 }),
+    createMockMatch(3, { estado: "adoptado", puntaje: 90 }),
   ],
   pagination: { total: 3, limit: 10, offset: 0 },
 };
@@ -283,7 +284,7 @@ describe("MatchesPage – HU-MCH-03 Historial de Matches", () => {
     const MatchesPage = (await import("@/app/adoptante/matches/page")).default;
     render(<MatchesPage />);
 
-    // Match 1 tiene pct=85 → "85% match"
+    // Match 1 tiene puntaje=85 → "85% match"
     expect(screen.getByText("85% match")).toBeInTheDocument();
   });
 
@@ -396,11 +397,22 @@ describe("MatchDetail – HU-MCH-03 Detalle de Match", () => {
     vi.clearAllMocks();
   });
 
-  const matchDetalle = createMockMatch(5, {
+  // Estructura real del backend GET /api/match/:id (detalle)
+  const matchDetalle = {
+    id_match: 5,
     estado: "adoptado",
-    puntaje_compatibilidad: 92,
-    fecha_match: "2026-03-20T08:30:00.000Z",
-  });
+    puntaje_compatibilidad: 92,             // detalle usa "puntaje_compatibilidad"
+    fecha_match: "2026-03-20T08:30:00.000Z", // detalle usa "fecha_match"
+    mascota: {
+      id_mascota: 50,
+      nombre: "Mascota 5",
+      fotos: [{ id_foto: 1, url: "https://img/foto5.jpg", orden: 1 }], // array de objetos
+    },
+    albergue: {
+      nombre_albergue: "Patitas Felices",
+      whatsapp: "+573001234567",
+    },
+  };
 
   it("debe mostrar el nombre de la mascota", async () => {
     const { MatchDetail } = await import(
