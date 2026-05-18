@@ -46,21 +46,6 @@ export async function getMatchMascotas() {
   return extractData(data);
 }
 
-export async function registerInteres(idMascota) {
-  const { data } = await apiClient.post(`/api/mascotas/${idMascota}/interes`);
-  return extractData(data);
-}
-
-export async function registerDescarte(idMascota) {
-  const { data } = await apiClient.post(`/api/mascotas/${idMascota}/descarte`);
-  return extractData(data);
-}
-
-export async function deshacerDescarte(idMascota) {
-  const { data } = await apiClient.delete(`/api/mascotas/${idMascota}/descarte`);
-  return extractData(data);
-}
-
 export async function getRecomendaciones(params = {}) {
   const query = new URLSearchParams(params).toString();
   const { data } = await apiClient.get(`/api/recomendaciones?${query}`);

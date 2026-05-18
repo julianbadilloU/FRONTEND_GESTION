@@ -43,13 +43,4 @@ export async function getMatchById(idMatch) {
   return data;
 }
 
-/**
- * Obtiene el detalle de un match específico.
- *
- * @param {number|string} idMatch
- * @returns {Promise<{data: Match}>}
- */
-export async function getMatchById(idMatch) {
-  const { data } = await apiClient.get(`/api/match/${idMatch}`);
-  return data;
-}
+
