@@ -18,16 +18,16 @@ vi.mock("@tanstack/react-query", () => ({
   useQuery: (...args) => mockUseQuery(...args),
 }));
 
-const mockRegisterInteres = vi.fn();
-const mockRegisterDescarte = vi.fn();
-const mockDeshacerDescarte = vi.fn();
+const mockRegistrarMeInteresa = vi.fn();
+const mockRegistrarDescartar = vi.fn();
+const mockDeshacerRecomendacion = vi.fn();
 
 vi.mock("@/features/adoptante/services/adoptante.service", () => ({
   getFeedMascotas: vi.fn(),
   getMatchMascotas: vi.fn(),
-  registerInteres: (...args) => mockRegisterInteres(...args),
-  registerDescarte: (...args) => mockRegisterDescarte(...args),
-  deshacerDescarte: (...args) => mockDeshacerDescarte(...args),
+  registrarMeInteresa: (...args) => mockRegistrarMeInteresa(...args),
+  registrarDescartar: (...args) => mockRegistrarDescartar(...args),
+  deshacerRecomendacion: (...args) => mockDeshacerRecomendacion(...args),
 }));
 
 // Stub de framer-motion: render simple divs y resuelve animaciones inmediatamente
@@ -104,9 +104,9 @@ function setupQueries({ feedData, matchData, isLoading, error } = {}) {
 describe("DescubrirPage — RF-MT-02 Swipe", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockRegisterInteres.mockResolvedValue({ success: true });
-    mockRegisterDescarte.mockResolvedValue({ success: true });
-    mockDeshacerDescarte.mockResolvedValue({ success: true });
+    mockRegistrarMeInteresa.mockResolvedValue({ success: true });
+    mockRegistrarDescartar.mockResolvedValue({ success: true });
+    mockDeshacerRecomendacion.mockResolvedValue({ success: true });
   });
 
   it("renderiza la primera tarjeta del stack", async () => {
@@ -147,7 +147,7 @@ describe("DescubrirPage — RF-MT-02 Swipe", () => {
     });
 
     await waitFor(() => {
-      expect(mockRegisterInteres).toHaveBeenCalledWith(1);
+      expect(mockRegistrarMeInteresa).toHaveBeenCalledWith(1);
     });
   });
 
@@ -161,7 +161,7 @@ describe("DescubrirPage — RF-MT-02 Swipe", () => {
     });
 
     await waitFor(() => {
-      expect(mockRegisterDescarte).toHaveBeenCalledWith(1);
+      expect(mockRegistrarDescartar).toHaveBeenCalledWith(1);
     });
   });
 
@@ -201,7 +201,7 @@ describe("DescubrirPage — RF-MT-02 Swipe", () => {
     });
 
     await waitFor(() => {
-      expect(mockDeshacerDescarte).toHaveBeenCalledWith(1);
+      expect(mockDeshacerRecomendacion).toHaveBeenCalledWith(1);
     });
   });
 

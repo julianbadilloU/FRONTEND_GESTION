@@ -9,9 +9,9 @@ import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import {
   getFeedMascotas,
   getMatchMascotas,
-  registerInteres,
-  registerDescarte,
-  deshacerDescarte,
+  registrarMeInteresa,
+  registrarDescartar,
+  deshacerRecomendacion,
 } from "@/features/adoptante/services/adoptante.service";
 import { SwipeCard } from "@/features/adoptante/components/feed/SwipeCard";
 
@@ -76,10 +76,10 @@ export default function DescubrirPage() {
 
     try {
       if (action === "like") {
-        await registerInteres(current.id_mascota);
+        await registrarMeInteresa(current.id_mascota);
         setFeedback({ type: "like", nombre: current.nombre });
       } else {
-        await registerDescarte(current.id_mascota);
+        await registrarDescartar(current.id_mascota);
       }
     } catch (e) {
       // Silencioso: la UI ya avanzó. Mostrar aviso ligero.
@@ -95,7 +95,7 @@ export default function DescubrirPage() {
     setFeedback(null);
     try {
       if (last.action === "skip") {
-        await deshacerDescarte(last.idMascota);
+        await deshacerRecomendacion(last.idMascota);
       }
       // si fue like: por ahora solo deshacemos visualmente (back-end gestiona el match aparte).
     } catch {
