@@ -16,6 +16,7 @@ import {
   Loader2,
   AlertCircle,
   MessageCircle,
+  Heart,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -26,6 +27,7 @@ import {
 } from "@/features/albergue/services/candidatos.service";
 import { WhatsAppContactButton, WhatsAppIcon } from "./WhatsAppContactButton";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
+import { AdopcionModal } from "@/features/albergue/components/adopciones/AdopcionModal";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatDate(iso) {
@@ -304,6 +306,7 @@ export function CandidatosView() {
   const queryClient = useQueryClient();
   const [selectedMascota, setSelectedMascota] = useState(null);
   const [selectedCandidato, setSelectedCandidato] = useState(null);
+  const [adopcionModalOpen, setAdopcionModalOpen] = useState(false);
 
   // Toast state
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
@@ -384,6 +387,11 @@ export function CandidatosView() {
     setSelectedMascota(mascota);
     setSelectedCandidato(null);
   };
+
+  const handleAdopcionSuccess = useCallback(() => {
+    showToast("¡Adopción registrada correctamente! La mascota fue marcada como adoptada.");
+    setSelectedCandidato(null);
+  }, [showToast]);
 
   return (
     <ClientAuthGuard allowedRoles={["albergue"]}>
@@ -466,12 +474,23 @@ export function CandidatosView() {
                       <Dog size={16} className="text-[#8b9e7e]" />
                     )}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h2 className="text-xl font-bold text-gray-900">{selectedMascota.nombre}</h2>
                     <p className="text-sm text-gray-400">
                       {candidatos.length} Candidato{candidatos.length !== 1 ? "s" : ""}
                     </p>
                   </div>
+                  {/* HU-HIS-01: Completar Adopción */}
+                  {candidatos.some((c) => c.estado === "contactado") && (
+                    <button
+                      onClick={() => setAdopcionModalOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#8b9e7e] hover:bg-[#7d9070] text-white text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.97]"
+                      aria-label={`Completar adopción de ${selectedMascota.nombre}`}
+                    >
+                      <Heart size={15} className="flex-shrink-0" />
+                      Completar Adopción
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -557,6 +576,16 @@ export function CandidatosView() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* HU-HIS-01: Adoption completion modal */}
+        <AdopcionModal
+          isOpen={adopcionModalOpen}
+          onClose={() => setAdopcionModalOpen(false)}
+          idMascota={selectedMascota?.id_mascota}
+          nombreMascota={selectedMascota?.nombre}
+          candidatos={candidatos}
+          onSuccess={handleAdopcionSuccess}
+        />
       </div>
     </ClientAuthGuard>
   );

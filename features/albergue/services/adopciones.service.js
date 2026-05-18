@@ -14,16 +14,12 @@ const extractData = (response) => {
 };
 
 /**
- * HU-ADP-01: Completa el proceso de adopción seleccionando un adoptante.
- * Endpoint: POST /api/adopciones/:id/completar
- * @param {number|string} idAdopcion - ID del proceso de adopción
- * @param {{ idAdoptanteSeleccionado: number, notas?: string }} datos
+ * HU-HIS-01: Registra una adopción completada seleccionando un adoptante contactado.
+ * Endpoint: POST /api/adopciones
+ * @param {{ id_mascota: number, id_adoptante: number, observaciones?: string }} datos
  */
-export async function completarAdopcion(idAdopcion, datos) {
-  const { data } = await apiClient.post(
-    `/api/adopciones/${idAdopcion}/completar`,
-    datos
-  );
+export async function completarAdopcion(datos) {
+  const { data } = await apiClient.post("/api/adopciones", datos);
   return extractData(data);
 }
 
@@ -31,7 +27,7 @@ export async function completarAdopcion(idAdopcion, datos) {
  * Obtiene el historial de adopciones completadas del albergue autenticado.
  * Endpoint: GET /api/albergue/adopciones
  */
-export async function obtenerHistorialAdopciones() {
-  const { data } = await apiClient.get("/api/albergue/adopciones");
+export async function obtenerHistorialAdopciones(params = {}) {
+  const { data } = await apiClient.get("/api/albergue/adopciones", { params });
   return extractData(data);
 }
