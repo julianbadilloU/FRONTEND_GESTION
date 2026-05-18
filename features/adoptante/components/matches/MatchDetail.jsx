@@ -18,6 +18,7 @@ import {
   Clock,
   Heart,
   Dog,
+  History,
 } from "lucide-react";
 import { CompatibilityBar } from "@/features/adoptante/components/feed/CompatibilityBadge";
 import { EstadoBadge } from "@/features/adoptante/components/matches/MatchCard";
@@ -93,7 +94,7 @@ export function MatchDetail({ matchData, isLoading, error }) {
     );
   }
 
-  const { mascota, albergue, estado, puntaje_compatibilidad, fecha_match } = matchData;
+  const { mascota, albergue, estado, puntaje_compatibilidad, fecha_match, contactos } = matchData;
   const foto = mascota?.fotos?.[0]?.url ?? null;  // fotos es array de {id_foto, url, orden}
   const pct = puntaje_compatibilidad ?? null;
   const msgConfig = ESTADO_MENSAJES[estado] ?? ESTADO_MENSAJES.pendiente;
@@ -177,20 +178,53 @@ export function MatchDetail({ matchData, isLoading, error }) {
             </div>
           )}
 
-          {/* Mensaje por estado */}
-          <div
-            id="match-detail-mensaje"
-            className={`flex items-start gap-3 p-4 rounded-xl ${msgConfig.bg}`}
-            aria-live="polite"
-          >
-            <MsgIcon size={20} className={`shrink-0 mt-0.5 ${msgConfig.color}`} />
-            <div>
-              <p className={`font-semibold text-sm ${msgConfig.color}`}>
-                {msgConfig.titulo}
-              </p>
-              <p className="text-sm text-gray-600 mt-0.5">{msgConfig.texto}</p>
+      {/* Mensaje por estado */}
+        <div
+          id="match-detail-mensaje"
+          className={`flex items-start gap-3 p-4 rounded-xl ${msgConfig.bg}`}
+          aria-live="polite"
+        >
+          <MsgIcon size={20} className={`shrink-0 mt-0.5 ${msgConfig.color}`} />
+          <div>
+            <p className={`font-semibold text-sm ${msgConfig.color}`}>
+              {msgConfig.titulo}
+            </p>
+            <p className="text-sm text-gray-600 mt-0.5">{msgConfig.texto}</p>
+          </div>
+        </div>
+
+        {/* Historial de contactos */}
+        {contactos && contactos.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <History size={12} /> Historial de contactos
+            </p>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+              {contactos.map((c) => (
+                <div key={c.id_contacto} className="flex items-start gap-3">
+                  <MessageCircle size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-700">{c.mensaje || "Contacto vía WhatsApp"}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {new Date(c.fecha).toLocaleDateString("es-CO", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {c.estado && (
+                        <span className="ml-2 text-[10px] font-semibold uppercase tracking-wider text-gray-500">
+                          {c.estado}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
+        )}
 
           {/* Botón WhatsApp */}
           {albergue?.whatsapp && (
