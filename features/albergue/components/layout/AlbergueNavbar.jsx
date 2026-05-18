@@ -15,7 +15,7 @@ import { getNotificaciones } from "@/features/shared/services/notificacion.servi
 const NAV_LINKS = [
   { href: "/albergue/mascotas",   label: "Mis Mascotas" },
   { href: "/albergue/candidatos", label: "Candidatos"   },
-  { href: "/albergue/historial",  label: "Historial"    },
+  { href: "/albergue/adopciones", label: "Adopciones"   },
   { href: "/albergue/reportes",   label: "Reportes"     },
   { href: "/albergue/notificaciones", label: "Notificaciones", icon: Bell },
 ];
