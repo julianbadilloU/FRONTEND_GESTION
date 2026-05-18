@@ -14,41 +14,41 @@ const extractData = (response) => {
 };
 
 /**
- * Obtiene la lista de mascotas del albergue con sus candidatos (matches).
- * Endpoint: GET /api/matches/candidatos?id_mascota=...
+ * Obtiene la lista de matches del albergue, filtrados por mascota si se indica.
+ * Endpoint: GET /api/shelters/matches?id_mascota=...
  */
 export async function getCandidatosPorMascota(idMascota) {
   const { data } = await apiClient.get(
-    `/api/matches/candidatos?id_mascota=${idMascota}`
+    `/api/shelters/matches?id_mascota=${idMascota}`
   );
   return extractData(data);
 }
 
 /**
- * Obtiene las mascotas del albergue autenticado junto con el conteo de candidatos.
- * Endpoint: GET /api/matches/mis-candidatos
+ * Obtiene los matches del albergue autenticado junto con el conteo de candidatos.
+ * Endpoint: GET /api/shelters/matches
  */
 export async function getMisCandidatos() {
-  const { data } = await apiClient.get("/api/matches/mis-candidatos");
+  const { data } = await apiClient.get("/api/shelters/matches");
   return extractData(data);
 }
 
 /**
- * HU-WA-01: Registra el contacto WhatsApp con un adoptante.
+ * HU-MCH-02: Registra el contacto WhatsApp con un adoptante.
  * Actualiza el estado del match a "contactado".
- * Endpoint: POST /api/matches/:idMatch/contact
+ * Endpoint: POST /api/shelters/matches/:id/contact
  */
 export async function contactarAdoptante(idMatch) {
-  const { data } = await apiClient.post(`/api/matches/${idMatch}/contact`);
+  const { data } = await apiClient.post(`/api/shelters/matches/${idMatch}/contact`);
   return extractData(data);
 }
 
 /**
  * Obtiene el historial de contactos de un match específico.
- * Endpoint: GET /api/matches/:idMatch/historial
+ * Endpoint: GET /api/shelters/matches/:id/historial
  */
 export async function getHistorialContactos(idMatch) {
-  const { data } = await apiClient.get(`/api/matches/${idMatch}/historial`);
+  const { data } = await apiClient.get(`/api/shelters/matches/${idMatch}/historial`);
   return extractData(data);
 }
 

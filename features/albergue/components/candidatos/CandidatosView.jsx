@@ -27,63 +27,6 @@ import {
 import { WhatsAppContactButton, WhatsAppIcon } from "./WhatsAppContactButton";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 
-// ── Demo data (used when backend endpoint is not available yet) ────────────────
-const DEMO_MASCOTAS = [
-  { id_mascota: 1, nombre: "Luna", foto: null, candidatos_count: 8 },
-  { id_mascota: 2, nombre: "Rocky", foto: null, candidatos_count: 5 },
-  { id_mascota: 3, nombre: "Mia", foto: null, candidatos_count: 12 },
-];
-
-const DEMO_CANDIDATOS = [
-  {
-    id_match: 101, id_adoptante: 1, nombre_completo: "Ana García",
-    ciudad: "Ciudad de México", whatsapp_adoptante: "3001234567",
-    foto_perfil: null, puntaje: 95, estado: "pendiente",
-    fecha: "2026-03-15T10:00:00Z",
-    tags: ["Casa con jardín", "Con experiencia", "Tranquilo"],
-    historial_contactos: [],
-    veces_contactado: 0,
-  },
-  {
-    id_match: 102, id_adoptante: 2, nombre_completo: "Carlos Mendez",
-    ciudad: "Guadalajara", whatsapp_adoptante: "3109876543",
-    foto_perfil: null, puntaje: 88, estado: "contactado",
-    fecha: "2026-03-14T09:00:00Z",
-    tags: ["Activo", "Patio grande", "Con experiencia"],
-    historial_contactos: [
-      { fecha: "2026-03-16T14:30:00Z", mensaje: "Primer contacto vía WhatsApp." },
-    ],
-    veces_contactado: 1,
-  },
-  {
-    id_match: 103, id_adoptante: 3, nombre_completo: "María López",
-    ciudad: "Monterrey", whatsapp_adoptante: "3205551234",
-    foto_perfil: null, puntaje: 82, estado: "pendiente",
-    fecha: "2026-03-13T08:00:00Z",
-    tags: ["Familia con niños", "Casa con jardín"],
-    historial_contactos: [],
-    veces_contactado: 0,
-  },
-  {
-    id_match: 104, id_adoptante: 4, nombre_completo: "Roberto Díaz",
-    ciudad: "Puebla", whatsapp_adoptante: "3314443322",
-    foto_perfil: null, puntaje: 78, estado: "pendiente",
-    fecha: "2026-03-12T07:00:00Z",
-    tags: ["Trabajo remoto", "Tranquilo", "Primer mascota"],
-    historial_contactos: [],
-    veces_contactado: 0,
-  },
-  {
-    id_match: 105, id_adoptante: 5, nombre_completo: "Sofía Torres",
-    ciudad: "Querétaro", whatsapp_adoptante: "4421112233",
-    foto_perfil: null, puntaje: 74, estado: "pendiente",
-    fecha: "2026-03-11T06:00:00Z",
-    tags: ["Departamento", "Con experiencia", "Tranquilo"],
-    historial_contactos: [],
-    veces_contactado: 0,
-  },
-];
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatDate(iso) {
   if (!iso) return "";
@@ -359,12 +302,8 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
 // ── Main View ─────────────────────────────────────────────────────────────────
 export function CandidatosView() {
   const queryClient = useQueryClient();
-  const [selectedMascota, setSelectedMascota] = useState(DEMO_MASCOTAS[0]);
+  const [selectedMascota, setSelectedMascota] = useState(null);
   const [selectedCandidato, setSelectedCandidato] = useState(null);
-  const [candidatosMap, setCandidatosMap] = useState(() => {
-    // Initialize with demo data keyed by mascota id
-    return { [DEMO_MASCOTAS[0].id_mascota]: DEMO_CANDIDATOS };
-  });
 
   // Toast state
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
@@ -373,29 +312,28 @@ export function CandidatosView() {
     setTimeout(() => setToast({ show: false, message: "", type: "success" }), 3500);
   }, []);
 
-  // Fetch mascotas list (with fallback to demo)
-  const { data: mascotasData } = useQuery({
+  // Fetch mascotas list
+  const { data: mascotasData, isLoading: loadingMascotas, error: errorMascotas } = useQuery({
     queryKey: ["mis-mascotas-candidatos"],
-    queryFn: () => getMisCandidatos().catch(() => ({ data: DEMO_MASCOTAS })),
+    queryFn: getMisCandidatos,
     staleTime: 30_000,
   });
-  const mascotas = mascotasData?.data ?? DEMO_MASCOTAS;
+  const mascotas = mascotasData?.data ?? [];
 
-  // Fetch candidatos for selected mascota (with fallback to demo)
-  const { data: candidatosData, isLoading: loadingCandidatos } = useQuery({
+  // Auto-select first mascota when list loads
+  if (!selectedMascota && mascotas.length > 0) {
+    setSelectedMascota(mascotas[0]);
+  }
+
+  // Fetch candidatos for selected mascota
+  const { data: candidatosData, isLoading: loadingCandidatos, error: errorCandidatos } = useQuery({
     queryKey: ["candidatos", selectedMascota?.id_mascota],
-    queryFn: () =>
-      getCandidatosPorMascota(selectedMascota.id_mascota).catch(() => ({
-        data: DEMO_CANDIDATOS,
-      })),
+    queryFn: () => getCandidatosPorMascota(selectedMascota.id_mascota),
     enabled: !!selectedMascota,
     staleTime: 20_000,
   });
 
-  const candidatos =
-    candidatosData?.data ??
-    candidatosMap[selectedMascota?.id_mascota] ??
-    [];
+  const candidatos = candidatosData?.data ?? [];
 
   // Handle contact registered — update local state optimistically
   const handleContactado = useCallback((idMatch, errorMsg) => {
@@ -461,40 +399,60 @@ export function CandidatosView() {
           </div>
 
           <div className="flex gap-6">
-            {/* Left: Mascotas sidebar */}
-            <aside className="w-72 flex-shrink-0 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890] px-1 mb-3">
-                Mis Mascotas
-              </p>
-              {mascotas.map((m) => (
-                <button
-                  key={m.id_mascota}
-                  id={`mascota-btn-${m.id_mascota}`}
-                  onClick={() => handleSelectMascota(m)}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all",
-                    selectedMascota?.id_mascota === m.id_mascota
-                      ? "bg-white border border-[#8b9e7e] shadow-sm"
-                      : "bg-white border border-transparent hover:border-[#e0dbd3]"
-                  )}
-                >
-                  <div className="w-10 h-10 rounded-xl bg-[#f0ede8] flex items-center justify-center overflow-hidden flex-shrink-0">
-                    {m.foto ? (
-                      <img src={m.foto} alt={m.nombre} className="w-full h-full object-cover" />
-                    ) : (
-                      <Dog size={18} className="text-[#8b9e7e]" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-gray-900 truncate">{m.nombre}</p>
-                    <p className="text-xs text-gray-400">{m.especie || ""}</p>
-                  </div>
-                  <span className="text-xs font-bold bg-[#f0ede8] text-[#8b9e7e] w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">
-                    {m.candidatos_count ?? 0}
-                  </span>
-                </button>
+        {/* Left: Mascotas sidebar */}
+        <aside className="w-72 flex-shrink-0 space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890] px-1 mb-3">
+            Mis Mascotas
+          </p>
+          {errorMascotas ? (
+            <div className="text-center py-8 bg-white rounded-2xl border border-rose-200 p-4">
+              <AlertCircle size={24} className="mx-auto text-rose-400 mb-2" />
+              <p className="text-sm text-rose-600 font-medium">Error al cargar mascotas</p>
+              <p className="text-xs text-rose-400 mt-1">Verificá tu conexión e intentá de nuevo.</p>
+            </div>
+          ) : loadingMascotas ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-2xl h-14 animate-pulse border border-[#ece7e0]" />
               ))}
-            </aside>
+            </div>
+          ) : mascotas.length === 0 ? (
+            <div className="text-center py-8 bg-white rounded-2xl border border-dashed border-[#e0dbd3] p-4">
+              <Dog size={28} className="mx-auto text-gray-300 mb-2" />
+              <p className="text-sm text-gray-500 font-medium">Sin mascotas registradas</p>
+              <p className="text-xs text-gray-400 mt-1">Registá mascotas para ver sus candidatos.</p>
+            </div>
+          ) : (
+          mascotas.map((m) => (
+          <button
+            key={m.id_mascota}
+            id={`mascota-btn-${m.id_mascota}`}
+            onClick={() => handleSelectMascota(m)}
+            className={cn(
+              "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all",
+              selectedMascota?.id_mascota === m.id_mascota
+                ? "bg-white border border-[#8b9e7e] shadow-sm"
+                : "bg-white border border-transparent hover:border-[#e0dbd3]"
+            )}
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#f0ede8] flex items-center justify-center overflow-hidden flex-shrink-0">
+              {m.foto ? (
+                <img src={m.foto} alt={m.nombre} className="w-full h-full object-cover" />
+              ) : (
+                <Dog size={18} className="text-[#8b9e7e]" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-sm text-gray-900 truncate">{m.nombre}</p>
+              <p className="text-xs text-gray-400">{m.especie || ""}</p>
+            </div>
+            <span className="text-xs font-bold bg-[#f0ede8] text-[#8b9e7e] w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">
+              {m.candidatos_count ?? 0}
+            </span>
+          </button>
+          ))
+          )}
+        </aside>
 
             {/* Center: Candidatos list */}
             <div className="flex-1 min-w-0">
@@ -517,14 +475,20 @@ export function CandidatosView() {
                 </div>
               )}
 
-              {/* Candidatos */}
-              {loadingCandidatos ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white rounded-2xl h-24 animate-pulse border border-[#ece7e0]" />
-                  ))}
-                </div>
-              ) : candidatos.length === 0 ? (
+        {/* Candidatos */}
+        {loadingCandidatos ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="bg-white rounded-2xl h-24 animate-pulse border border-[#ece7e0]" />
+            ))}
+          </div>
+        ) : errorCandidatos ? (
+          <div className="text-center py-16 bg-white rounded-2xl border border-rose-200">
+            <AlertCircle size={40} className="mx-auto text-rose-400 mb-3" />
+            <p className="text-rose-600 font-medium">Error al cargar candidatos</p>
+            <p className="text-rose-400 text-sm mt-1">Verificá tu conexión e intentá de nuevo.</p>
+          </div>
+        ) : candidatos.length === 0 ? (
                 <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-[#e0dbd3]">
                   <Users size={40} className="mx-auto text-gray-300 mb-3" />
                   <p className="text-gray-500 font-medium">Sin candidatos aún</p>
