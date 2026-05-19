@@ -124,7 +124,7 @@ export function NuevaContrasenaForm() {
     try {
       await apiClient.post("/api/auth/reset-password", {
         token,
-        password: data.password,
+        newPassword: data.password,
       });
       setStatus(STATUS.SUCCESS);
     } catch (error) {
