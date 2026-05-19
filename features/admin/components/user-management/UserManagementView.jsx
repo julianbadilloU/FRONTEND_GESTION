@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Users } from "lucide-react";
-import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { UserTable } from "./UserTable";
 import { UserStatusModal } from "./UserStatusModal";
 import { Toast } from "@/features/shared/components/Toast";
@@ -67,9 +66,6 @@ export function UserManagementView() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <LogoutButton variant="full" />
-        </div>
       </div>
 
       {/* Filters */}
