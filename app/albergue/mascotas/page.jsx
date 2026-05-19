@@ -45,6 +45,12 @@ export default function MisMascotasPage() {
   const [mascotaAEliminar, setMascotaAEliminar] = useState(null);
   const [motivo, setMotivo] = useState("");
   const [eliminando, setEliminando] = useState(false);
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: "", type: "success" }), 4000);
+  };
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["mis-mascotas", page],
@@ -68,7 +74,7 @@ export default function MisMascotasPage() {
       queryClient.invalidateQueries({ queryKey: ["mis-mascotas"] });
       setModalOpen(false);
     } catch (err) {
-      alert(err.response?.data?.message || "Error al eliminar la mascota");
+      showToast(err.response?.data?.message || "Error al eliminar la mascota.", "error");
     } finally {
       setEliminando(false);
     }
@@ -196,6 +202,7 @@ export default function MisMascotasPage() {
                           >
                             <ToggleRight size={16} />
                           </button>
+                          {mascota.estado_adopcion !== 'adoptado' && mascota.estado_adopcion !== 'en_proceso' && (
                           <button
                             onClick={() => abrirModalEliminar(mascota)}
                             className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -203,6 +210,7 @@ export default function MisMascotasPage() {
                           >
                             <Trash2 size={16} />
                           </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -252,6 +260,9 @@ export default function MisMascotasPage() {
               <p className="text-gray-600 text-sm mb-4">
                 Estas por eliminar <strong>{mascotaAEliminar.nombre}</strong>. Esta accion no se puede deshacer.
               </p>
+              <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">
+                Los adoptantes con matches activos serán notificados automáticamente.
+              </p>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Motivo de eliminacion <span className="text-red-500">*</span>
@@ -284,6 +295,21 @@ export default function MisMascotasPage() {
         )}
       </div>
     </div>
+
+      {/* Toast de error */}
+      {toast.show && (
+        <div
+          role="alert"
+          data-testid="toast"
+          className={`fixed bottom-8 right-8 z-[100] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border ${
+            toast.type === "success"
+              ? "bg-emerald-900 border-emerald-800 text-white"
+              : "bg-rose-900 border-rose-800 text-white"
+          }`}
+        >
+          <span className="text-sm font-bold">{toast.message}</span>
+        </div>
+      )}
     </ClientAuthGuard>
   );
 }
