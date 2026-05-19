@@ -144,17 +144,6 @@ export function AdopcionModal({
     return () => clearTimeout(id);
   }, [isOpen]);
 
-  // Close on Escape
-  useEffect(() => {
-    if (!isOpen) return;
-    const isPending = mutation.isPending;
-    const onKey = (e) => {
-      if (e.key === "Escape" && !isPending) onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [isOpen, onClose, mutation.isPending]);
-
   const mutation = useMutation({
     mutationFn: () => {
       const { id: idAdoptante } = resolveAdoptante(selectedCandidato);
@@ -173,6 +162,17 @@ export function AdopcionModal({
       onClose();
     },
   });
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const isPending = mutation.isPending;
+    const onKey = (e) => {
+      if (e.key === "Escape" && !isPending) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose, mutation.isPending]);
 
   const canSubmit =
     selectedCandidato !== null &&
