@@ -128,8 +128,8 @@ describe('ClientAuthGuard', () => {
   });
 
   it('debe redirigir a admin/tags cuando el rol es administrador y no está permitido', async () => {
-    // Payload: { "id": 1, "role": "admin" } — el guard compara con "admin"
-    const tokenAdmin = 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluIn0.signature';
+    // Payload: { "id": 1, "role": "administrador" } — el guard compara con "administrador"
+    const tokenAdmin = 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwicm9sZSI6ImFkbWluaXN0cmFkb3IifQ.signature';
     localStorage.setItem('furmatch.access_token', tokenAdmin);
 
     render(
