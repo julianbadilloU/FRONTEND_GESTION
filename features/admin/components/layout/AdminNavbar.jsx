@@ -90,22 +90,14 @@ export function AdminNavbar() {
             Administrador
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center w-8 h-8 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all duration-200"
-            title="Cerrar sesión"
-          >
-            <LogOut size={16} />
-          </button>
-
-          {/* Hamburguesa (mobile) */}
-          <button
-            onClick={() => setMobileOpen((prev) => !prev)}
-            className="md:hidden p-1.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
-            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
-          >
-            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+        {/* Hamburguesa (mobile) */}
+        <button
+          onClick={() => setMobileOpen((prev) => !prev)}
+          className="md:hidden p-1.5 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+          aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+        >
+          {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
         </div>
       </div>
 
