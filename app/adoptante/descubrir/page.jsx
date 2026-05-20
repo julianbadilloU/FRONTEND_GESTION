@@ -207,23 +207,18 @@ export default function DescubrirPage() {
                 </div>
 
                 {/* Botón Deshacer (inferior izquierda) */}
-                <AnimatePresence>
-                  {history.length > 0 && (
-                    <motion.button
-                      key="undo"
-                      initial={{ opacity: 0, y: 12, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 12, scale: 0.9 }}
-                      transition={{ duration: 0.25 }}
-                      onClick={handleUndo}
-                      data-testid="btn-undo"
-                      className="fixed bottom-8 left-8 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full shadow-md text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:shadow-lg transition-all"
-                    >
-                      <Undo2 size={16} className="text-[#e07a5f]" />
-                      Deshacer
-                    </motion.button>
-                  )}
-                </AnimatePresence>
+                <motion.button
+                  initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                  animate={{ opacity: history.length > 0 ? 1 : 0.35, y: 0, scale: 1 }}
+                  transition={{ duration: 0.25 }}
+                  onClick={handleUndo}
+                  disabled={history.length === 0}
+                  data-testid="btn-undo"
+                  className="fixed bottom-8 left-8 flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-full shadow-md text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:shadow-lg transition-all disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  <Undo2 size={16} className="text-[#e07a5f]" />
+                  Deshacer
+                </motion.button>
               </>
             )}
           </div>

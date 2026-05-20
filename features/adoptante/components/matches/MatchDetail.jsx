@@ -168,6 +168,21 @@ export function MatchDetail({ matchData, isLoading, error }) {
             </span>
           </div>
 
+          {/* Estado de la mascota */}
+          {mascota?.estado_adopcion && (
+            <div className="flex items-center gap-2 text-sm text-gray-400">
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Estado de la mascota:</span>
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                mascota.estado_adopcion === "disponible"  ? "bg-emerald-50 text-emerald-700" :
+                mascota.estado_adopcion === "en_proceso"  ? "bg-blue-50 text-blue-700" :
+                mascota.estado_adopcion === "adoptado"    ? "bg-[#e8f0e4] text-[#4a7c59]" :
+                "bg-gray-100 text-gray-500"
+              }`}>
+                {mascota.estado_adopcion.replace(/_/g, " ")}
+              </span>
+            </div>
+          )}
+
           {/* Barra de compatibilidad */}
           {pct !== null && (
             <div>
