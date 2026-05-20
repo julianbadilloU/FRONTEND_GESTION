@@ -271,10 +271,10 @@ export default function FeedPage() {
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#a9c99a]"
               >
                 <option value="">Edad</option>
-                <option value="Cachorro (0-1)">Cachorro</option>
-                <option value="Joven (1-3)">Joven</option>
-                <option value="Adulto (3-7)">Adulto</option>
-                <option value="Senior (7+)">Senior</option>
+                <option value="Cachorro (0–1 año)">Cachorro</option>
+                <option value="Joven (1–3 años)">Joven</option>
+                <option value="Adulto (3–7 años)">Adulto</option>
+                <option value="Senior (+7 años)">Senior</option>
               </select>
 
               <button
