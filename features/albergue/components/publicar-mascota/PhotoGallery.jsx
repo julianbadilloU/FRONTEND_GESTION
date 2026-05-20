@@ -55,7 +55,7 @@ function SortablePhoto({ photo, index, onRemove }) {
       <div
         {...attributes}
         {...listeners}
-        className="absolute top-1.5 left-1.5 w-7 h-7 bg-black/40 hover:bg-black/60 text-white rounded-lg flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-1.5 left-1.5 w-7 h-7 bg-black/40 hover:bg-black/60 text-white rounded-lg flex items-center justify-center cursor-grab active:cursor-grabbing opacity-60 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
       >
         <GripVertical size={14} />
       </div>
@@ -67,11 +67,12 @@ function SortablePhoto({ photo, index, onRemove }) {
         </span>
       )}
 
-      {/* Remove button */}
+      {/* Remove button — always visible on touch, hover-only on desktop */}
       <button
         type="button"
         onClick={() => onRemove(photo.id)}
-        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/40 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute top-1.5 right-1.5 w-6 h-6 bg-black/50 hover:bg-red-500 text-white rounded-full flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+        aria-label="Eliminar foto"
       >
         <X size={12} />
       </button>
