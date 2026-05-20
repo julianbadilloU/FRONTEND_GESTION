@@ -30,11 +30,17 @@ export function SwipeFeed() {
     try {
       setLoading(true);
       const res = await getRecomendaciones({ page: pageNum, limit: 10 });
-      const newCards = res.data || res || []; // Handle both { data: [...] } and [...]
+      const newCards = res.data || res || [];
       if (newCards.length === 0) {
         setHasMore(false);
       } else {
-        setCards(prev => reset ? newCards : [...prev, ...newCards]);
+        setCards(prev => {
+          const existingIds = new Set(prev.map(c => getRecordId(c)));
+          const deduped = reset
+            ? newCards
+            : [...prev, ...newCards.filter(c => !existingIds.has(getRecordId(c)))];
+          return deduped;
+        });
       }
     } catch (error) {
       showToast(error?.response?.data?.message || "Error al cargar las recomendaciones.", "error");
@@ -62,7 +68,7 @@ export function SwipeFeed() {
     setCards(prev => prev.slice(1));
   };
 
-  const getRecordId = (rec) => rec.id_recomendacion || rec.id || rec.mascota?.id_mascota || rec.id_mascota;
+  const getRecordId = (rec) => rec.id_recomendacion ?? rec.id ?? rec.mascota?.id_mascota ?? rec.id_mascota ?? null;
 
   const handleLike = async (card) => {
     if (actioning) return;
@@ -150,10 +156,12 @@ export function SwipeFeed() {
           const actualIndex = array.length - 1 - index;
           const mascota = rec.mascota || rec;
           const compatibilidad = rec.score || rec.compatibilidad || null;
+          const recordId = getRecordId(rec);
+          const cardKey = recordId != null ? `rec-${recordId}` : `rec-idx-${index}`;
 
           return (
             <SwipeCard
-              key={getRecordId(rec)}
+              key={cardKey}
               mascota={mascota}
               compatibilidad={compatibilidad}
               isTop={isTop}
