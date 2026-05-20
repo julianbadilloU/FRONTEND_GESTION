@@ -132,29 +132,6 @@ export function AdopcionModal({
   // someone they already contacted.
   const contactados = candidatos.filter((c) => c.estado === "contactado");
 
-  // Reset state and focus when modal opens / closes
-  useEffect(() => {
-    if (!isOpen) return;
-    // Schedule reset after paint so it doesn't trigger a synchronous cascade
-    const id = setTimeout(() => {
-      setSelectedCandidato(null);
-      setObservaciones("");
-      if (firstOptionRef.current) firstOptionRef.current.focus();
-    }, 0);
-    return () => clearTimeout(id);
-  }, [isOpen]);
-
-  // Close on Escape
-  useEffect(() => {
-    if (!isOpen) return;
-    const isPending = mutation.isPending;
-    const onKey = (e) => {
-      if (e.key === "Escape" && !isPending) onClose();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [isOpen, onClose, mutation.isPending]);
-
   const mutation = useMutation({
     mutationFn: () => {
       const { id: idAdoptante } = resolveAdoptante(selectedCandidato);
@@ -173,6 +150,27 @@ export function AdopcionModal({
       onClose();
     },
   });
+
+  // Reset state and focus when modal opens / closes
+  useEffect(() => {
+    if (!isOpen) return;
+    const id = setTimeout(() => {
+      setSelectedCandidato(null);
+      setObservaciones("");
+      if (firstOptionRef.current) firstOptionRef.current.focus();
+    }, 0);
+    return () => clearTimeout(id);
+  }, [isOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape" && !mutation.isPending) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose, mutation.isPending]);
 
   const canSubmit =
     selectedCandidato !== null &&

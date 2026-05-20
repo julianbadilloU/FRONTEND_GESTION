@@ -29,6 +29,6 @@ export async function marcarLeida(id) {
  * @returns {Promise<Object>}
  */
 export async function marcarTodasLeidas() {
-  const { data } = await apiClient.patch("/api/notificaciones/leidas");
+  const { data } = await apiClient.patch("/api/notificaciones/leer-todas");
   return data;
 }

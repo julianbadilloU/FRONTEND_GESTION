@@ -83,7 +83,7 @@ export function parseMascotaError(err) {
 }
 
 export async function getMascotas() {
-  const { data } = await apiClient.get("/api/albergue/mis-mascotas");
+  const { data } = await apiClient.get("/api/mascotas/mis-mascotas");
   return extractData(data);
 }
 
