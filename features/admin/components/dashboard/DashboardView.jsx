@@ -36,9 +36,8 @@ const MASCOTA_ESTADOS = [
   { key: "archivado", label: "Archivado", color: "bg-gray-300" },
 ];
 
-function DonutLegend({ stats }) {
-  const mascotas = stats?.mascotas ?? {};
-  const total = mascotas.total ?? 0;
+function DonutLegend({ mascotas, porEstado }) {
+  const total = mascotas?.total ?? 0;
 
   return (
     <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
@@ -53,7 +52,7 @@ function DonutLegend({ stats }) {
               <span className="text-sm text-gray-600">{label}</span>
             </div>
             <span className="text-sm font-bold text-gray-900">
-              {mascotas[key] ?? mascotas.por_estado?.[key] ?? "—"}
+              {porEstado?.[key] ?? "0"}
             </span>
           </div>
         ))}
@@ -123,11 +122,12 @@ export function DashboardView() {
 
   const usuarios = stats?.usuarios ?? {};
   const mascotas = stats?.mascotas ?? {};
+  const mascotasPorEstado = mascotas.por_estado ?? {};
   const matching = stats?.matching ?? {};
-  const adopcionesPorMes = stats?.adopciones_por_mes ?? matching?.adopciones_por_mes ?? [];
-  const topAlbergues = stats?.top_albergues ?? matching?.top_albergues ?? [];
+  const adopcionesPorMes = matching.adopciones_por_mes ?? [];
+  const topAlbergues = stats?.albergues_ranking ?? stats?.top_albergues ?? [];
 
-  const tasa = usuarios.tasa_completitud_perfil ?? 0;
+  const tasa = usuarios.tasa_completitud ?? usuarios.tasa_completitud_perfil ?? 0;
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12 min-h-screen space-y-10">
@@ -157,6 +157,9 @@ export function DashboardView() {
           <KpiCard label="Adoptantes inactivos" value={usuarios.adoptantes_inactivos} />
           <KpiCard label="Total albergues" value={usuarios.total_albergues} />
           <KpiCard label="Albergues activos" value={usuarios.albergues_activos} />
+          <KpiCard label="Suspendidos" value={usuarios.suspendidos} />
+        </div>
+        <div className="grid grid-cols-1 max-w-xs">
           <KpiCard label="Completitud perfil" value={`${tasa}%`} sub={tasa} />
         </div>
       </section>
@@ -168,7 +171,7 @@ export function DashboardView() {
           <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">Mascotas</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
-          <DonutLegend stats={stats} />
+          <DonutLegend mascotas={mascotas} porEstado={mascotasPorEstado} />
         </div>
       </section>
 
@@ -180,9 +183,18 @@ export function DashboardView() {
             Matching y Adopciones
           </h2>
         </div>
-        <div className="grid grid-cols-2 gap-4 max-w-sm mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mb-6">
           <KpiCard label="Total matches" value={matching.total_matches} />
           <KpiCard label="Total adopciones" value={matching.total_adopciones} />
+          <KpiCard
+            label="Tasa conversión"
+            value={
+              matching.total_matches > 0
+                ? `${Math.round((matching.total_adopciones / matching.total_matches) * 100)}%`
+                : "0%"
+            }
+          />
+          <KpiCard label="Mascotas disponibles" value={mascotasPorEstado.disponible ?? 0} />
         </div>
 
         {adopcionesPorMes.length > 0 && (
