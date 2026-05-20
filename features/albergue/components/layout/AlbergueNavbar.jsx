@@ -11,6 +11,7 @@ import { logoutUser } from "@/lib/auth/auth-service";
 import { cn } from "@/lib/utils/cn";
 import { getAlbergueProfile } from "../../services/albergue.service";
 import { getNotificaciones } from "@/features/shared/services/notificacion.service";
+import { useNotificacionesSocket } from "@/features/shared/hooks/useNotificacionesSocket";
 
 const NAV_LINKS = [
   { href: "/albergue/mascotas",   label: "Mis Mascotas" },
@@ -25,6 +26,9 @@ export function AlbergueNavbar() {
   const router   = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const headerRef = useRef(null);
+
+  // HU-NOT-01: real-time notifications via Socket.IO
+  useNotificacionesSocket();
 
   // Cerrar menú al hacer click fuera del header
   useEffect(() => {
