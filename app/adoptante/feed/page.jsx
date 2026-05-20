@@ -18,7 +18,9 @@ function MascotaCard({ mascota, compatibilidad }) {
   const router = useRouter();
   const tipoTag = mascota.tags?.find((t) => t.nombre_tag === "Tipo de animal");
   const tamañoTag = mascota.tags?.find((t) => t.nombre_tag === "Tamaño");
-  const edadTag = mascota.tags?.find((t) => t.nombre_tag === "Rango de edad");
+  const edadTag = mascota.tags?.find(
+    (t) => t.nombre_tag === "Edad" || t.nombre_tag === "Rango de edad"
+  );
 
   const pct = compatibilidad ?? null;
   const level = pct !== null ? getCompatibilityLevel(pct) : null;
@@ -96,10 +98,12 @@ function MascotaCard({ mascota, compatibilidad }) {
 
         {/* Ubicación y fecha */}
         <div className="flex items-center gap-4 pt-2 text-xs text-gray-400">
-          <span className="flex items-center gap-1">
-            <MapPin size={12} />
-            {mascota.ciudad || "Ubicación no disponible"}
-          </span>
+          {mascota.nombre_albergue && (
+            <span className="flex items-center gap-1">
+              <MapPin size={12} />
+              {mascota.nombre_albergue}
+            </span>
+          )}
           <span className="flex items-center gap-1">
             <Calendar size={12} />
             {new Date(mascota.fecha_publicacion).toLocaleDateString("es-CO")}

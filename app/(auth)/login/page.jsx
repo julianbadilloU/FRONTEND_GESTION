@@ -29,7 +29,7 @@ export default function LoginPage() {
             router.push("/adoptante/feed");
           } else if (role === "albergue") {
             router.push("/albergue/mascotas");
-          } else if (role === "admin") {
+          } else if (role === "administrador") {
             router.push("/admin/tags");
           } else {
             router.push("/");

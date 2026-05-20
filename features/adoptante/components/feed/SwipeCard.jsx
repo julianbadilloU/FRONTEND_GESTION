@@ -17,10 +17,12 @@ const SWIPE_THRESHOLD = 120;
 const EXIT_DISTANCE = 700;
 
 function getEdadLabel(mascota) {
-  const edadTag = mascota.tags?.find((t) => t.nombre_tag === "Rango de edad");
+  const edadTag = mascota.tags?.find(
+    (t) => t.nombre_tag === "Edad" || t.nombre_tag === "Rango de edad"
+  );
   if (edadTag?.valor) return edadTag.valor;
   if (mascota.edad) return `${mascota.edad} años`;
-  return "Edad desconocida";
+  return null; // no mostrar si no hay dato
 }
 
 function getTipoIcon(mascota) {
@@ -225,10 +227,15 @@ export function SwipeCard({
           </h3>
 
           <p className="text-xs text-gray-400">
-            <span className="font-medium">Edad:</span> {getEdadLabel(mascota)}
-            <span className="mx-1.5 text-gray-300">·</span>
-            <span className="font-medium">Publicada:</span>{" "}
-            {formatFecha(mascota.fecha_publicacion)}
+            {getEdadLabel(mascota) && (
+              <>
+                <span className="font-medium">Edad:</span> {getEdadLabel(mascota)}
+                <span className="mx-1.5 text-gray-300">·</span>
+              </>
+            )}
+            {mascota.albergue?.nombre && (
+              <span className="font-medium text-[#7a9e6a]">{mascota.albergue.nombre}</span>
+            )}
           </p>
 
           {tags.length > 0 && (

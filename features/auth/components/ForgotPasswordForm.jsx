@@ -29,7 +29,7 @@ export function ForgotPasswordForm({ onSuccess }) {
     setServerError(null);
     try {
       await apiClient.post("/api/auth/forgot-password", {
-        correo: _data.email,
+        email: _data.email,
       });
       setSent(true);
       onSuccess?.();

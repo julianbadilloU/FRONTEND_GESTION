@@ -33,6 +33,11 @@ vi.mock('@/features/adoptante/services/adoptante.service', () => ({
   getMatchMascotas: vi.fn(),
 }));
 
+// Mock SwipeFeed — default tab "para-ti" renders it; we don't test it here
+vi.mock('@/features/adoptante/components/feed/SwipeFeed', () => ({
+  SwipeFeed: () => <div data-testid="swipe-feed-mock">SwipeFeed</div>,
+}));
+
 // ── Helpers de datos ───────────────────────────────────────────────────────────
 
 const createMockMascota = (id, overrides = {}) => ({
@@ -92,6 +97,11 @@ function setupUseQueryMocks({ feedData, matchData, isLoading, error } = {}) {
   });
 }
 
+/** Switches to the "Explorar" tab so the grid is visible. */
+function switchToExplorar() {
+  fireEvent.click(screen.getByText('Explorar'));
+}
+
 // ── Tests ──────────────────────────────────────────────────────────────────────
 
 describe('FeedPage — HU-MT-01 Motor de matching', () => {
@@ -106,6 +116,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
     expect(screen.getByText('Mascota 1')).toBeInTheDocument();
     expect(screen.getByText('Mascota 2')).toBeInTheDocument();
     expect(screen.getByText('Mascota 3')).toBeInTheDocument();
@@ -116,6 +128,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     const { container } = render(<FeedPage />);
 
+    switchToExplorar();
+
     const skeletons = container.querySelectorAll('.animate-pulse');
     expect(skeletons.length).toBeGreaterThan(0);
   });
@@ -125,6 +139,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
     expect(screen.getByText('Error al cargar las mascotas.')).toBeInTheDocument();
   });
 
@@ -132,6 +148,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     setupUseQueryMocks({ feedData: emptyFeedData });
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
+
+    switchToExplorar();
 
     expect(
       screen.getByText('No se encontraron mascotas con estos filtros.')
@@ -145,6 +163,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
     expect(screen.getByText('85% match')).toBeInTheDocument();
   });
 
@@ -152,6 +172,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     setupUseQueryMocks();
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
+
+    switchToExplorar();
 
     expect(screen.getByText('62% match')).toBeInTheDocument();
   });
@@ -161,6 +183,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
     expect(screen.getByText('30% match')).toBeInTheDocument();
   });
 
@@ -168,6 +192,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     setupUseQueryMocks({ matchData: { data: [] } });
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
+
+    switchToExplorar();
 
     expect(screen.queryByText(/% match/)).not.toBeInTheDocument();
   });
@@ -179,6 +205,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     const { container } = render(<FeedPage />);
 
+    switchToExplorar();
+
     const bars = container.querySelectorAll('[role="progressbar"]');
     // 3 mascotas tienen match → 3 barras
     expect(bars.length).toBe(3);
@@ -188,6 +216,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     setupUseQueryMocks();
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     const { container } = render(<FeedPage />);
+
+    switchToExplorar();
 
     const bars = container.querySelectorAll('[role="progressbar"]');
     const values = Array.from(bars).map(b => Number(b.getAttribute('aria-valuenow')));
@@ -203,19 +233,24 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
     const card = document.getElementById('mascota-card-1');
     expect(card).not.toBeNull();
     expect(card.className).toMatch(/border-\[#4a7c59\]/);
   });
 
-  it('la tarjeta de compatibilidad media debe tener borde naranja', async () => {
+  it('la tarjeta de compatibilidad "bueno" (62%) debe tener borde amarillo', async () => {
     setupUseQueryMocks();
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
+    // pct=62 → nivel "bueno" (60-79) → borde amarillo #c9a52d (HU-MT-01)
     const card = document.getElementById('mascota-card-2');
     expect(card).not.toBeNull();
-    expect(card.className).toMatch(/border-\[#d4841b\]/);
+    expect(card.className).toMatch(/border-\[#c9a52d\]/);
   });
 
   // ── Botón "Actualizar match" ──────────────────────────────────────────────────
@@ -249,6 +284,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    // "Filtros" button only appears in "explorar" tab
+    switchToExplorar();
     fireEvent.click(screen.getByText('Filtros'));
 
     const selects = screen.getAllByRole('combobox');
@@ -263,6 +300,7 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
     fireEvent.click(screen.getByText('Filtros'));
 
     const selects = screen.getAllByRole('combobox');
@@ -284,6 +322,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
     const perroTags = screen.getAllByText('Perro');
     expect(perroTags.length).toBeGreaterThanOrEqual(3);
 
@@ -296,6 +336,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
     const edadBadges = screen.getAllByText('Adulto (3-7)');
     expect(edadBadges.length).toBe(3);
   });
@@ -304,6 +346,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     setupUseQueryMocks();
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
+
+    switchToExplorar();
 
     const albergues = screen.getAllByText('Patitas Felices');
     expect(albergues.length).toBe(3);
@@ -314,6 +358,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
 
+    switchToExplorar();
+
     const img = screen.getByAltText('Mascota 1');
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('src', 'https://img/foto1.jpg');
@@ -323,6 +369,8 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     setupUseQueryMocks();
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
+
+    switchToExplorar();
 
     fireEvent.click(document.getElementById('mascota-card-1'));
     expect(mockPush).toHaveBeenCalledWith('/mascota/1');

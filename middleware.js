@@ -77,7 +77,7 @@ export function middleware(request) {
   const roleByPrefix = {
     "/adoptante": "adoptante",
     "/albergue": "albergue",
-    "/admin": "admin",
+    "/admin": "administrador",
   };
 
   const requiredRole = PROTECTED_PREFIXES.find((prefix) =>
@@ -91,11 +91,10 @@ export function middleware(request) {
   if (requiredRole && userRole !== requiredRole) {
     // Redirigir al dashboard correspondiente según el rol
     const redirectPath =
-      userRole === "adoptante"
-        ? "/adoptante/feed"
-        : userRole === "albergue"
-        ? "/albergue/mascotas"
-        : "/";
+      userRole === "adoptante"      ? "/adoptante/feed"
+    : userRole === "albergue"       ? "/albergue/mascotas"
+    : userRole === "administrador"  ? "/admin/tags"
+    : "/";
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }
 

@@ -7,7 +7,7 @@ export const metadata = {
 
 export default function AdminTagsPage() {
   return (
-    <ClientAuthGuard allowedRoles={["admin"]}>
+    <ClientAuthGuard allowedRoles={["administrador"]}>
       <TagManagementView />
     </ClientAuthGuard>
   );

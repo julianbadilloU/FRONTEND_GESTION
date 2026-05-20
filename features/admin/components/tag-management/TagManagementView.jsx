@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { Plus, Tag as TagIcon, Loader2 } from "lucide-react";
-import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { TagTable } from "./TagTable";
 import { TagFilters } from "./TagFilters";
 import { TagModal } from "./TagModal";
@@ -97,7 +96,6 @@ export function TagManagementView() {
         </div>
 
         <div className="flex items-center gap-3">
-          <LogoutButton variant="full" />
           <button 
             onClick={handleCreate}
             className="flex items-center justify-center gap-2 bg-[#8b9e7e] hover:bg-[#7a8e6e] text-white px-6 py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-[#8b9e7e]/20 transition-all active:scale-[0.98]"

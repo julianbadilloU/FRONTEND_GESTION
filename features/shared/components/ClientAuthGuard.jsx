@@ -53,7 +53,7 @@ export function ClientAuthGuard({ children, allowedRoles = [] }) {
             ? "/adoptante/feed"
             : userRole === "albergue"
             ? "/albergue/mascotas"
-            : userRole === "admin"
+            : userRole === "administrador"
             ? "/admin/tags"
             : "/login";
         
