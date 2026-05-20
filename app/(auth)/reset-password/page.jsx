@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
 
-import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
+import { NuevaContrasenaForm } from "@/features/auth/components/NuevaContrasenaForm";
 
 export default function ResetPasswordPage() {
   return (
@@ -11,7 +11,7 @@ export default function ResetPasswordPage() {
       </div>
     }>
       <AnimatePresence mode="wait">
-        <ResetPasswordForm />
+        <NuevaContrasenaForm />
       </AnimatePresence>
     </Suspense>
   );

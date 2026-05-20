@@ -101,11 +101,12 @@ export default function AlbergueNotificacionesPage() {
       ) : (
         <div className="space-y-3">
           {notificaciones.map((notif) => {
-            const isPendiente = notif.estado === "pendiente";
+            const isPendiente = notif.leida === false;
+            const notifId = notif.id_notificacion ?? notif.id;
 
             return (
               <div
-                key={notif.id}
+                key={notifId}
                 className={`
                   flex items-start gap-4 p-4 rounded-xl border transition-colors
                   ${isPendiente
@@ -151,7 +152,7 @@ export default function AlbergueNotificacionesPage() {
                 {/* Acción: marcar como leída */}
                 {isPendiente && (
                   <button
-                    onClick={() => marcarLeidaMut.mutate(notif.id)}
+                    onClick={() => marcarLeidaMut.mutate(notifId)}
                     disabled={marcarLeidaMut.isPending}
                     className="shrink-0 p-2 text-gray-400 hover:text-[#5e924e] hover:bg-gray-50 rounded-lg transition-colors disabled:opacity-50"
                     title="Marcar como leída"
