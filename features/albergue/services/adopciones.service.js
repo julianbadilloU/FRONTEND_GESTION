@@ -31,3 +31,45 @@ export async function obtenerHistorialAdopciones(params = {}) {
   const { data } = await apiClient.get("/api/albergue/adopciones", { params });
   return extractData(data);
 }
+
+/**
+ * Descarga el historial de adopciones como archivo CSV.
+ * Endpoint: GET /api/albergue/adopciones/exportar
+ */
+export async function exportarCSV(params = {}) {
+  const { data } = await apiClient.get("/api/albergue/adopciones/exportar", {
+    params,
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(new Blob([data], { type: "text/csv;charset=utf-8;" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", "adopciones.csv");
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Descarga el historial de adopciones como archivo Excel.
+ * Endpoint: GET /api/albergue/adopciones/exportar-excel
+ */
+export async function exportarExcel(params = {}) {
+  const { data } = await apiClient.get("/api/albergue/adopciones/exportar-excel", {
+    params,
+    responseType: "blob",
+  });
+  const url = URL.createObjectURL(
+    new Blob([data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    }),
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", "adopciones.xlsx");
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
