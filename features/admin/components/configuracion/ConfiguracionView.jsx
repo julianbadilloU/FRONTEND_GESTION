@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { Settings, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Toast } from "@/features/shared/components/Toast";
+import {
+  getConfiguracion,
+  updateConfiguracionGrupo,
+} from "@/features/admin/services/adminConfig.service";
 
 // ─── Defaults ────────────────────────────────────────────────────────────────
 
@@ -156,28 +160,62 @@ function RadioField({ label, value, onChange, options }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
+/**
+ * Coerces string values returned by the API back to the correct JS types,
+ * using the defaults shape to determine which keys should be numbers vs strings.
+ */
+function coerceSection(sectionKey, remoteValues) {
+  const defaults = SECTION_DEFAULTS[sectionKey] ?? {};
+  const coerced = {};
+  for (const [k, v] of Object.entries(remoteValues)) {
+    const defaultVal = defaults[k];
+    if (typeof defaultVal === "number") {
+      const n = Number(v);
+      coerced[k] = isNaN(n) ? defaultVal : n;
+    } else {
+      coerced[k] = v;
+    }
+  }
+  return coerced;
+}
+
 export function ConfiguracionView() {
   const [values, setValues] = useState(SECTION_DEFAULTS);
+  const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const loaded = {};
-    for (const key of Object.keys(SECTION_DEFAULTS)) {
-      try {
-        const stored = localStorage.getItem(`config_${key}`);
-        loaded[key] = stored ? JSON.parse(stored) : SECTION_DEFAULTS[key];
-      } catch {
-        loaded[key] = SECTION_DEFAULTS[key];
-      }
-    }
-    setValues(loaded);
-  }, []);
 
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 4000);
   };
+
+  // Load configuration from API on mount
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    getConfiguracion()
+      .then((remote) => {
+        if (cancelled) return;
+        // Merge remote values with defaults (remote wins, keeps all keys)
+        const merged = {};
+        for (const key of Object.keys(SECTION_DEFAULTS)) {
+          merged[key] = remote[key]
+            ? { ...SECTION_DEFAULTS[key], ...coerceSection(key, remote[key]) }
+            : SECTION_DEFAULTS[key];
+        }
+        setValues(merged);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setToast({ show: true, message: "No se pudo cargar la configuración. Mostrando valores por defecto.", type: "error" });
+          setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 4000);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   const set = (section, field, val) => {
     setValues((prev) => ({
@@ -186,9 +224,13 @@ export function ConfiguracionView() {
     }));
   };
 
-  const handleSave = (sectionKey) => {
-    localStorage.setItem(`config_${sectionKey}`, JSON.stringify(values[sectionKey]));
-    showToast("Configuración guardada correctamente.");
+  const handleSave = async (sectionKey) => {
+    try {
+      await updateConfiguracionGrupo(sectionKey, values[sectionKey]);
+      showToast("Configuración guardada correctamente.");
+    } catch {
+      showToast("Error al guardar la configuración. Intentá de nuevo.", "error");
+    }
   };
 
   return (
@@ -203,154 +245,167 @@ export function ConfiguracionView() {
           Configuración del Sistema
         </h1>
         <p className="text-gray-500 text-sm">
-          Ajustes globales de la plataforma. Los cambios se persisten localmente.
+          Ajustes globales de la plataforma. Los cambios se guardan en la base de datos.
         </p>
       </div>
 
-      {/* Section 1 — Publicación de Mascotas */}
-      <AccordionSection
-        title="Publicación de Mascotas"
-        icon="🐾"
-        sectionKey="publicacion"
-        onSave={handleSave}
-      >
-        <NumberField
-          label="Límite de mascotas activas por albergue"
-          value={values.publicacion.limite_mascotas}
-          onChange={(v) => set("publicacion", "limite_mascotas", v)}
-          min={1}
-          max={500}
-        />
-        <NumberField
-          label="Máximo de fotos por mascota"
-          value={values.publicacion.max_fotos}
-          onChange={(v) => set("publicacion", "max_fotos", v)}
-          min={1}
-          max={10}
-        />
-        <NumberField
-          label="Tamaño máximo por foto"
-          value={values.publicacion.max_tamano_foto}
-          onChange={(v) => set("publicacion", "max_tamano_foto", v)}
-          min={1}
-          max={25}
-          suffix="MB"
-        />
-        <NumberField
-          label="Días sin actividad antes de alerta"
-          value={values.publicacion.dias_sin_actividad}
-          onChange={(v) => set("publicacion", "dias_sin_actividad", v)}
-          min={15}
-          max={365}
-          suffix="días"
-        />
-      </AccordionSection>
+      {/* Loading state */}
+      {loading && (
+        <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
+          <Loader2 size={22} className="animate-spin" />
+          <span className="text-sm font-medium">Cargando configuración…</span>
+        </div>
+      )}
 
-      {/* Section 2 — Motor de Matching */}
-      <AccordionSection
-        title="Motor de Matching"
-        icon="⚙️"
-        sectionKey="matching"
-        onSave={handleSave}
-      >
-        <NumberField
-          label="Umbral mínimo de compatibilidad"
-          value={values.matching.umbral_compatibilidad}
-          onChange={(v) => set("matching", "umbral_compatibilidad", v)}
-          min={5}
-          max={80}
-          suffix="%"
-        />
-        <p className="text-xs text-gray-400 italic">
-          Los pesos por tag se configuran en la sección de Tags.
-        </p>
-      </AccordionSection>
+      {/* Sections — only render once data is loaded */}
+      {!loading && (
+        <>
+          {/* Section 1 — Publicación de Mascotas */}
+          <AccordionSection
+            title="Publicación de Mascotas"
+            icon="🐾"
+            sectionKey="publicacion"
+            onSave={handleSave}
+          >
+            <NumberField
+              label="Límite de mascotas activas por albergue"
+              value={values.publicacion.limite_mascotas}
+              onChange={(v) => set("publicacion", "limite_mascotas", v)}
+              min={1}
+              max={500}
+            />
+            <NumberField
+              label="Máximo de fotos por mascota"
+              value={values.publicacion.max_fotos}
+              onChange={(v) => set("publicacion", "max_fotos", v)}
+              min={1}
+              max={10}
+            />
+            <NumberField
+              label="Tamaño máximo por foto"
+              value={values.publicacion.max_tamano_foto}
+              onChange={(v) => set("publicacion", "max_tamano_foto", v)}
+              min={1}
+              max={25}
+              suffix="MB"
+            />
+            <NumberField
+              label="Días sin actividad antes de alerta"
+              value={values.publicacion.dias_sin_actividad}
+              onChange={(v) => set("publicacion", "dias_sin_actividad", v)}
+              min={15}
+              max={365}
+              suffix="días"
+            />
+          </AccordionSection>
 
-      {/* Section 3 — Autenticación y Seguridad */}
-      <AccordionSection
-        title="Autenticación y Seguridad"
-        icon="🔒"
-        sectionKey="seguridad"
-        onSave={handleSave}
-      >
-        <NumberField
-          label="Expiración de sesión"
-          value={values.seguridad.expiracion_sesion}
-          onChange={(v) => set("seguridad", "expiracion_sesion", v)}
-          min={1}
-          max={72}
-          suffix="horas"
-        />
-        <NumberField
-          label="Máximo intentos de login"
-          value={values.seguridad.max_intentos_login}
-          onChange={(v) => set("seguridad", "max_intentos_login", v)}
-          min={3}
-          max={10}
-        />
-        <NumberField
-          label="Duración del bloqueo"
-          value={values.seguridad.duracion_bloqueo}
-          onChange={(v) => set("seguridad", "duracion_bloqueo", v)}
-          min={5}
-          max={1440}
-          suffix="minutos"
-        />
-        <NumberField
-          label="Expiración del enlace de recuperación"
-          value={values.seguridad.expiracion_enlace_recuperacion}
-          onChange={(v) => set("seguridad", "expiracion_enlace_recuperacion", v)}
-          min={10}
-          max={120}
-          suffix="minutos"
-        />
-      </AccordionSection>
+          {/* Section 2 — Motor de Matching */}
+          <AccordionSection
+            title="Motor de Matching"
+            icon="⚙️"
+            sectionKey="matching"
+            onSave={handleSave}
+          >
+            <NumberField
+              label="Umbral mínimo de compatibilidad"
+              value={values.matching.umbral_compatibilidad}
+              onChange={(v) => set("matching", "umbral_compatibilidad", v)}
+              min={5}
+              max={80}
+              suffix="%"
+            />
+            <p className="text-xs text-gray-400 italic">
+              Los pesos por tag se configuran en la sección de Tags.
+            </p>
+          </AccordionSection>
 
-      {/* Section 4 — Comunicación WhatsApp */}
-      <AccordionSection
-        title="Comunicación WhatsApp"
-        icon="💬"
-        sectionKey="whatsapp"
-        onSave={handleSave}
-      >
-        <TextareaField
-          label="Mensaje predefinido de contacto"
-          value={values.whatsapp.mensaje_predefinido}
-          onChange={(v) => set("whatsapp", "mensaje_predefinido", v)}
-          maxLength={300}
-        />
-        <TextField
-          label="Prefijo telefónico"
-          value={values.whatsapp.prefijo_telefonico}
-          onChange={(v) => set("whatsapp", "prefijo_telefonico", v)}
-        />
-      </AccordionSection>
+          {/* Section 3 — Autenticación y Seguridad */}
+          <AccordionSection
+            title="Autenticación y Seguridad"
+            icon="🔒"
+            sectionKey="seguridad"
+            onSave={handleSave}
+          >
+            <NumberField
+              label="Expiración de sesión"
+              value={values.seguridad.expiracion_sesion}
+              onChange={(v) => set("seguridad", "expiracion_sesion", v)}
+              min={1}
+              max={72}
+              suffix="horas"
+            />
+            <NumberField
+              label="Máximo intentos de login"
+              value={values.seguridad.max_intentos_login}
+              onChange={(v) => set("seguridad", "max_intentos_login", v)}
+              min={3}
+              max={10}
+            />
+            <NumberField
+              label="Duración del bloqueo"
+              value={values.seguridad.duracion_bloqueo}
+              onChange={(v) => set("seguridad", "duracion_bloqueo", v)}
+              min={5}
+              max={1440}
+              suffix="minutos"
+            />
+            <NumberField
+              label="Expiración del enlace de recuperación"
+              value={values.seguridad.expiracion_enlace_recuperacion}
+              onChange={(v) => set("seguridad", "expiracion_enlace_recuperacion", v)}
+              min={10}
+              max={120}
+              suffix="minutos"
+            />
+          </AccordionSection>
 
-      {/* Section 5 — Notificaciones */}
-      <AccordionSection
-        title="Notificaciones"
-        icon="🔔"
-        sectionKey="notificaciones"
-        onSave={handleSave}
-      >
-        <NumberField
-          label="Retención de notificaciones"
-          value={values.notificaciones.retencion_notificaciones}
-          onChange={(v) => set("notificaciones", "retencion_notificaciones", v)}
-          min={30}
-          max={365}
-          suffix="días"
-        />
-        <RadioField
-          label="Modo de envío de matches"
-          value={values.notificaciones.modo_envio_matches}
-          onChange={(v) => set("notificaciones", "modo_envio_matches", v)}
-          options={[
-            { value: "inmediato", label: "Inmediato" },
-            { value: "resumen_diario", label: "Resumen diario" },
-          ]}
-        />
-      </AccordionSection>
+          {/* Section 4 — Comunicación WhatsApp */}
+          <AccordionSection
+            title="Comunicación WhatsApp"
+            icon="💬"
+            sectionKey="whatsapp"
+            onSave={handleSave}
+          >
+            <TextareaField
+              label="Mensaje predefinido de contacto"
+              value={values.whatsapp.mensaje_predefinido}
+              onChange={(v) => set("whatsapp", "mensaje_predefinido", v)}
+              maxLength={300}
+            />
+            <TextField
+              label="Prefijo telefónico"
+              value={values.whatsapp.prefijo_telefonico}
+              onChange={(v) => set("whatsapp", "prefijo_telefonico", v)}
+            />
+          </AccordionSection>
+
+          {/* Section 5 — Notificaciones */}
+          <AccordionSection
+            title="Notificaciones"
+            icon="🔔"
+            sectionKey="notificaciones"
+            onSave={handleSave}
+          >
+            <NumberField
+              label="Retención de notificaciones"
+              value={values.notificaciones.retencion_notificaciones}
+              onChange={(v) => set("notificaciones", "retencion_notificaciones", v)}
+              min={30}
+              max={365}
+              suffix="días"
+            />
+            <RadioField
+              label="Modo de envío de matches"
+              value={values.notificaciones.modo_envio_matches}
+              onChange={(v) => set("notificaciones", "modo_envio_matches", v)}
+              options={[
+                { value: "inmediato", label: "Inmediato" },
+                { value: "resumen_diario", label: "Resumen diario" },
+              ]}
+            />
+          </AccordionSection>
+        </>
+      )}
 
       <Toast
         show={toast.show}
