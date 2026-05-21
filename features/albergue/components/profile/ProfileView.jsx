@@ -131,7 +131,7 @@ export function ProfileView({ profile, logoSrc }) {
             <Field label="Ciudad" value={profile.city} icon={<MapPin size={13} />} />
             <Field label="Sitio Web o Red Social" value={profile.website} colSpan={2} />
             <Field
-              label="Descripción (opcional, máx. 500 caracteres)"
+              label="Descripción"
               value={profile.description}
               colSpan={2}
             />
