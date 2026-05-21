@@ -4,8 +4,18 @@ import { apiClient } from "@/lib/http/api-client";
  * List all mascotas for admin supervision.
  * GET /api/admin/mascotas
  */
-export async function getAdminMascotas({ page = 1, limit = 20 } = {}) {
-  const { data } = await apiClient.get(`/api/admin/mascotas?page=${page}&limit=${limit}`);
+export async function getAdminMascotas({ page = 1, limit = 20, estado, albergue } = {}) {
+  const params = new URLSearchParams({ page, limit, ...(estado && { estado }), ...(albergue && { albergue }) }).toString();
+  const { data } = await apiClient.get(`/api/admin/mascotas?${params}`);
+  return data;
+}
+
+/**
+ * Get detail of a single mascota.
+ * GET /api/admin/mascotas/:id
+ */
+export async function getMascotaDetalle(id) {
+  const { data } = await apiClient.get(`/api/admin/mascotas/${id}`);
   return data;
 }
 
