@@ -61,8 +61,8 @@ export function AlbergueProfile() {
      website:     serverProfile.sitio_web       || "",
      description: serverProfile.descripcion     || "",
      logoUrl:     serverProfile.logo            || "",
-     address:     "",
-     city:        "",
+     address:     serverProfile.direccion       || "",
+     city:        serverProfile.ciudad          || "",
   } : MOCK_PROFILE;
 
   const updateMutation = useMutation({
@@ -106,9 +106,11 @@ export function AlbergueProfile() {
   const handleSave = useCallback((data) => {
     const payload = {
       nombre_albergue: data.name,
-      descripcion:     data.description,
+      descripcion:     data.description    || "",
       whatsapp:        data.whatsapp,
-      sitio_web:       data.website   || undefined,
+      sitio_web:       data.website        || "",
+      direccion:       data.address        || "",
+      ciudad:          data.city           || "",
     };
     if (logoBase64) {
       payload.logo = logoBase64;
