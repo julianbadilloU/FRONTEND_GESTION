@@ -366,17 +366,6 @@ const mutation = useMutation({
       setTimeout(() => setToast(t => ({ ...t, show: false })), 3500);
     },
   });
-      setTimeout(() => setToast(t => ({ ...t, show: false })), 3500);
-    },
-    onError: (err) => {
-      setToast({
-        show: true,
-        message: err?.response?.data?.message || "Error al cambiar el estado.",
-        type: "error",
-      });
-      setTimeout(() => setToast(t => ({ ...t, show: false })), 3500);
-    },
-  });
 
   const handleLimpiarFiltros = () => {
     setFiltroEstado("");
