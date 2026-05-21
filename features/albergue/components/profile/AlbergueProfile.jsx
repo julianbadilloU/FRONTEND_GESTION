@@ -54,15 +54,15 @@ export function AlbergueProfile() {
   });
 
   const profile = serverProfile ? {
-     name: serverProfile.nombre_albergue || "",
-     nit: serverProfile.nit || "",
-     email: serverProfile.correo || "",
-     whatsapp: serverProfile.whatsapp_actual || "",
-     website: serverProfile.sitio_web || "",
-     description: serverProfile.descripcion || "",
-     logoUrl: serverProfile.logo || "",
-     address: "", // Opcional, si existiera
-     city: "",
+     name:        serverProfile.nombre_albergue || "",
+     nit:         serverProfile.nit             || "",
+     email:       serverProfile.correo          || "",
+     whatsapp:    serverProfile.whatsapp_actual || "",
+     website:     serverProfile.sitio_web       || "",
+     description: serverProfile.descripcion     || "",
+     logoUrl:     serverProfile.logo            || "",
+     address:     "",
+     city:        "",
   } : MOCK_PROFILE;
 
   const updateMutation = useMutation({
@@ -105,9 +105,10 @@ export function AlbergueProfile() {
   // ── Guardar cambios ──────────────────────────────────────────────────────
   const handleSave = useCallback((data) => {
     const payload = {
-      descripcion: data.description,
-      whatsapp_actual: data.whatsapp,
-      sitio_web: data.website,
+      nombre_albergue: data.name,
+      descripcion:     data.description,
+      whatsapp:        data.whatsapp,
+      sitio_web:       data.website   || undefined,
     };
     if (logoBase64) {
       payload.logo = logoBase64;
