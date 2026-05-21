@@ -66,7 +66,8 @@ export function MascotaEstadoView() {
         } else {
           const data = await getMascotaById(id);
           setMascota(data);
-          setSelectedEstado(data.estado);
+          // backend devuelve estado_adopcion, no estado
+          setSelectedEstado(data.estado_adopcion);
         }
       } catch (err) {
         setError("No se pudo cargar la información de la mascota.");
@@ -84,7 +85,7 @@ export function MascotaEstadoView() {
   };
 
   const handleApply = async () => {
-    if (selectedEstado === mascota?.estado) {
+    if (selectedEstado === (mascota?.estado_adopcion ?? mascota?.estado)) {
       showToast("Selecciona un estado diferente para actualizar.", "error");
       return;
     }
@@ -115,7 +116,7 @@ export function MascotaEstadoView() {
       }
       
       showToast("Estado actualizado correctamente.");
-      setMascota((prev) => ({ ...prev, estado: selectedEstado }));
+      setMascota((prev) => ({ ...prev, estado_adopcion: selectedEstado, estado: selectedEstado }));
       setShowAdoptadoModal(false);
       setConfirmAdoptado(false);
 
@@ -148,7 +149,7 @@ export function MascotaEstadoView() {
     );
   }
 
-  const currentEstadoObj = ESTADOS.find((e) => e.id === mascota?.estado);
+  const currentEstadoObj = ESTADOS.find((e) => e.id === (mascota?.estado_adopcion ?? mascota?.estado));
   const needsMotivo = selectedEstado === "inactivo" || selectedEstado === "archivado";
 
   return (
@@ -168,11 +169,15 @@ export function MascotaEstadoView() {
         {/* Info Mascota */}
         <div className="flex items-center gap-5 pb-6 border-b border-[#dcd7ce]">
           <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-md bg-gray-200">
-            <img
-              src={mascota?.fotos?.[0] || "/placeholder-pet.png"}
-              alt={mascota?.nombre}
-              className="w-full h-full object-cover"
-            />
+            {mascota?.fotos?.[0]?.url_foto ? (
+              <img
+                src={mascota.fotos[0].url_foto}
+                alt={mascota?.nombre}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-300 text-3xl">🐾</div>
+            )}
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-900 leading-tight">{mascota?.nombre}</h2>
@@ -190,11 +195,11 @@ export function MascotaEstadoView() {
             currentEstadoObj?.border
           )}>
             {currentEstadoObj && <currentEstadoObj.icon size={16} />}
-            {currentEstadoObj?.label || mascota?.estado}
+            {currentEstadoObj?.label || mascota?.estado_adopcion || mascota?.estado}
           </div>
         </div>
 
-        {mascota?.estado === "adoptado" ? (
+        {(mascota?.estado_adopcion ?? mascota?.estado) === "adoptado" ? (
           <div className="bg-indigo-50 border border-indigo-100 p-5 rounded-2xl flex gap-4 items-start">
             <Info className="text-indigo-500 flex-shrink-0 mt-0.5" size={20} />
             <p className="text-indigo-900 text-sm leading-relaxed">
@@ -275,7 +280,7 @@ export function MascotaEstadoView() {
               </button>
               <button
                 onClick={handleApply}
-                disabled={updating || selectedEstado === mascota?.estado}
+                disabled={updating || selectedEstado === (mascota?.estado_adopcion ?? mascota?.estado)}
                 className="flex-1 px-8 py-3.5 rounded-full bg-[#8b9e7e] hover:bg-[#7a8e6e] text-white font-bold text-sm shadow-md transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {updating ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}

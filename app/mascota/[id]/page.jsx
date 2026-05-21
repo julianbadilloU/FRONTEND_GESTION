@@ -1,9 +1,10 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Dog, Cat, ArrowLeft, MapPin, Calendar, Heart, Share2, MessageCircle } from "lucide-react";
+import { Dog, Cat, ArrowLeft, MapPin, Calendar, Heart, Share2, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { getMascotaById } from "@/features/albergue/services/mascota.service";
 
 /**
@@ -40,6 +41,7 @@ export default function MascotaDetallePage() {
   const router = useRouter();
   const id = params?.id;
   const userRole = useUserRole();
+  const [fotoIdx, setFotoIdx] = useState(0);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["mascota", id],
@@ -75,9 +77,14 @@ export default function MascotaDetallePage() {
 
   const tipoTag = mascota.tags?.find((t) => t.nombre_tag === "Tipo de animal");
   const tamañoTag = mascota.tags?.find((t) => t.nombre_tag === "Tamaño");
-  const edadTag = mascota.tags?.find((t) => t.nombre_tag === "Edad");
+  const edadTag = mascota.tags?.find((t) => t.nombre_tag === "Edad" || t.nombre_tag === "Rango de edad");
   const sexoTag = mascota.tags?.find((t) => t.nombre_tag === "Sexo");
   const energiaTag = mascota.tags?.find((t) => t.nombre_tag === "Nivel de energía");
+
+  // fotos: array de { id_foto, url_foto, orden }
+  const fotos = mascota.fotos ?? [];
+  const fotoActual = fotos[fotoIdx]?.url_foto ?? null;
+  const totalFotos = fotos.length;
 
   return (
     <div className="min-h-screen bg-[#fafaf8]">
@@ -93,12 +100,12 @@ export default function MascotaDetallePage() {
 
         {/* Header */}
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          {/* Fotos */}
+          {/* Galería de fotos */}
           <div className="relative h-80 bg-gray-100">
-            {mascota.fotos?.[0] ? (
+            {fotoActual ? (
               <img
-                src={mascota.fotos[0].url_foto}
-                alt={mascota.nombre}
+                src={fotoActual}
+                alt={`${mascota.nombre} foto ${fotoIdx + 1}`}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -106,15 +113,69 @@ export default function MascotaDetallePage() {
                 {tipoTag?.valor === "Gato" ? <Cat size={64} /> : <Dog size={64} />}
               </div>
             )}
-            <div className="absolute top-4 right-4 flex gap-2">
-              <button className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-red-400 transition-colors">
-                <Heart size={18} />
-              </button>
+
+            {/* Flechas navegación — solo si hay más de 1 foto */}
+            {totalFotos > 1 && (
+              <>
+                <button
+                  onClick={() => setFotoIdx((i) => (i - 1 + totalFotos) % totalFotos)}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={() => setFotoIdx((i) => (i + 1) % totalFotos)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight size={18} />
+                </button>
+                {/* Dots */}
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+                  {fotos.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setFotoIdx(i)}
+                      className={`w-2 h-2 rounded-full transition-colors ${i === fotoIdx ? "bg-white" : "bg-white/50"}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Contador */}
+            {totalFotos > 1 && (
+              <span className="absolute top-3 left-3 bg-black/40 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                {fotoIdx + 1} / {totalFotos}
+              </span>
+            )}
+
+            {/* Botones top-right: corazón solo para no-albergue */}
+            <div className="absolute top-3 right-3 flex gap-2">
+              {userRole !== "albergue" && (
+                <button className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-red-400 transition-colors">
+                  <Heart size={18} />
+                </button>
+              )}
               <button className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-gray-800 transition-colors">
                 <Share2 size={18} />
               </button>
             </div>
           </div>
+
+          {/* Miniaturas */}
+          {totalFotos > 1 && (
+            <div className="flex gap-2 px-4 py-3 overflow-x-auto border-b border-gray-50">
+              {fotos.map((f, i) => (
+                <button
+                  key={f.id_foto ?? i}
+                  onClick={() => setFotoIdx(i)}
+                  className={`w-14 h-14 rounded-lg overflow-hidden shrink-0 border-2 transition-colors ${i === fotoIdx ? "border-[#8b9e7e]" : "border-transparent"}`}
+                >
+                  <img src={f.url_foto} alt={`miniatura ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="p-6 space-y-5">
             {/* Title + tags */}
