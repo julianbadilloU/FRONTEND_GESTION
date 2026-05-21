@@ -8,15 +8,25 @@ import { LoginForm } from "@/features/auth/components/LoginForm";
 export default function LoginPage() {
   const router = useRouter();
 
+  const normalizeRole = (role) => {
+    const normalized = (role || "").toString().toLowerCase();
+
+    if (normalized === "administrador") return "admin";
+
+    return normalized;
+  };
+
   return (
     <AnimatePresence mode="wait">
       <LoginForm
         onSuccess={({ email, role, estado_cuenta }) => {
+          const normalizedRole = normalizeRole(role);
+
           // Si el perfil está incompleto, redirigir al onboarding correspondiente
           if (estado_cuenta === "perfil_incompleto") {
-            if (role === "adoptante") {
+            if (normalizedRole === "adoptante") {
               router.push("/adoptante/onboarding");
-            } else if (role === "albergue") {
+            } else if (normalizedRole === "albergue") {
               router.push("/albergue/onboarding");
             } else {
               router.push("/");
@@ -25,11 +35,11 @@ export default function LoginPage() {
           }
 
           // Perfil completo → redirigir al dashboard según rol
-          if (role === "adoptante") {
+          if (normalizedRole === "adoptante") {
             router.push("/adoptante/feed");
-          } else if (role === "albergue") {
+          } else if (normalizedRole === "albergue") {
             router.push("/albergue/mascotas");
-          } else if (role === "administrador") {
+          } else if (normalizedRole === "admin") {
             router.push("/admin/tags");
           } else {
             router.push("/");

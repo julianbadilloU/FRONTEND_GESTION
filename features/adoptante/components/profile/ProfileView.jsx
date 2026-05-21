@@ -26,7 +26,7 @@ function Field({ label, value, locked = false, icon = null, colSpan = 1 }) {
 
 // ─── Vista de solo lectura ────────────────────────────────────────────────────
 export function ProfileView({ profile }) {
-  const fotoSrc = profile?.foto || profile?.foto_url || "/default-avatar.png";
+  const fotoSrc = profile?.foto || profile?.foto_url || "/default-avatar.svg";
   const tags = profile?.tags || [];
 
   return (
@@ -40,9 +40,10 @@ export function ProfileView({ profile }) {
               alt={profile?.nombre_completo || "Adoptante"}
               width={144}
               height={144}
+              priority
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = "/default-avatar.png";
+                e.currentTarget.src = "/default-avatar.svg";
               }}
             />
           </div>
@@ -90,9 +91,9 @@ export function ProfileView({ profile }) {
             Preferencias
           </p>
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
+            {tags.map((tag, idx) => (
               <span
-                key={tag}
+                key={`${tag}-${idx}`}
                 className="inline-flex items-center px-3 py-1 rounded-full bg-[#e8f0e2] text-[#5e7a50] text-xs font-medium border border-[#d4e0ca]"
               >
                 {tag}

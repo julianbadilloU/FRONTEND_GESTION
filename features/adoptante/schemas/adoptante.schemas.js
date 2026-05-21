@@ -18,8 +18,8 @@ export const adoptanteProfileSchema = z.object({
     .min(10, "El número debe tener al menos 10 dígitos")
     .max(13, "Número inválido")
     .regex(
-      /^(\+57)?[0-9]{10}$/,
-      "Formato colombiano: 10 dígitos (opcional +57)",
+      /^(\+?57)?3[0-9]{9}$|^[2-8][0-9]{6}$/,
+      "Debe ser un número celular (ej: 3001234567) o fijo de 7 dígitos.",
     ),
   ciudad: z
     .string()

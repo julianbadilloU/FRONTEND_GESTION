@@ -77,7 +77,7 @@ export function middleware(request) {
   const roleByPrefix = {
     "/adoptante": "adoptante",
     "/albergue": "albergue",
-    "/admin": "administrador",
+    "/admin": "admin",
   };
 
   const requiredRole = PROTECTED_PREFIXES.find((prefix) =>
@@ -93,7 +93,7 @@ export function middleware(request) {
     const redirectPath =
       userRole === "adoptante"      ? "/adoptante/feed"
     : userRole === "albergue"       ? "/albergue/mascotas"
-    : userRole === "administrador"  ? "/admin/tags"
+    : userRole === "admin"          ? "/admin/tags"
     : "/";
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }

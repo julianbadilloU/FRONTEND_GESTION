@@ -14,6 +14,36 @@ import { AuthAlert } from "@/features/auth/components/AuthAlert";
 import { apiClient } from "@/lib/http/api-client";
 import { saveSessionTokens } from "@/lib/auth/token-storage";
 
+function decodeJwtPayload(token) {
+  try {
+    if (!token || typeof token !== "string") return null;
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+}
+
+function extractAccessToken(responseData) {
+  let current = responseData;
+
+  while (current && typeof current === "object") {
+    if (typeof current === "string") {
+      return current;
+    }
+
+    if (typeof current.token === "string") return current.token;
+    if (typeof current.accessToken === "string") return current.accessToken;
+    if (typeof current.jwt === "string") return current.jwt;
+
+    current = current.data;
+  }
+
+  return typeof current === "string" ? current : null;
+}
+
 export function LoginForm({ onSuccess }) {
   const [showPw, setShowPw] = useState(false);
   const [attempts, setAttempts] = useState(0);
@@ -64,14 +94,24 @@ export function LoginForm({ onSuccess }) {
         password: data.password,
       });
 
-      let accessToken = response.data;
-      if (typeof accessToken === "object") {
-        accessToken = accessToken.token || accessToken.accessToken || accessToken.jwt || accessToken.data;
-      }
+      const accessToken = extractAccessToken(response.data);
       
       saveSessionTokens({ accessToken });
 
-      onSuccess?.(data.email);
+      const payload = decodeJwtPayload(accessToken);
+      const sessionUser = response.data?.data?.user ?? null;
+
+      onSuccess?.({
+        email: data.email,
+        role: payload?.role || payload?.rol || null,
+        estado_cuenta:
+          sessionUser?.estado_cuenta ||
+          payload?.estado_cuenta ||
+          payload?.estadoCuenta ||
+          null,
+        user: sessionUser,
+        token: accessToken,
+      });
     } catch (error) {
       if (error.response) {
         const { status } = error.response;

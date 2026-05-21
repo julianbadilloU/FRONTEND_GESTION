@@ -5,7 +5,7 @@ export const metadata = { title: "Configuración | FurMatch Admin" };
 
 export default function AdminConfiguracionPage() {
   return (
-    <ClientAuthGuard allowedRoles={["administrador"]}>
+    <ClientAuthGuard allowedRoles={["admin"]}>
       <ConfiguracionView />
     </ClientAuthGuard>
   );

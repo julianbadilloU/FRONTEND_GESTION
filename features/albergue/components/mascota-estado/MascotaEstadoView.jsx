@@ -169,7 +169,7 @@ export function MascotaEstadoView() {
         <div className="flex items-center gap-5 pb-6 border-b border-[#dcd7ce]">
           <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white shadow-md bg-gray-200">
             <img
-              src={mascota?.fotos?.[0] || "/placeholder-pet.png"}
+              src={mascota?.fotos?.[0]?.url_foto || (typeof mascota?.fotos?.[0] === "string" ? mascota?.fotos?.[0] : null) || "/placeholder-pet.png"}
               alt={mascota?.nombre}
               className="w-full h-full object-cover"
             />

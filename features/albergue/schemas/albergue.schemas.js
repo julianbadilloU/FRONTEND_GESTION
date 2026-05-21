@@ -16,7 +16,7 @@ export const albergueProfileSchema = z.object({
     .max(15, "Número de WhatsApp inválido")
     .regex(/^\d+$/, "Solo se permiten números"),
   address: z.string().max(200, "Dirección demasiado larga").optional(),
-  city: z.string().min(2, "Ciudad requerida").max(100, "Ciudad demasiado larga"),
+  city: z.string().max(100, "Ciudad demasiado larga").optional(),
   website: z
     .string()
     .url("URL inválida. Incluye http:// o https://")
