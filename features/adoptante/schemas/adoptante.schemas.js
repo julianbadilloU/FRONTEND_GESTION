@@ -15,11 +15,11 @@ export const adoptanteProfileSchema = z.object({
     .max(150, "El nombre es demasiado largo"),
   whatsapp: z
     .string()
-    .min(10, "El número debe tener al menos 10 dígitos")
-    .max(13, "Número inválido")
+    .min(7, "El número debe tener al menos 7 dígitos")
+    .max(15, "Número inválido")
     .regex(
-      /^(\+57)?[0-9]{10}$/,
-      "Formato colombiano: 10 dígitos (opcional +57)",
+      /^(\+?57)?[\s-]?[0-9]{10}$/,
+      "Formato inválido. Ej: 3001234567 o +573001234567",
     ),
   ciudad: z
     .string()
