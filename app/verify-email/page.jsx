@@ -1,13 +1,15 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/http/api-client';
+import { saveSessionTokens } from '@/lib/auth/token-storage';
 import Link from 'next/link';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const router = useRouter();
   const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error'
   const [message, setMessage] = useState('');
 
@@ -23,17 +25,31 @@ function VerifyEmailContent() {
         const response = await apiClient.post('/api/auth/verify-email', { token });
         setStatus('success');
         setMessage(response.data.message || 'Correo verificado exitosamente.');
+        
+        // Auto-login y redirección
+        if (response.data.data && response.data.data.token) {
+            const { token: jwtToken, user } = response.data.data;
+            saveSessionTokens({ accessToken: jwtToken });
+            
+            const role = (user?.role || '').toLowerCase();
+            setTimeout(() => {
+                if (role === 'adoptante') {
+                    router.push('/adoptante/onboarding');
+                } else if (role === 'albergue') {
+                    router.push('/albergue/onboarding');
+                } else {
+                    router.push('/login');
+                }
+            }, 1500); // Pequeña pausa para que vean el mensaje de éxito antes de redirigir
+        }
       } catch (error) {
         setStatus('error');
         setMessage(error.response?.data?.message || 'Error al verificar el correo.');
       }
     };
 
-    // Usar un ref o simplemente no preocuparse mucho por React strict mode double-firing,
-    // ya que la API devolverá 'Token inválido o expirado' la segunda vez si se ejecuta dos veces.
-    // Pero idealmente solo se llama una vez en producción.
     verify();
-  }, [token]);
+  }, [token, router]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
