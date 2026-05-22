@@ -12,6 +12,7 @@ import Image from "next/image";
 import { albergueProfileSchema } from "@/features/albergue/schemas/albergue.schemas";
 import { cn } from "@/lib/utils/cn";
 import { createAlbergueProfile } from "@/features/albergue/services/albergue.service";
+import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 export function AlbergueWizard() {
   const router = useRouter();
@@ -81,7 +82,12 @@ export function AlbergueWizard() {
         ciudad: values.city || "",
       };
 
-      await createAlbergueProfile(payload);
+      const result = await createAlbergueProfile(payload);
+      
+      if (result && result.token) {
+        saveSessionTokens({ accessToken: result.token });
+      }
+
       setStep(3);
     } catch (err) {
       if (err.response?.status === 409) {
@@ -391,7 +397,7 @@ function CompletionScreen({ router }) {
 
            <button
              type="button"
-             onClick={() => router.push('/albergue/perfil')}
+             onClick={() => window.location.href = '/albergue/perfil'}
              className="bg-[#a9c99a] hover:bg-[#81af6d] transition-colors text-white font-semibold py-3 px-8 rounded-full shadow-sm"
            >
               Ir al Panel de Gestión
