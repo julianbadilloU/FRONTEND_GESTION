@@ -231,7 +231,7 @@ function CompletionScreen({ selections }) {
         };
 
         await createAdoptanteProfile(payload);
-        router.push("/");
+        router.push("/adoptante/feed");
       } catch (err) {
         console.error("Error creating profile:", err);
         setError("Ocurrió un error al crear tu perfil. Por favor, intenta de nuevo.");
