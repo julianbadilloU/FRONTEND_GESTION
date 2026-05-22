@@ -25,24 +25,24 @@ export default function LoginPage() {
           // Si el perfil está incompleto, redirigir al onboarding correspondiente
           if (estado_cuenta === "perfil_incompleto") {
             if (normalizedRole === "adoptante") {
-              router.push("/adoptante/onboarding");
+              window.location.href = "/adoptante/onboarding";
             } else if (normalizedRole === "albergue") {
-              router.push("/albergue/onboarding");
+              window.location.href = "/albergue/onboarding";
             } else {
-              router.push("/");
+              window.location.href = "/";
             }
             return;
           }
 
           // Perfil completo → redirigir al dashboard según rol
           if (normalizedRole === "adoptante") {
-            router.push("/adoptante/feed");
+            window.location.href = "/adoptante/feed";
           } else if (normalizedRole === "albergue") {
-            router.push("/albergue/mascotas");
+            window.location.href = "/albergue/mascotas";
           } else if (normalizedRole === "admin") {
-            router.push("/admin/tags");
+            window.location.href = "/admin/tags";
           } else {
-            router.push("/");
+            window.location.href = "/";
           }
         }}
       />

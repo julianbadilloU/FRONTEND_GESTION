@@ -34,11 +34,11 @@ function VerifyEmailContent() {
             const role = (user?.role || '').toLowerCase();
             setTimeout(() => {
                 if (role === 'adoptante') {
-                    router.push('/adoptante/onboarding');
+                    window.location.href = '/adoptante/onboarding';
                 } else if (role === 'albergue') {
-                    router.push('/albergue/onboarding');
+                    window.location.href = '/albergue/onboarding';
                 } else {
-                    router.push('/login');
+                    window.location.href = '/login';
                 }
             }, 1500); // Pequeña pausa para que vean el mensaje de éxito antes de redirigir
         }
