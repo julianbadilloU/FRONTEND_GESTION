@@ -15,7 +15,7 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
 
   useEffect(() => {
     const isValid = data.fullName.trim().length > 3 &&
-                    data.whatsapp.trim().length > 10 &&
+                    data.whatsapp.trim().length >= 10 &&
                     data.city.trim().length > 2;
     onValidation?.(isValid);
     onSelect?.(data);
