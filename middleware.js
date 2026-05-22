@@ -73,7 +73,15 @@ export async function middleware(request) {
   // ── VALIDACIÓN CRIPTOGRÁFICA DE JWT ──
   let payload;
   try {
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'furmatch_dev_secret_key_2026');
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      console.error("[middleware] JWT_SECRET is not configured — cannot verify tokens");
+      const response = NextResponse.redirect(new URL("/error", request.url));
+      response.cookies.delete("accessToken");
+      response.cookies.delete("furmatch.access_token");
+      return response;
+    }
+    const secret = new TextEncoder().encode(jwtSecret);
     const { payload: verifiedPayload } = await jwtVerify(accessToken, secret);
     payload = verifiedPayload;
   } catch (err) {
