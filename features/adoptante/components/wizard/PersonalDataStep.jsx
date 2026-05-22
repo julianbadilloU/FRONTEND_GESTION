@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { Camera, Upload, PawPrint } from "lucide-react";
 import Image from "next/image";
 
-import { cn } from "@/lib/utils/cn";
-
 export function PersonalDataStep({ selection, onSelect, onValidation }) {
   const [data, setData] = useState(selection || {
     fullName: "",
@@ -15,10 +13,9 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
   });
   const [preview, setPreview] = useState(selection?.profilePhoto || null);
 
-  // Validar si el paso puede avanzar
   useEffect(() => {
-    const isValid = data.fullName.trim().length > 3 && 
-                    data.whatsapp.trim().length > 10 && 
+    const isValid = data.fullName.trim().length > 3 &&
+                    data.whatsapp.trim().length >= 10 &&
                     data.city.trim().length > 2;
     onValidation?.(isValid);
     onSelect?.(data);
@@ -29,7 +26,7 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
     if (file) {
       const url = URL.createObjectURL(file);
       setPreview(url);
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setData(prev => ({ ...prev, profilePhoto: url, profilePhotoBase64: reader.result }));
@@ -46,13 +43,10 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
 
   return (
     <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Icono de huella decorativo */}
       <div className="relative mb-8">
         <PawPrint className="text-[#b4d2a6] opacity-40 rotate-[-15deg]" size={48} />
       </div>
 
-      {/* Upload de foto */}
       <div className="flex flex-col items-center gap-4 mb-10 group">
         <label htmlFor="p-upload" className="relative cursor-pointer">
           <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-[#81af6d]">
@@ -72,18 +66,16 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           <Upload size={16} className="text-gray-400" />
           Sube una foto de perfil
         </label>
-        <input 
-          id="p-upload" 
-          type="file" 
-          accept="image/*" 
-          className="hidden" 
-          onChange={handlePhotoChange} 
+        <input
+          id="p-upload"
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handlePhotoChange}
         />
       </div>
 
-      {/* Formulario */}
       <div className="w-full max-w-sm space-y-6">
-        
         <div className="space-y-2">
           <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">
             Nombre Completo
@@ -122,7 +114,6 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
             onChange={(e) => handleChange("city", e.target.value)}
           />
         </div>
-
       </div>
     </div>
   );

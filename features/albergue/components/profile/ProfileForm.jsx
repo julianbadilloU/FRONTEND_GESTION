@@ -63,7 +63,7 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
     watch,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(albergueProfileSchema),
+    resolver: zodResolver(albergueProfileSchema.omit({ nit: true })),
     mode: "onChange",
     defaultValues: {
       name:        profile.name        ?? "",

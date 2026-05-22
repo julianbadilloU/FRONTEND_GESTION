@@ -21,8 +21,15 @@ export async function createAdoptanteProfile(payload) {
 }
 
 export async function getAdoptanteProfile() {
-  const { data } = await apiClient.get("/api/adoptante/perfil");
-  return extractData(data);
+  try {
+    const { data } = await apiClient.get("/api/adoptante/perfil");
+    return extractData(data);
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function updateAdoptanteProfile(payload) {

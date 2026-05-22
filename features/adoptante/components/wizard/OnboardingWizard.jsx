@@ -11,6 +11,7 @@ import { useWizard } from "@/features/adoptante/hooks/useWizard";
 import { cn } from "@/lib/utils/cn";
 import { PersonalDataStep } from "./PersonalDataStep";
 import { getEtiquetas, createAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
+import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 // ─────────────────────────────────────────────
 // Tarjeta con imagen (paso de preferencia de raza)
@@ -230,8 +231,13 @@ function CompletionScreen({ selections }) {
           foto: selections.personalData?.profilePhotoBase64 || "",
         };
 
-        await createAdoptanteProfile(payload);
-        router.push("/");
+        const result = await createAdoptanteProfile(payload);
+        
+        if (result && result.token) {
+          saveSessionTokens({ accessToken: result.token });
+        }
+
+        window.location.href = "/adoptante/feed";
       } catch (err) {
         console.error("Error creating profile:", err);
         setError("Ocurrió un error al crear tu perfil. Por favor, intenta de nuevo.");

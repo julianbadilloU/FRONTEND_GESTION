@@ -152,6 +152,7 @@ describe('LoginForm', () => {
       expect(onSuccess).toHaveBeenCalledWith({
         email: 'albergue@ejemplo.com',
         role: 'albergue',
+        estado_cuenta: null,
       });
     });
   });
@@ -178,6 +179,11 @@ describe('LoginForm', () => {
     await waitFor(() => {
       expect(saveSessionTokens).toHaveBeenCalledWith({
         accessToken: tokenSimulado,
+      });
+      expect(onSuccess).toHaveBeenCalledWith({
+        email: 'test@ejemplo.com',
+        role: 'adoptante',
+        estado_cuenta: null,
       });
     });
   });
@@ -224,7 +230,7 @@ describe('LoginForm', () => {
     fireEvent.click(screen.getByText('Login'));
 
     await waitFor(() => {
-      expect(screen.getByText('Cuenta bloqueada por 15 minutos.')).toBeInTheDocument();
+      expect(screen.getByText(/Demasiados intentos/i)).toBeInTheDocument();
     });
   });
 

@@ -84,7 +84,7 @@ export function SignupForm({ onSuccess }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="space-y-8 px-4 max-w-md mx-auto"
+      className="space-y-8"
     >
       {/* Mobile only: Logo + Title */}
       <div className="md:hidden flex flex-col items-center w-full mb-4">

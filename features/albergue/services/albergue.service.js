@@ -21,8 +21,15 @@ export async function createAlbergueProfile(payload) {
 }
 
 export async function getAlbergueProfile() {
-  const { data } = await apiClient.get("/api/albergue/perfil");
-  return extractData(data);
+  try {
+    const { data } = await apiClient.get("/api/albergue/perfil");
+    return extractData(data);
+  } catch (error) {
+    if (error.response && error.response.status === 404) {
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function updateAlbergueProfile(payload) {

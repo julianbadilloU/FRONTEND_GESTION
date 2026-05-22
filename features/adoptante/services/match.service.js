@@ -27,7 +27,7 @@ export async function getMatchesAdoptante(params = {}) {
     Object.entries(params).filter(([, v]) => v !== "" && v !== undefined && v !== null)
   );
   const query = new URLSearchParams(cleanParams).toString();
-  const url = query ? `/api/adopters/matches?${query}` : "/api/adopters/matches";
+  const url = query ? `/api/match?${query}` : "/api/match";
   const { data } = await apiClient.get(url);
   return data;
 }
@@ -39,7 +39,7 @@ export async function getMatchesAdoptante(params = {}) {
  * @returns {Promise<{data: Match}>}
  */
 export async function getMatchById(idMatch) {
-  const { data } = await apiClient.get(`/api/matches/${idMatch}`);
+  const { data } = await apiClient.get(`/api/match/${idMatch}`);
   return data;
 }
 

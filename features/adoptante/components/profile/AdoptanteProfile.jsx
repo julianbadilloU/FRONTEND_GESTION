@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Pencil, Loader2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +10,7 @@ import { ProfileForm } from "./ProfileForm";
 import {
   getAdoptanteProfile,
   updateAdoptanteProfile,
+  createAdoptanteProfile,
 } from "../../services/adoptante.service";
 // Clave de matching — invalidar cache al cambiar preferencias (Sprint 4 HU-MT-01)
 import { MATCH_QUERY_KEY } from "@/app/adoptante/feed/page";
@@ -45,8 +46,21 @@ export function AdoptanteProfile() {
     queryFn: getAdoptanteProfile,
   });
 
+  // Si el perfil cargó y es null, forzamos modo edición
+  useEffect(() => {
+    if (!isLoading && profile === null && !isEditing) {
+      setIsEditing(true);
+    }
+  }, [profile, isLoading, isEditing]);
+
   const updateMutation = useMutation({
-    mutationFn: updateAdoptanteProfile,
+    mutationFn: (payload) => {
+      if (profile) {
+        return updateAdoptanteProfile(payload);
+      } else {
+        return createAdoptanteProfile(payload);
+      }
+    },
     onSuccess: (_, variables) => {
       // Siempre refrescar perfil
       queryClient.invalidateQueries({ queryKey: ["adoptanteProfile"] });
@@ -57,13 +71,19 @@ export function AdoptanteProfile() {
         queryClient.invalidateQueries({ queryKey: MATCH_QUERY_KEY });
       }
 
-      showToast("Perfil actualizado exitosamente");
+      showToast(profile ? "Perfil actualizado exitosamente" : "Perfil creado exitosamente");
       setIsEditing(false);
       setFotoPreview(null);
       setFotoBase64(null);
     },
-    onError: () => {
-      showToast("Error al actualizar el perfil");
+    onError: (err) => {
+      console.error("Error backend:", err?.response?.data);
+      const errors = err?.response?.data?.errors;
+      if (errors && errors.length > 0) {
+        showToast(errors[0].message);
+      } else {
+        showToast("Error al guardar el perfil");
+      }
     },
   });
 
@@ -86,12 +106,15 @@ export function AdoptanteProfile() {
 
   const handleSave = useCallback(
     (data) => {
+      // Nota: El backend espera UUIDs para los tags (opcionTag), pero el formulario 
+      // actual maneja strings libres (ej: "Perros", "Gatos").
+      // Para evitar un error 400 Bad Request, no enviamos los tags en esta petición.
+      // La actualización de preferencias (tags) deberá hacerse mapeando los UUIDs.
       const payload = {
         nombre_completo: data.nombre_completo,
         whatsapp: data.whatsapp,
         ciudad: data.ciudad,
         direccion: data.direccion || "",
-        tags: data.tags,
       };
       if (fotoBase64) {
         payload.foto = fotoBase64;

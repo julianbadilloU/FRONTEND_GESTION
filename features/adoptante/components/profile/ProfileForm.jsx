@@ -99,7 +99,7 @@ export function ProfileForm({
   });
 
   const tags = watch("tags") ?? [];
-  const fotoSrc = fotoPreview || profile?.foto || profile?.foto_url || "/default-avatar.png";
+  const fotoSrc = fotoPreview || profile?.foto || profile?.foto_url || "/default-avatar.svg";
 
   // ── Manejo de tags (chips) ──────────────────────────────────────────────
   const addTag = (tag) => {
@@ -136,9 +136,10 @@ export function ProfileForm({
                 alt={profile?.nombre_completo || "Adoptante"}
                 width={144}
                 height={144}
+                priority
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.currentTarget.src = "/default-avatar.png";
+                  e.currentTarget.src = "/default-avatar.svg";
                 }}
               />
               <label
@@ -257,9 +258,9 @@ export function ProfileForm({
 
           {/* Input para agregar tags */}
           <div className="flex flex-wrap gap-2 mb-3">
-            {tags.map((tag) => (
+            {tags.map((tag, idx) => (
               <span
-                key={tag}
+                key={`${tag}-${idx}`}
                 className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#e8f0e2] text-[#5e7a50] text-xs font-medium border border-[#d4e0ca]"
               >
                 {tag}

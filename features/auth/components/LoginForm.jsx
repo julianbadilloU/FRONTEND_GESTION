@@ -14,8 +14,41 @@ import { AuthAlert } from "@/features/auth/components/AuthAlert";
 import { apiClient } from "@/lib/http/api-client";
 import { saveSessionTokens } from "@/lib/auth/token-storage";
 
+function decodeJwtPayload(token) {
+  try {
+    if (!token || typeof token !== "string") return null;
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+}
+
+function extractAccessToken(responseData) {
+  let current = responseData;
+
+  while (current && typeof current === "object") {
+    if (typeof current === "string") {
+      return current;
+    }
+
+    if (typeof current.token === "string") return current.token;
+    if (typeof current.accessToken === "string") return current.accessToken;
+    if (typeof current.jwt === "string") return current.jwt;
+
+    current = current.data;
+  }
+
+  return typeof current === "string" ? current : null;
+}
+
 export function LoginForm({ onSuccess }) {
   const [showPw, setShowPw] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [countdown, setCountdown] = useState(null);
   const [serverError, setServerError] = useState(null);
 
   const {
@@ -28,7 +61,31 @@ export function LoginForm({ onSuccess }) {
     mode: "onSubmit",
   });
 
+  // Start lockout countdown
+  const startLockout = () => {
+    setIsBlocking(true);
+    let secs = 60;
+    setCountdown(secs);
+    const timer = setInterval(() => {
+      secs -= 1;
+      setCountdown(secs);
+      if (secs <= 0) {
+        clearInterval(timer);
+        setIsBlocking(false);
+        setAttempts(0);
+        setCountdown(null);
+      }
+    }, 1000);
+  };
+
+  const formatTime = (s) => {
+    const m = Math.floor(s / 60).toString().padStart(2, "0");
+    const sec = (s % 60).toString().padStart(2, "0");
+    return `${m}:${sec}`;
+  };
+
   const onSubmit = async (data) => {
+    if (isBlocking) return;
     setServerError(null);
 
     try {
@@ -37,43 +94,38 @@ export function LoginForm({ onSuccess }) {
         password: data.password,
       });
 
-      let accessToken = response.data;
-      if (typeof accessToken === "object") {
-        accessToken = accessToken.data?.token || accessToken.token || accessToken.accessToken || accessToken.jwt || accessToken.data;
-      }
+      const accessToken = extractAccessToken(response.data);
       
       saveSessionTokens({ accessToken });
 
-      // Decodificar JWT para obtener rol, estado_cuenta y redirigir
-      let role = null;
-      let estadoCuenta = null;
-      try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
-        role = payload.role;
-        estadoCuenta = payload.estado_cuenta;
-      } catch {
-        role = null;
-      }
+      const payload = decodeJwtPayload(accessToken);
+      const sessionUser = response.data?.data?.user ?? null;
 
-      onSuccess?.({ email: data.email, role, estado_cuenta: estadoCuenta });
+      onSuccess?.({
+        email: data.email,
+        role: payload?.role || payload?.rol || null,
+        estado_cuenta:
+          sessionUser?.estado_cuenta ||
+          payload?.estado_cuenta ||
+          payload?.estadoCuenta ||
+          null,
+        user: sessionUser,
+        token: accessToken,
+      });
     } catch (error) {
       if (error.response) {
-        const { status, data: errData } = error.response;
+        const { status } = error.response;
         if (status === 400) {
           setServerError("Error de validación (correo o contraseña en formato incorrecto).");
         } else if (status === 401) {
           setError("email", { type: "server", message: "Correo o contraseña incorrectos" });
           setError("password", { type: "server", message: "Correo o contraseña incorrectos" });
+          
+          const newAttempts = attempts + 1;
+          setAttempts(newAttempts);
+          if (newAttempts >= 3) startLockout();
         } else if (status === 403) {
-          const isSuspendido =
-            errData?.tipo === "suspendido" ||
-            errData?.reason === "suspendido" ||
-            errData?.message?.toLowerCase().includes("suspendida");
-          if (isSuspendido) {
-            setServerError("Tu cuenta ha sido suspendida. Contactá al administrador para más información.");
-          } else {
-            setServerError(errData?.message || "Demasiados intentos fallidos. Tu cuenta está bloqueada temporalmente. Intentá en 15 minutos.");
-          }
+          startLockout();
         } else if (status === 500) {
           setServerError("Error interno del servidor. Intenta de nuevo más tarde.");
         } else {
@@ -91,7 +143,7 @@ export function LoginForm({ onSuccess }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex flex-col items-center justify-center min-h-[50vh] space-y-6 px-4"
+      className="flex flex-col items-center justify-center min-h-[50vh] space-y-6"
     >
       {/* Mobile only: Logo + Title */}
       <div className="md:hidden flex flex-col items-center w-full mb-4">
@@ -126,14 +178,23 @@ export function LoginForm({ onSuccess }) {
         </p>
       </div>
 
-      {(serverError || errors.root?.message) && (
+      {isBlocking && countdown !== null && (
+        <div className="w-full max-w-sm">
+          <AuthAlert type="warn" title="Cuenta Bloqueada Temporalmente">
+            Demasiados intentos. Reintentar en{" "}
+            <span className="font-serif font-bold text-lg">{formatTime(countdown)}</span>
+          </AuthAlert>
+        </div>
+      )}
+
+      {!isBlocking && (serverError || errors.root?.message) && (
         <div className="w-full max-w-sm">
           <AuthAlert type="error">{serverError ?? errors.root?.message}</AuthAlert>
         </div>
       )}
 
       <form
-        className="w-full max-w-sm space-y-6"
+        className={`w-full max-w-sm space-y-6 ${isBlocking ? "opacity-40 pointer-events-none grayscale" : ""}`}
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
@@ -170,7 +231,7 @@ export function LoginForm({ onSuccess }) {
         <div className="flex justify-center pt-2">
           <AuthButton 
              type="submit" 
-             disabled={isSubmitting}
+             disabled={isSubmitting || isBlocking}
              className="w-auto px-16 py-3 rounded-full bg-[#a9c99a] hover:bg-[#81af6d] text-white shadow-none text-base normal-case tracking-normal font-semibold"
           >
             {isSubmitting ? "Ingresando..." : "Login"}
