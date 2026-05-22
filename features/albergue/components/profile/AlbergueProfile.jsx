@@ -2,25 +2,13 @@
 
 import { useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, Pencil, Loader2 } from "lucide-react";
+import { Check, Pencil } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { ProfileView } from "./ProfileView";
 import { ProfileForm } from "./ProfileForm";
+import ProfileSkeleton from "./ProfileSkeleton";
 import { getAlbergueProfile, updateAlbergueProfile } from "../../services/albergue.service";
-
-// ─── Datos mock (reemplazar por fetch real cuando exista el endpoint) ─────────
-const MOCK_PROFILE = {
-  name:        "Fundación Huellitas",
-  nit:         "9001234567",
-  email:       "contacto@huellitas.org",
-  whatsapp:    "3124567890",
-  address:     "Calle 10 #5-32, Barrio Centro",
-  city:        "Neiva, Huila",
-  website:     "https://www.huellitas.org",
-  description: "Somos una fundación dedicada al rescate y cuidado de animales en situación de calle en Neiva, Huila.",
-  logoUrl:     "/shelter-dogs.jpg",
-};
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ message }) {
@@ -63,7 +51,17 @@ export function AlbergueProfile() {
      logoUrl:     serverProfile.logo            || "",
      address:     serverProfile.direccion       || "",
      city:        serverProfile.ciudad          || "",
-  } : MOCK_PROFILE;
+  } : {
+     name:        "",
+     nit:         "",
+     email:       "",
+     whatsapp:    "",
+     website:     "",
+     description: "",
+     logoUrl:     "",
+     address:     "",
+     city:        "",
+  };
 
   const updateMutation = useMutation({
     mutationFn: updateAlbergueProfile,
@@ -126,18 +124,14 @@ export function AlbergueProfile() {
   }, []);
 
   if (isLoading) {
-     return (
-       <div className="flex flex-col items-center justify-center min-h-[50vh] text-gray-500">
-         <Loader2 className="animate-spin text-[#81af6d] mb-4" size={32} />
-         <p>Cargando perfil...</p>
-       </div>
-     );
+     return <ProfileSkeleton />;
   }
 
-  if (isError) {
+  if (isError || !serverProfile) {
      return (
-       <div className="flex flex-col items-center justify-center min-h-[50vh] text-red-500">
-         <p>Ocurrió un error al cargar el perfil. Por favor, intenta más tarde.</p>
+       <div className="flex flex-col items-center justify-center min-h-[50vh] text-red-500 text-center px-4">
+         <p className="font-semibold text-lg">Ocurrió un error al cargar el perfil.</p>
+         <p className="text-sm text-gray-400 mt-1">Por favor, intenta de nuevo más tarde.</p>
        </div>
      );
   }
