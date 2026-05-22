@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { jwtVerify } from "jose";
 
 const PUBLIC_ROUTES = [
   "/login",
@@ -33,7 +34,7 @@ function decodeJwtPayload(token) {
   }
 }
 
-export function middleware(request) {
+export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
   // Permitir assets estáticos
@@ -61,7 +62,7 @@ export function middleware(request) {
   }
 
   // Leer token desde la cookie
-  const accessToken = request.cookies.get("furmatch.access_token")?.value;
+  const accessToken = request.cookies.get("accessToken")?.value || request.cookies.get("furmatch.access_token")?.value;
 
   if (!accessToken) {
     const loginUrl = new URL("/login", request.url);
@@ -69,8 +70,24 @@ export function middleware(request) {
     return NextResponse.redirect(loginUrl);
   }
 
+  // ── VALIDACIÓN CRIPTOGRÁFICA DE JWT ──
+  let payload;
+  try {
+    const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'furmatch_dev_secret_key_2026');
+    const { payload: verifiedPayload } = await jwtVerify(accessToken, secret);
+    payload = verifiedPayload;
+  } catch (err) {
+    console.warn("[middleware] JWT Verification failed:", err.message);
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.delete("accessToken");
+    response.cookies.delete("furmatch.access_token");
+    return response;
+  }
+
   // ── VALIDACIÓN DE ROL ──
-  const payload = decodeJwtPayload(accessToken);
   const userRole = payload?.role?.toLowerCase();
   const userEstadoCuenta = payload?.estado_cuenta;
 
