@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, Lock, MapPin, Loader2 } from "lucide-react";
+import { Camera, Lock, MapPin } from "lucide-react";
 import Image from "next/image";
 
 import { albergueProfileSchema } from "@/features/albergue/schemas/albergue.schemas";
-import { useColombiaPlaces } from "@/features/shared/hooks/useColombiaPlaces";
 import { cn } from "@/lib/utils/cn";
 
 // ─── Label reutilizable ───────────────────────────────────────────────────────
@@ -60,20 +59,9 @@ function FieldInput({ id, error, prefix = null, className = "", ...props }) {
 // ─── Formulario de edición ────────────────────────────────────────────────────
 export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCancel, isSaving }) {
   const {
-    departments,
-    cities,
-    selectedDept,
-    setSelectedDept,
-    loading: placesLoading,
-    error: placesError,
-  } = useColombiaPlaces();
-  const [showManualCity, setShowManualCity] = useState(false);
-
-  const {
     register,
     handleSubmit,
     watch,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(albergueProfileSchema),
@@ -210,68 +198,14 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
 
             {/* Departamento */}
             <div>
-              <FieldLabel htmlFor="f-dept">
-                Departamento
-                {placesLoading && <Loader2 size={10} className="inline animate-spin ml-1 text-gray-400" />}
-              </FieldLabel>
-              {placesError && !showManualCity ? (
-                <div className="flex items-center gap-2">
-                  <FieldInput
-                    id="f-dept"
-                    type="text"
-                    disabled
-                    value="Error al cargar"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowManualCity(true)}
-                    className="text-xs text-[#81af6d] hover:text-[#5e924e] font-semibold shrink-0"
-                  >
-                    Manual
-                  </button>
-                </div>
-              ) : showManualCity ? (
-                <>
-                  <FieldInput
-                    id="f-dept"
-                    type="text"
-                    error={errors.departamento}
-                    placeholder="Ej: Huila"
-                    {...register("departamento")}
-                  />
-                  {errors.departamento && (
-                    <p className="text-xs text-red-500 mt-1">{errors.departamento.message}</p>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setShowManualCity(false)}
-                    className="text-xs text-[#81af6d] hover:text-[#5e924e] font-semibold mt-1"
-                  >
-                    Usar lista
-                  </button>
-                </>
-              ) : (
-                <select
-                  id="f-dept"
-                  className={cn(
-                    "w-full border rounded-lg py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#81af6d]/50 px-3 appearance-none bg-white",
-                    errors.departamento
-                      ? "border-red-300 bg-white"
-                      : "border-[#d8cfc5] bg-white hover:border-[#a9c99a]",
-                  )}
-                  {...register("departamento", {
-                    onChange: (e) => {
-                      setSelectedDept(e.target.value);
-                      setValue("city", "");
-                    },
-                  })}
-                >
-                  <option value="">Selecciona un departamento</option>
-                  {departments.map((dept) => (
-                    <option key={dept} value={dept}>{dept}</option>
-                  ))}
-                </select>
-              )}
+              <FieldLabel htmlFor="f-dept">Departamento</FieldLabel>
+              <FieldInput
+                id="f-dept"
+                type="text"
+                error={errors.departamento}
+                placeholder="Ej: Huila"
+                {...register("departamento")}
+              />
               {errors.departamento && (
                 <p className="text-xs text-red-500 mt-1">{errors.departamento.message}</p>
               )}
@@ -280,34 +214,14 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
             {/* Ciudad */}
             <div>
               <FieldLabel htmlFor="f-city">Ciudad</FieldLabel>
-              {showManualCity || placesError ? (
-                <FieldInput
-                  id="f-city"
-                  type="text"
-                  prefix={<MapPin size={13} />}
-                  error={errors.city}
-                  {...register("city")}
-                />
-              ) : (
-                <select
-                  id="f-city"
-                  className={cn(
-                    "w-full border rounded-lg py-2 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#81af6d]/50 px-3 appearance-none bg-white",
-                    errors.city
-                      ? "border-red-300 bg-white"
-                      : "border-[#d8cfc5] bg-white hover:border-[#a9c99a]",
-                  )}
-                  disabled={!watch("departamento")}
-                  {...register("city")}
-                >
-                  <option value="">
-                    {!watch("departamento") ? "Primero selecciona un departamento" : "Selecciona una ciudad"}
-                  </option>
-                  {cities.map((city) => (
-                    <option key={city} value={city}>{city}</option>
-                  ))}
-                </select>
-              )}
+              <FieldInput
+                id="f-city"
+                type="text"
+                prefix={<MapPin size={13} />}
+                error={errors.city}
+                placeholder="Ej: Neiva"
+                {...register("city")}
+              />
               {errors.city && (
                 <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>
               )}

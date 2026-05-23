@@ -1,23 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Camera, Upload, PawPrint, Loader2 } from "lucide-react";
+import { Camera, Upload, PawPrint } from "lucide-react";
 import Image from "next/image";
 
-import { useColombiaPlaces } from "@/features/shared/hooks/useColombiaPlaces";
 import { cn } from "@/lib/utils/cn";
 
 export function PersonalDataStep({ selection, onSelect, onValidation }) {
-  const {
-    departments,
-    cities,
-    selectedDept,
-    setSelectedDept,
-    loading: placesLoading,
-    error: placesError,
-  } = useColombiaPlaces();
-  const [showManualCity, setShowManualCity] = useState(false);
-
   const [data, setData] = useState(selection || {
     fullName: "",
     whatsapp: "",
@@ -34,10 +23,7 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
       if (selection.profilePhoto) {
         setPreview(selection.profilePhoto);
       }
-      // Si el profile trae departamento, preseleccionarlo
-      if (selection.departamento && selection.departamento !== selectedDept) {
-        setSelectedDept(selection.departamento);
-      }
+
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
@@ -67,12 +53,6 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
 
   const handleChange = (field, value) => {
     setData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleDeptChange = (dept) => {
-    setSelectedDept(dept);
-    handleChange("departamento", dept);
-    handleChange("city", ""); // limpiar ciudad al cambiar dpto
   };
 
   const initialLetter = data.fullName ? data.fullName.charAt(0).toUpperCase() : "U";
@@ -145,85 +125,26 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
 
         {/* Departamento */}
         <div className="space-y-2">
-          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">
-            Departamento
-            {placesLoading && <Loader2 size={10} className="inline animate-spin ml-1 text-gray-400" />}
-          </label>
-          {placesError && !showManualCity ? (
-            <div className="flex items-center gap-2">
-              <select
-                disabled
-                className="flex-1 border-b-2 border-gray-100 py-3 px-1 text-sm text-gray-400 bg-transparent"
-              >
-                <option value="">Error al cargar</option>
-              </select>
-              <button
-                type="button"
-                onClick={() => setShowManualCity(true)}
-                className="text-xs text-[#81af6d] hover:text-[#5e924e] font-semibold shrink-0"
-              >
-                Manual
-              </button>
-            </div>
-          ) : showManualCity ? (
-            <>
-              <input
-                type="text"
-                className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
-                placeholder="Ej: Huila"
-                value={data.departamento}
-                onChange={(e) => handleChange("departamento", e.target.value)}
-              />
-              <button
-                type="button"
-                onClick={() => setShowManualCity(false)}
-                className="text-xs text-[#81af6d] hover:text-[#5e924e] font-semibold"
-              >
-                Usar lista
-              </button>
-            </>
-          ) : (
-            <select
-              className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800 bg-transparent appearance-none"
-              value={data.departamento}
-              onChange={(e) => handleDeptChange(e.target.value)}
-            >
-              <option value="">Selecciona un departamento</option>
-              {departments.map((dept) => (
-                <option key={dept} value={dept}>{dept}</option>
-              ))}
-            </select>
-          )}
+          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">Departamento</label>
+          <input
+            type="text"
+            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
+            placeholder="Ej: Huila"
+            value={data.departamento}
+            onChange={(e) => handleChange("departamento", e.target.value)}
+          />
         </div>
 
         {/* Ciudad/Municipio */}
         <div className="space-y-2">
-          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">
-            Ciudad/Municipio
-          </label>
-          {showManualCity || placesError ? (
-            <input
-              type="text"
-              className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
-              placeholder="Neiva"
-              value={data.city}
-              onChange={(e) => handleChange("city", e.target.value)}
-            />
-          ) : (
-            <select
-              className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800 bg-transparent appearance-none disabled:text-gray-400"
-              value={data.city}
-              disabled={!data.departamento}
-              onChange={(e) => handleChange("city", e.target.value)}
-            >
-              <option value="">
-                {!data.departamento ? "Primero selecciona un departamento" : "Selecciona una ciudad"}
-              </option>
-              {cities.map((city) => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
-          )}
+          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">Ciudad/Municipio</label>
+          <input
+            type="text"
+            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
+            placeholder="Ej: Neiva"
+            value={data.city}
+            onChange={(e) => handleChange("city", e.target.value)}
+          />
         </div>
 
       </div>
