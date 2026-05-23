@@ -68,9 +68,13 @@ export function AlbergueWizard() {
           website: profile.sitio_web || "",
         };
 
-        // Si el perfil ya está completo (todos los campos requeridos), redirigir
-        if (formData.name && formData.whatsapp && formData.city && formData.nit && formData.description) {
-          window.location.href = "/albergue/mascotas";
+        // Si el perfil ya existe (nombre_albergue y nit como mínimo), está creado en DB
+        // pero el JWT del navegador aún tiene estado_cuenta="perfil_incompleto" →
+        // forzar re-login para obtener un token fresco con estado_cuenta correcto
+        if (formData.name && formData.nit) {
+          document.cookie = "accessToken=; path=/; max-age=0";
+          document.cookie = "furmatch.access_token=; path=/; max-age=0";
+          window.location.href = "/login";
           return;
         }
 
@@ -155,8 +159,11 @@ export function AlbergueWizard() {
       window.location.href = "/albergue/mascotas";
     } catch (err) {
       if (err.response?.status === 409) {
-        // El perfil ya existe — redirigir al panel de gestión
-        window.location.href = "/albergue/mascotas";
+        // El perfil ya existe en DB pero el JWT del navegador está desactualizado
+        // (estado_cuenta="perfil_incompleto"). Limpiar cookies y forzar re-login.
+        document.cookie = "accessToken=; path=/; max-age=0";
+        document.cookie = "furmatch.access_token=; path=/; max-age=0";
+        window.location.href = "/login";
         return;
       } else if (err.response?.status === 400) {
         const validationErrors = err.response?.data?.errors;
