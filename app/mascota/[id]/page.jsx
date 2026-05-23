@@ -149,17 +149,17 @@ export default function MascotaDetallePage() {
               </span>
             )}
 
-            {/* Botones top-right: corazón solo para no-albergue */}
+            {/* Botones top-right: solo visibles para adoptante */}
+            {userRole !== "albergue" && (
             <div className="absolute top-3 right-3 flex gap-2">
-              {userRole !== "albergue" && (
-                <button className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-red-400 transition-colors">
-                  <Heart size={18} />
-                </button>
-              )}
+              <button className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-red-400 transition-colors">
+                <Heart size={18} />
+              </button>
               <button className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-gray-800 transition-colors">
                 <Share2 size={18} />
               </button>
             </div>
+            )}
           </div>
 
           {/* Miniaturas */}
