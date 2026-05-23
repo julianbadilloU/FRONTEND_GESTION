@@ -30,6 +30,7 @@ export function AlbergueWizard() {
     trigger,
     getValues,
     reset,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(albergueProfileSchema),
@@ -150,7 +151,35 @@ export function AlbergueWizard() {
       if (err.response?.status === 409) {
         setSubmitError("El NIT ya está registrado o ya tienes un perfil creado.");
       } else if (err.response?.status === 400) {
-        setSubmitError("Error de validación en los campos enviados.");
+        const validationErrors = err.response?.data?.errors;
+        if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+          // Mapear campos del backend al formulario
+          const fieldMap = {
+            nombre_albergue: "name",
+            nit: "nit",
+            descripcion: "description",
+            whatsapp: "whatsapp",
+            sitio_web: "website",
+            direccion: "address",
+            departamento: "departamento",
+            ciudad: "city",
+          };
+          // Set field-level errors para react-hook-form
+          validationErrors.forEach(({ field, message }) => {
+            const formField = fieldMap[field];
+            if (formField && message) {
+              setError(formField, { message, type: "server" });
+            }
+          });
+          // Mostrar todos los mensajes de error específicos
+          const errorMessages = validationErrors
+            .filter((e) => e.message)
+            .map((e) => e.message)
+            .join("\n");
+          setSubmitError(errorMessages);
+        } else {
+          setSubmitError("Error de validación en los campos enviados.");
+        }
       } else {
         setSubmitError("Ocurrió un error al intentar crear el perfil institucional.");
       }
@@ -375,7 +404,7 @@ export function AlbergueWizard() {
                   </div>
 
                   {submitError && (
-                    <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200">
+                    <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200 whitespace-pre-line">
                       {submitError}
                     </div>
                   )}
@@ -384,22 +413,29 @@ export function AlbergueWizard() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Nav Buttons */}
-          <div className="absolute top-4 right-6 z-20 flex items-center gap-3">
-             {step > 1 && (
-                <button type="button" onClick={handlePrev} className="text-sm font-semibold text-gray-500 hover:text-gray-800 px-3">
-                   Atrás
-                </button>
-             )}
-             <button
-               type="button"
-               onClick={handleNext}
-               disabled={isSubmitting}
-               className="bg-[#a9c99a] hover:bg-[#81af6d] transition-colors text-white text-sm font-semibold py-2 px-5 rounded-full flex items-center gap-2 disabled:opacity-50"
-             >
-               {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : step === 2 ? "Crear Perfil" : "Siguiente"}
-               {!isSubmitting && <ArrowRight size={14} className="ml-1" />}
-             </button>
+          {/* Bottom Navigation */}
+          <div className="flex items-center justify-between w-full max-w-lg mx-auto mt-10 pt-6 border-t border-gray-100">
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={handlePrev}
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-800 px-4 py-2 transition-colors rounded-lg hover:bg-gray-50"
+              >
+                <ArrowLeft size={14} />
+                Atrás
+              </button>
+            ) : (
+              <div />
+            )}
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={isSubmitting}
+              className="bg-[#a9c99a] hover:bg-[#81af6d] transition-colors text-white text-sm font-semibold py-2 px-5 rounded-full flex items-center gap-2 disabled:opacity-50"
+            >
+              {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : step === 2 ? "Crear Perfil" : "Siguiente"}
+              {!isSubmitting && <ArrowRight size={14} className="ml-1" />}
+            </button>
           </div>
         </main>
       ) : (
@@ -431,6 +467,15 @@ function ArrowRight({ size, className }) {
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M5 12h14" />
       <path d="m12 5 7 7-7 7" />
+    </svg>
+  );
+}
+
+function ArrowLeft({ size, className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M19 12H5" />
+      <path d="m12 19-7-7 7-7" />
     </svg>
   );
 }
