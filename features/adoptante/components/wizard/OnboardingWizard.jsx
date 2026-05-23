@@ -447,7 +447,7 @@ export function OnboardingWizard() {
               />
             ) : isImageStep ? (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 place-items-center justify-items-center mx-auto w-fit max-w-full">
+                <div className="flex flex-wrap justify-center gap-4">
                   {currentStep.options.map((option) => (
                     <ImageCard
                       key={option.id}
@@ -498,7 +498,7 @@ export function OnboardingWizard() {
               </div>
             ) : (
               // Emoji: grid dinámico según cantidad de opciones
-              <div className={cn("grid gap-4 w-full place-items-center justify-items-center mx-auto", emojiGridClass)}>
+              <div className="flex flex-wrap justify-center gap-4">
                 {currentStep.options.map((option) => (
                   <EmojiCard
                     key={option.id}
