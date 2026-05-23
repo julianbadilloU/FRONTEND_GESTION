@@ -69,9 +69,22 @@ export function AlbergueWizard() {
     
     try {
       const values = getValues();
+      // Formatear NIT: agregar guión y dígito verificador si no lo tiene
+      let nitFormateado = values.nit.replace(/\./g, '').trim();
+      if (/^\d{6,10}$/.test(nitFormateado)) {
+        // Calcular dígito verificador simple (módulo 11)
+        let suma = 0;
+        const factores = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43];
+        for (let i = 0; i < nitFormateado.length; i++) {
+          suma += parseInt(nitFormateado[nitFormateado.length - 1 - i]) * factores[i];
+        }
+        const dv = (suma % 11) < 2 ? 0 : 11 - (suma % 11);
+        nitFormateado = nitFormateado + '-' + dv;
+      }
+      
       const payload = {
         nombre_albergue: values.name,
-        nit: values.nit,
+        nit: nitFormateado,
         descripcion: values.description || "",
         whatsapp: values.whatsapp,
         sitio_web: values.website || "",
