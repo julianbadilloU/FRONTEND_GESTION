@@ -4,8 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Dog, Bone, PawPrint, AlertCircle } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, ArrowRight, Check, Bone, PawPrint, AlertCircle } from "lucide-react";
 
 import { useWizard } from "@/features/adoptante/hooks/useWizard";
 import { cn } from "@/lib/utils/cn";
@@ -21,13 +20,13 @@ function ImageCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center p-2 pb-3 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "relative group flex flex-col items-center p-4 pb-4 min-h-[120px] rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
           ? "border-[#5e924e] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
           : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
       )}
     >
-      <div className="w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#f4f8f2]">
+      <div className="h-32 w-32 rounded-xl overflow-hidden mb-2 bg-[#f4f8f2]">
         <img
           src={option.image}
           alt={option.label}
@@ -53,7 +52,7 @@ function ColorCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center gap-3 p-3 pb-4 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "relative group flex flex-col items-center gap-3 p-4 min-h-[120px] rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
           ? "border-[#5e924e] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
           : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
@@ -113,13 +112,13 @@ function EmojiCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "relative group flex flex-col items-center justify-center gap-3 p-6 min-h-[120px] rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
           ? "border-[#5e924e] bg-[#f4f8f2] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
           : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
       )}
     >
-      <span className="text-4xl leading-none group-hover:scale-110 transition-transform duration-200">
+      <span className="text-5xl leading-none group-hover:scale-110 transition-transform duration-200">
         {option.emoji}
       </span>
 
@@ -384,11 +383,18 @@ export function OnboardingWizard() {
     <div className="min-h-screen flex flex-col bg-white">
       {/* ── Header ── */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 text-gray-800 shrink-0">
-          <Dog size={20} />
-          <span className="font-bold text-base tracking-tight">FurMatch</span>
-        </Link>
+        {/* Botón de retroceso */}
+        <button
+          onClick={prev}
+          className={cn(
+            "flex items-center gap-2 text-gray-800 shrink-0 transition-colors",
+            stepIndex > 0
+              ? "cursor-pointer hover:text-gray-600"
+              : "opacity-0 pointer-events-none",
+          )}
+        >
+          <ArrowLeft size={20} />
+        </button>
 
         {/* Título central */}
         <h1 className="text-lg font-bold text-gray-900 hidden sm:block">
@@ -421,29 +427,10 @@ export function OnboardingWizard() {
         />
       </div>
 
-      {/* ── Contador de pasos ── */}
-      <div className="flex items-center justify-between px-6 pt-4 text-xs text-gray-400">
-        <button
-          onClick={prev}
-          disabled={stepIndex === 0}
-          className={cn(
-            "flex items-center gap-1 transition-colors",
-            stepIndex > 0
-              ? "text-gray-500 hover:text-gray-700 cursor-pointer"
-              : "opacity-0 pointer-events-none",
-          )}
-        >
-          <ArrowLeft size={14} />
-          Anterior
-        </button>
 
-        <span className="font-medium text-gray-400">
-          {stepIndex + 1} / {totalSteps}
-        </span>
-      </div>
 
       {/* ── Contenido del paso ── */}
-      <main className="flex-1 flex flex-col items-center px-6 pt-6 pb-12 w-full max-w-3xl mx-auto">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pt-6 pb-12 w-full max-w-3xl mx-auto min-h-[60vh]">
         <AnimatePresence mode="wait">
           <motion.div
             key={stepIndex}
@@ -467,7 +454,7 @@ export function OnboardingWizard() {
               />
             ) : isImageStep ? (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 place-items-center justify-items-center">
                   {currentStep.options.map((option) => (
                     <ImageCard
                       key={option.id}
@@ -506,7 +493,7 @@ export function OnboardingWizard() {
               </div>
             ) : isColorStep ? (
               // Color: siempre 4 columnas (como el mockup)
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 place-items-center justify-items-center">
                 {currentStep.options.map((option) => (
                   <ColorCard
                     key={option.id}
@@ -518,7 +505,7 @@ export function OnboardingWizard() {
               </div>
             ) : (
               // Emoji: grid dinámico según cantidad de opciones
-              <div className={cn("grid gap-4 w-full", emojiGridClass)}>
+              <div className={cn("grid gap-4 w-full place-items-center justify-items-center", emojiGridClass)}>
                 {currentStep.options.map((option) => (
                   <EmojiCard
                     key={option.id}
