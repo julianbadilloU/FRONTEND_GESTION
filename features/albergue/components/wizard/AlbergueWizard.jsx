@@ -404,7 +404,7 @@ function CompletionScreen({ router }) {
 
            <button
              type="button"
-             onClick={() => router.push('/albergue/perfil')}
+              onClick={() => window.location.href = '/albergue/mascotas'}
              className="bg-[#a9c99a] hover:bg-[#81af6d] transition-colors text-white font-semibold py-3 px-8 rounded-full shadow-sm"
            >
               Ir al Panel de Gestión
