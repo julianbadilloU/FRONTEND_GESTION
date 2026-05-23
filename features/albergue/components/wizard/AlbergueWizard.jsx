@@ -60,11 +60,6 @@ export function AlbergueWizard() {
   };
 
   const handlePrev = () => {
-    setSubmitError(null);
-    setStep((s) => s - 1);
-  };
-
-  const handlePrev = () => {
     if (step > 1) setStep((s) => s - 1);
   };
 
