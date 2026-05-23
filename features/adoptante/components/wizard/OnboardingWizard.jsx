@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useWizard } from "@/features/adoptante/hooks/useWizard";
 import { cn } from "@/lib/utils/cn";
 import { PersonalDataStep } from "./PersonalDataStep";
-import { getEtiquetas, createAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
+import { getEtiquetas, createAdoptanteProfile, getAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
 
 // ─────────────────────────────────────────────
 // Tarjeta con imagen (paso de preferencia de raza)
@@ -312,6 +312,41 @@ export function OnboardingWizard() {
   } = useWizard();
 
   const [isFormValid, setIsFormValid] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+
+  // Verificar si ya hay un perfil guardado al montar el wizard
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProfile() {
+      try {
+        const profile = await getAdoptanteProfile();
+        if (cancelled || !profile) return;
+
+        // Perfil completo (tiene tags de preferencia) → redirigir al feed
+        if (profile.nombre_completo && profile.whatsapp && profile.ciudad && profile.tags?.length > 0) {
+          router.push("/");
+          return;
+        }
+
+        // Perfil parcial: prellenar datos personales
+        if (profile.nombre_completo || profile.whatsapp || profile.ciudad) {
+          select({
+            fullName: profile.nombre_completo || "",
+            whatsapp: profile.whatsapp || "",
+            city: profile.ciudad || "",
+            profilePhoto: null,
+          });
+        }
+      } catch {
+        // 404 = no hay perfil, es normal — mostrar wizard vacío
+      } finally {
+        if (!cancelled) setIsLoadingProfile(false);
+      }
+    }
+    loadProfile();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (isComplete) return <CompletionScreen selections={selections} />;
 
@@ -330,6 +365,18 @@ export function OnboardingWizard() {
   }
 
   const canProceed = isFormStep ? isFormValid : canGoNext;
+
+  // Mostrar spinner mientras se verifica si hay un perfil existente
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-[3px] border-[#d8e8d0] border-t-[#81af6d] rounded-full animate-spin" />
+          <p className="text-sm text-gray-500 font-medium">Cargando información...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">

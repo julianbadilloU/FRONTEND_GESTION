@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +11,7 @@ import Image from "next/image";
 
 import { albergueProfileSchema } from "@/features/albergue/schemas/albergue.schemas";
 import { cn } from "@/lib/utils/cn";
-import { createAlbergueProfile } from "@/features/albergue/services/albergue.service";
+import { createAlbergueProfile, getAlbergueProfile } from "@/features/albergue/services/albergue.service";
 
 export function AlbergueWizard() {
   const router = useRouter();
@@ -19,14 +19,18 @@ export function AlbergueWizard() {
   const [logoPreview, setLogoPreview] = useState(null);
   const [logoBase64, setLogoBase64] = useState(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [existingLogoUrl, setExistingLogoUrl] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const {
     register,
     trigger,
     getValues,
     setValue,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(albergueProfileSchema),
@@ -41,6 +45,49 @@ export function AlbergueWizard() {
       website: "",
     },
   });
+
+  // Cargar perfil existente al montar (para prellenar o redirigir si ya está completo)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProfile() {
+      try {
+        const profile = await getAlbergueProfile();
+        if (cancelled || !profile) return;
+
+        // Mapear campos del backend al formulario
+        const formData = {
+          name: profile.nombre_albergue || "",
+          nit: profile.nit || "",
+          description: profile.descripcion || "",
+          whatsapp: profile.whatsapp_actual || "",
+          address: profile.direccion || "",
+          city: profile.ciudad || "",
+          website: profile.sitio_web || "",
+        };
+
+        // Si el perfil ya está completo (todos los campos requeridos), redirigir
+        if (formData.name && formData.whatsapp && formData.city) {
+          window.location.href = "/albergue/mascotas";
+          return;
+        }
+
+        // Si hay datos parciales, prellenar el formulario
+        reset(formData);
+
+        // Precargar logo existente si el API devuelve una URL de Cloudinary
+        if (profile.logo) {
+          setLogoPreview(profile.logo);
+          setExistingLogoUrl(profile.logo);
+        }
+      } catch {
+        // 404 = no hay perfil, es normal — mostrar formulario vacío
+      } finally {
+        if (!cancelled) setIsLoadingProfile(false);
+      }
+    }
+    loadProfile();
+    return () => { cancelled = true; };
+  }, [reset]);
 
   const handleNext = async () => {
     let isValid = false;
@@ -88,14 +135,16 @@ export function AlbergueWizard() {
         descripcion: values.description || "",
         whatsapp: values.whatsapp,
         sitio_web: values.website || "",
-        logo: logoBase64 || "",
+        logo: logoBase64 || existingLogoUrl || "",
         // Opcional en caso de que el backend lo soporte
         direccion: values.address || "",
         ciudad: values.city || "",
       };
 
       await createAlbergueProfile(payload);
-      setStep(3);
+      // Redirigir inmediatamente con recarga total para que el navegador
+      // recoja la nueva cookie JWT con estado_cuenta='activo'
+      window.location.href = "/albergue/mascotas";
     } catch (err) {
       if (err.response?.status === 409) {
         setSubmitError("El NIT ya está registrado o ya tienes un perfil creado.");
@@ -126,6 +175,18 @@ export function AlbergueWizard() {
   };
 
   const stepPercentage = (step / 3) * 100;
+
+  // Mostrar spinner mientras se verifica si hay un perfil existente
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fbfdfa]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="animate-spin text-[#81af6d]" size={36} />
+          <p className="text-sm text-gray-500 font-medium">Cargando información...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fbfdfa] relative">
@@ -310,8 +371,8 @@ export function AlbergueWizard() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Nav Buttons (Absolute position at top right is normally common for skip, but let's put it top right per mockup) */}
-          <div className="absolute top-4 right-6 flex items-center gap-3">
+          {/* Nav Buttons */}
+          <div className="absolute top-4 right-6 z-20 flex items-center gap-3">
              {step > 1 && (
                 <button type="button" onClick={handlePrev} className="text-sm font-semibold text-gray-500 hover:text-gray-800 px-3">
                    Atrás

@@ -15,6 +15,16 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
   });
   const [preview, setPreview] = useState(selection?.profilePhoto || null);
 
+  // Sincronizar estado local cuando el selection cambia (ej: pre-fill desde API)
+  useEffect(() => {
+    if (selection) {
+      setData(selection);
+      if (selection.profilePhoto) {
+        setPreview(selection.profilePhoto);
+      }
+    }
+  }, [selection]);
+
   // Validar si el paso puede avanzar
   useEffect(() => {
     const isValid = data.fullName.trim().length > 3 && 
