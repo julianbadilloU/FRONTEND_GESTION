@@ -20,20 +20,20 @@ function ImageCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center justify-center w-40 sm:w-44 h-40 sm:h-44 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "snap-center relative group flex flex-col items-center justify-center w-56 sm:w-64 h-80 flex-shrink-0 rounded-3xl border-2 bg-white shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
-          ? "border-[#5e924e] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
-          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
+          ? "ring-2 ring-[#5e924e] ring-offset-2 shadow-lg"
+          : "border-[#d8e8d0] hover:border-[#81af6d]",
       )}
     >
-      <div className="h-32 w-32 rounded-xl overflow-hidden bg-[#f4f8f2]">
+      <div className="h-48 w-48 rounded-xl overflow-hidden bg-[#f4f8f2]">
         <img
           src={option.image}
           alt={option.label}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
       </div>
-      <span className="text-[0.7rem] font-bold text-gray-700">{option.label}</span>
+      <span className="text-base font-bold text-gray-700">{option.label}</span>
       {selected && (
         <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-[#5e924e] rounded-full flex items-center justify-center shadow">
           <Check size={10} color="white" strokeWidth={3} />
@@ -52,16 +52,16 @@ function ColorCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center justify-center gap-3 w-44 h-44 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "snap-center relative group flex flex-col items-center justify-center gap-3 w-52 sm:w-56 h-64 flex-shrink-0 rounded-3xl border-2 bg-white shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
-          ? "border-[#5e924e] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
-          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
+          ? "ring-2 ring-[#5e924e] ring-offset-2 shadow-lg"
+          : "border-[#d8e8d0] hover:border-[#81af6d]",
       )}
     >
       {/* Swatch */}
       {option.type === "multicolor" ? (
         // Composición multicolor igual al mockup
-        <div className="relative w-32 h-32">
+        <div className="relative w-40 h-40">
           <div
             className="absolute rounded-xl"
             style={{
@@ -85,13 +85,13 @@ function ColorCard({ option, selected, onSelect }) {
         </div>
       ) : (
         <div
-          className="w-32 h-32 rounded-xl transition-transform duration-200 group-hover:scale-[1.02]"
+          className="w-40 h-40 rounded-xl transition-transform duration-200 group-hover:scale-[1.02]"
           style={{ backgroundColor: option.color }}
         />
       )}
 
       {/* Label */}
-      <span className="text-sm font-medium text-gray-700">{option.label}</span>
+      <span className="text-base font-medium text-gray-700">{option.label}</span>
 
       {/* Indicador de selección */}
       {selected && (
@@ -112,18 +112,18 @@ function EmojiCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center justify-center gap-3 w-44 h-44 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "snap-center relative group flex flex-col items-center justify-center gap-3 w-52 sm:w-56 h-64 flex-shrink-0 rounded-3xl border-2 bg-white shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
-          ? "border-[#5e924e] bg-[#f4f8f2] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
-          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
+          ? "ring-2 ring-[#5e924e] ring-offset-2 bg-[#f4f8f2] shadow-lg"
+          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-lg",
       )}
     >
-      <span className="text-5xl leading-none group-hover:scale-110 transition-transform duration-200">
+      <span className="text-7xl leading-none group-hover:scale-110 transition-transform duration-200">
         {option.emoji}
       </span>
 
       <div className="text-center">
-        <p className="font-bold text-sm text-gray-800">{option.label}</p>
+        <p className="font-bold text-base text-gray-800">{option.label}</p>
         {option.hint && (
           <p className="text-xs text-gray-400 mt-0.5">{option.hint}</p>
         )}
@@ -356,7 +356,6 @@ export function OnboardingWizard() {
   const isFormStep     = currentStep.variant === "form";
 
   const optionsCount   = currentStep.options?.length || 0;
-  const emojiGridClass = "grid-cols-2 sm:grid-cols-3";
 
   const canProceed = isFormStep ? isFormValid : canGoNext;
 
@@ -447,7 +446,15 @@ export function OnboardingWizard() {
               />
             ) : isImageStep ? (
               <div className="space-y-6">
-                <div className="flex flex-wrap justify-center gap-4">
+                <div
+                  className={cn(
+                    "flex gap-4",
+                    optionsCount <= 3
+                      ? "flex-wrap justify-center"
+                      : "overflow-x-auto snap-x snap-mandatory px-4 pb-4 scrollbar-hide [mask-image:linear-gradient(to_right,transparent_0%,black_10%,black_90%,transparent_100%)]",
+                  )}
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
                   {currentStep.options.map((option) => (
                     <ImageCard
                       key={option.id}
@@ -485,8 +492,16 @@ export function OnboardingWizard() {
                 )}
               </div>
             ) : isColorStep ? (
-              // Color: siempre 4 columnas (como el mockup)
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 place-items-center">
+              // Color: scroll horizontal o centrado según cantidad de opciones
+              <div
+                className={cn(
+                  "flex gap-4",
+                  optionsCount <= 3
+                    ? "flex-wrap justify-center"
+                    : "overflow-x-auto snap-x snap-mandatory px-4 pb-4 scrollbar-hide [mask-image:linear-gradient(to_right,transparent_0%,black_10%,black_90%,transparent_100%)]",
+                )}
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
                 {currentStep.options.map((option) => (
                   <ColorCard
                     key={option.id}
@@ -497,8 +512,16 @@ export function OnboardingWizard() {
                 ))}
               </div>
             ) : (
-              // Emoji: grid dinámico según cantidad de opciones
-              <div className="flex flex-wrap justify-center gap-4">
+              // Emoji: scroll horizontal o centrado según cantidad de opciones
+              <div
+                className={cn(
+                  "flex gap-4",
+                  optionsCount <= 3
+                    ? "flex-wrap justify-center"
+                    : "overflow-x-auto snap-x snap-mandatory px-4 pb-4 scrollbar-hide [mask-image:linear-gradient(to_right,transparent_0%,black_10%,black_90%,transparent_100%)]",
+                )}
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
                 {currentStep.options.map((option) => (
                   <EmojiCard
                     key={option.id}
