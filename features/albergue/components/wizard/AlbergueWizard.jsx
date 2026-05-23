@@ -12,6 +12,7 @@ import Image from "next/image";
 import { albergueProfileSchema } from "@/features/albergue/schemas/albergue.schemas";
 import { cn } from "@/lib/utils/cn";
 import { createAlbergueProfile, getAlbergueProfile } from "@/features/albergue/services/albergue.service";
+import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 export function AlbergueWizard() {
   const router = useRouter();
@@ -68,7 +69,7 @@ export function AlbergueWizard() {
         };
 
         // Si el perfil ya está completo (todos los campos requeridos), redirigir
-        if (formData.name && formData.whatsapp && formData.city) {
+        if (formData.name && formData.whatsapp && formData.city && formData.nit && formData.description) {
           window.location.href = "/albergue/mascotas";
           return;
         }
@@ -143,13 +144,20 @@ export function AlbergueWizard() {
         ciudad: values.city || "",
       };
 
-      await createAlbergueProfile(payload);
+      const result = await createAlbergueProfile(payload);
+      // Actualizar el token en localStorage y cookie con el nuevo JWT
+      // (tiene estado_cuenta='activo') para que el middleware no redirija de vuelta al onboarding
+      if (result?.accessToken) {
+        saveSessionTokens({ accessToken: result.accessToken });
+      }
       // Redirigir inmediatamente con recarga total para que el navegador
       // recoja la nueva cookie JWT con estado_cuenta='activo'
       window.location.href = "/albergue/mascotas";
     } catch (err) {
       if (err.response?.status === 409) {
-        setSubmitError("El NIT ya está registrado o ya tienes un perfil creado.");
+        // El perfil ya existe — redirigir al panel de gestión
+        window.location.href = "/albergue/mascotas";
+        return;
       } else if (err.response?.status === 400) {
         const validationErrors = err.response?.data?.errors;
         if (Array.isArray(validationErrors) && validationErrors.length > 0) {
