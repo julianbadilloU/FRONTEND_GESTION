@@ -12,6 +12,7 @@ export const albergueProfileSchema = z.object({
     .max(20, "Número de WhatsApp inválido")
     .regex(/^[\d+\s()-]+$/, "Número inválido"),
   address: z.string().max(200).optional().or(z.literal("")),
+  departamento: z.string().max(100).optional().or(z.literal("")),
   city: z.string().max(100).optional().or(z.literal("")),
   website: z
     .string()

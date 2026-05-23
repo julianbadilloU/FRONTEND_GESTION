@@ -21,6 +21,10 @@ export const adoptanteProfileSchema = z.object({
       /^(\+?57)?[\s-]?[0-9]{10}$/,
       "Formato inválido. Ej: 3001234567 o +573001234567",
     ),
+  departamento: z
+    .string()
+    .min(2, "Selecciona un departamento")
+    .max(100, "Departamento demasiado largo"),
   ciudad: z
     .string()
     .min(2, "La ciudad debe tener al menos 2 caracteres")

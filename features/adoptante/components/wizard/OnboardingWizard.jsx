@@ -225,6 +225,7 @@ function CompletionScreen({ selections }) {
         const payload = {
           nombre_completo: selections.personalData?.fullName || "",
           whatsapp: selections.personalData?.whatsapp || "",
+          departamento: selections.personalData?.departamento || "",
           ciudad: selections.personalData?.city || "",
           tags: Array.from(selectedTagIds),
           foto: selections.personalData?.profilePhotoBase64 || "",
@@ -333,6 +334,7 @@ export function OnboardingWizard() {
           select({
             fullName: profile.nombre_completo || "",
             whatsapp: profile.whatsapp || "",
+            departamento: profile.departamento || "",
             city: profile.ciudad || "",
             profilePhoto: null,
           });

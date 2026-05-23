@@ -4,12 +4,13 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dog, Upload, Loader2, Check, PawPrint } from "lucide-react";
+import { Dog, Upload, Loader2, Check, PawPrint, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 import { albergueProfileSchema } from "@/features/albergue/schemas/albergue.schemas";
+import { useColombiaPlaces } from "@/features/shared/hooks/useColombiaPlaces";
 import { cn } from "@/lib/utils/cn";
 import { createAlbergueProfile, getAlbergueProfile } from "@/features/albergue/services/albergue.service";
 
@@ -22,6 +23,16 @@ export function AlbergueWizard() {
   const [existingLogoUrl, setExistingLogoUrl] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+
+  const {
+    departments,
+    cities,
+    selectedDept,
+    setSelectedDept,
+    loading: placesLoading,
+    error: placesError,
+  } = useColombiaPlaces();
+  const [showManualCity, setShowManualCity] = useState(false);
 
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
@@ -41,6 +52,7 @@ export function AlbergueWizard() {
       description: "",
       whatsapp: "",
       address: "",
+      departamento: "",
       city: "",
       website: "",
     },
@@ -61,6 +73,7 @@ export function AlbergueWizard() {
           description: profile.descripcion || "",
           whatsapp: profile.whatsapp_actual || "",
           address: profile.direccion || "",
+          departamento: profile.departamento || "",
           city: profile.ciudad || "",
           website: profile.sitio_web || "",
         };
@@ -73,6 +86,11 @@ export function AlbergueWizard() {
 
         // Si hay datos parciales, prellenar el formulario
         reset(formData);
+
+        // Preseleccionar departamento si existe en el perfil
+        if (profile.departamento) {
+          setSelectedDept(profile.departamento);
+        }
 
         // Precargar logo existente si el API devuelve una URL de Cloudinary
         if (profile.logo) {
@@ -87,14 +105,14 @@ export function AlbergueWizard() {
     }
     loadProfile();
     return () => { cancelled = true; };
-  }, [reset]);
+  }, [reset, setSelectedDept]);
 
   const handleNext = async () => {
     let isValid = false;
     if (step === 1) {
       isValid = await trigger(["name", "nit", "description"]);
     } else if (step === 2) {
-      isValid = await trigger(["whatsapp", "address", "city", "website"]);
+      isValid = await trigger(["whatsapp", "address", "departamento", "city", "website"]);
     }
 
     if (isValid) {
@@ -136,8 +154,8 @@ export function AlbergueWizard() {
         whatsapp: values.whatsapp,
         sitio_web: values.website || "",
         logo: logoBase64 || existingLogoUrl || "",
-        // Opcional en caso de que el backend lo soporte
         direccion: values.address || "",
+        departamento: values.departamento || "",
         ciudad: values.city || "",
       };
 
@@ -340,13 +358,86 @@ export function AlbergueWizard() {
                     {errors.address && <p className="text-xs text-red-500 mt-1 px-1 absolute -bottom-5">{errors.address.message}</p>}
                   </div>
 
+                  {/* Departamento */}
+                  <div className="space-y-1 relative">
+                    <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-500 px-1">
+                      Departamento
+                      {placesLoading && <Loader2 size={10} className="inline animate-spin ml-1 text-gray-400" />}
+                    </label>
+                    {placesError && !showManualCity ? (
+                      <div className="flex items-center gap-2">
+                        <select
+                          disabled
+                          className="w-full border-2 bg-gray-100 border-gray-200 rounded-xl py-3 px-4 text-sm text-gray-400"
+                        >
+                          <option value="">Error al cargar</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => setShowManualCity(true)}
+                          className="text-xs text-[#81af6d] hover:text-[#5e924e] font-semibold shrink-0"
+                        >
+                          Ingresar manual
+                        </button>
+                      </div>
+                    ) : showManualCity || (placesError && !placesLoading) ? (
+                      <>
+                        <input
+                          {...register("departamento")}
+                          className={cn("w-full border-2 rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800", errors.departamento ? "border-red-300 focus:border-red-500" : "border-gray-100 focus:border-[#81af6d]")}
+                          placeholder="Ej: Huila"
+                        />
+                        {errors.departamento && <p className="text-xs text-red-500 mt-1 px-1 absolute -bottom-5">{errors.departamento.message}</p>}
+                        <button
+                          type="button"
+                          onClick={() => setShowManualCity(false)}
+                          className="text-xs text-[#81af6d] hover:text-[#5e924e] font-semibold mt-1"
+                        >
+                          Usar lista de departamentos
+                        </button>
+                      </>
+                    ) : (
+                      <select
+                        {...register("departamento", {
+                          onChange: (e) => {
+                            setSelectedDept(e.target.value);
+                            setValue("city", "");
+                          },
+                        })}
+                        className={cn("w-full border-2 rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800 appearance-none bg-white", errors.departamento ? "border-red-300 focus:border-red-500" : "border-gray-100 focus:border-[#81af6d]")}
+                      >
+                        <option value="">Selecciona un departamento</option>
+                        {departments.map((dept) => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
+                    )}
+                    {errors.departamento && <p className="text-xs text-red-500 mt-1 px-1 absolute -bottom-5">{errors.departamento.message}</p>}
+                  </div>
+
+                  {/* Ciudad/Municipio */}
                   <div className="space-y-1 relative">
                     <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-500 px-1">Ciudad/Municipio</label>
-                    <input
-                      {...register("city")}
-                      className={cn("w-full border-2 bg-[#f4f7f4] border-[#ebece8] rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800", errors.city ? "border-red-300 focus:border-red-500" : "focus:border-[#81af6d]")}
-                      placeholder="Neiva, Huila"
-                    />
+                    {showManualCity || placesError ? (
+                      <input
+                        {...register("city")}
+                        className={cn("w-full border-2 rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800", errors.city ? "border-red-300 focus:border-red-500" : "border-gray-100 focus:border-[#81af6d]")}
+                        placeholder="Ej: Neiva"
+                      />
+                    ) : (
+                      <select
+                        {...register("city")}
+                        disabled={!selectedDept}
+                        className={cn("w-full border-2 rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800 appearance-none bg-white", !selectedDept ? "bg-gray-50 text-gray-400" : "", errors.city ? "border-red-300 focus:border-red-500" : "border-gray-100 focus:border-[#81af6d]")}
+                      >
+                        <option value="">
+                          {!selectedDept ? "Primero selecciona un departamento" : "Selecciona una ciudad"}
+                        </option>
+                        {cities.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    )}
                     {errors.city && <p className="text-xs text-red-500 mt-1 px-1 absolute -bottom-5">{errors.city.message}</p>}
                   </div>
 

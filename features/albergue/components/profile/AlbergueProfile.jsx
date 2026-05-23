@@ -62,6 +62,7 @@ export function AlbergueProfile() {
      description: serverProfile.descripcion     || "",
      logoUrl:     serverProfile.logo            || "",
      address:     serverProfile.direccion       || "",
+     departamento: serverProfile.departamento   || "",
      city:        serverProfile.ciudad          || "",
   } : MOCK_PROFILE;
 
@@ -110,6 +111,7 @@ export function AlbergueProfile() {
       whatsapp:        data.whatsapp,
       sitio_web:       data.website        || "",
       direccion:       data.address        || "",
+      departamento:    data.departamento   || "",
       ciudad:          data.city           || "",
     };
     if (logoBase64) {

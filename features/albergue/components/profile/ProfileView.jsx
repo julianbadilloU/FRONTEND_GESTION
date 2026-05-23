@@ -128,6 +128,7 @@ export function ProfileView({ profile, logoSrc }) {
             <Field label="Correo Electrónico" value={profile.email} locked />
             <Field label="Número de WhatsApp" value={profile.whatsapp} />
             <Field label="Dirección" value={profile.address} />
+            <Field label="Departamento" value={profile.departamento} />
             <Field label="Ciudad" value={profile.city} icon={<MapPin size={13} />} />
             <Field label="Sitio Web o Red Social" value={profile.website} colSpan={2} />
             <Field
