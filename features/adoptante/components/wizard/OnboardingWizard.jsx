@@ -430,7 +430,7 @@ export function OnboardingWizard() {
 
 
       {/* ── Contenido del paso ── */}
-      <main className="flex-1 flex flex-col items-center justify-center px-6 pt-6 pb-12 w-full max-w-3xl mx-auto min-h-[60vh]">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pt-6 pb-12 w-full max-w-3xl mx-auto min-h-[calc(100vh-3.5rem)]">
         <AnimatePresence mode="wait">
           <motion.div
             key={stepIndex}
