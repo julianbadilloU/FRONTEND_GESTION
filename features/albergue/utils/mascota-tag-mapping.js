@@ -16,6 +16,9 @@ export const TAG_CATEGORIAS = {
   healthStatus: ["Estado de salud"],
 };
 
+// Valores que solo tienen sentido para el perfil de adoptante, no para describir una mascota
+const ADOPTANTE_ONLY_VALUES = new Set(["Sin preferencia"]);
+
 // Mapeo de compatibilidad: label del frontend → categoría+valor del backend unificado
 const COMPATIBILITY_MAP = {
   "Niños": { categoria: "Compatibilidad", valor: "Niños" },
@@ -35,7 +38,7 @@ export function getOpcionesByCategoria(etiquetas, categorias) {
   if (!etiquetas || etiquetas.length === 0) return [];
   for (const cat of categorias) {
     const ops = etiquetas
-      .filter((e) => e.categoria === cat)
+      .filter((e) => e.categoria === cat && !ADOPTANTE_ONLY_VALUES.has(e.valor))
       .map((e) => ({ id: e.valor, label: e.valor })); // id = valor string
     if (ops.length > 0) return ops;
   }
