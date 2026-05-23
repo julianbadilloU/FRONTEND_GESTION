@@ -7,6 +7,7 @@ const PUBLIC_ROUTES = [
   "/reset-password",
   "/nueva-contrasena",
   "/terminos-y-condiciones",
+  "/verify-email",
   "/",
 ];
 
