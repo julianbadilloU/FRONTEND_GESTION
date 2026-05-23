@@ -20,7 +20,7 @@ function ImageCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center justify-center w-44 h-44 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "relative group flex flex-col items-center justify-center w-40 sm:w-44 h-40 sm:h-44 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
           ? "border-[#5e924e] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
           : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
@@ -447,7 +447,7 @@ export function OnboardingWizard() {
               />
             ) : isImageStep ? (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 place-items-center">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 place-items-center justify-items-center mx-auto w-fit max-w-full">
                   {currentStep.options.map((option) => (
                     <ImageCard
                       key={option.id}
@@ -498,7 +498,7 @@ export function OnboardingWizard() {
               </div>
             ) : (
               // Emoji: grid dinámico según cantidad de opciones
-              <div className={cn("grid gap-4 w-full place-items-center", emojiGridClass)}>
+              <div className={cn("grid gap-4 w-full place-items-center justify-items-center mx-auto", emojiGridClass)}>
                 {currentStep.options.map((option) => (
                   <EmojiCard
                     key={option.id}
