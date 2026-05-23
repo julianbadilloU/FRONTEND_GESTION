@@ -15,6 +15,7 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
     profilePhoto: null
   });
   const [preview, setPreview] = useState(selection?.profilePhoto || null);
+  const [touched, setTouched] = useState({});
 
   // Sincronizar estado local cuando el selection cambia (ej: pre-fill desde API)
   useEffect(() => {
@@ -31,11 +32,24 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
   // Validar si el paso puede avanzar
   useEffect(() => {
     const isValid = data.fullName.trim().length > 3 && 
-                    data.whatsapp.trim().length > 10 && 
+                    data.whatsapp.trim().length >= 10 && 
+                    data.departamento.trim().length > 2 &&
                     data.city.trim().length > 2;
     onValidation?.(isValid);
     onSelect?.(data);
   }, [data, onValidation, onSelect]);
+
+  // Errores por campo (solo si el usuario ya interactuó con el campo)
+  const fieldErrors = {
+    fullName: touched.fullName && data.fullName.trim().length <= 3 ? "Mínimo 4 caracteres" : null,
+    whatsapp: touched.whatsapp && data.whatsapp.trim().length < 10 ? "Ingresa al menos 10 dígitos" : null,
+    departamento: touched.departamento && data.departamento.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+    city: touched.city && data.city.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
@@ -103,11 +117,20 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           </label>
           <input
             type="text"
-            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.fullName
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
             placeholder=""
             value={data.fullName}
             onChange={(e) => handleChange("fullName", e.target.value)}
+            onBlur={() => handleBlur("fullName")}
           />
+          {fieldErrors.fullName && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.fullName}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -116,11 +139,20 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           </label>
           <input
             type="tel"
-            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.whatsapp
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
             placeholder="Ej: 3001234567"
             value={data.whatsapp}
             onChange={(e) => handleChange("whatsapp", e.target.value)}
+            onBlur={() => handleBlur("whatsapp")}
           />
+          {fieldErrors.whatsapp && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.whatsapp}</p>
+          )}
         </div>
 
         {/* Departamento */}
@@ -128,11 +160,20 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">Departamento</label>
           <input
             type="text"
-            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.departamento
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
             placeholder="Ej: Huila"
             value={data.departamento}
             onChange={(e) => handleChange("departamento", e.target.value)}
+            onBlur={() => handleBlur("departamento")}
           />
+          {fieldErrors.departamento && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.departamento}</p>
+          )}
         </div>
 
         {/* Ciudad/Municipio */}
@@ -140,11 +181,20 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">Ciudad/Municipio</label>
           <input
             type="text"
-            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.city
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
             placeholder="Ej: Neiva"
             value={data.city}
             onChange={(e) => handleChange("city", e.target.value)}
+            onBlur={() => handleBlur("city")}
           />
+          {fieldErrors.city && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.city}</p>
+          )}
         </div>
 
       </div>
