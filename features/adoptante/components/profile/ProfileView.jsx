@@ -1,10 +1,10 @@
 "use client";
 
-import { Lock, MapPin, Phone, Mail, User, Tag, Download, Trash2, X } from "lucide-react";
+import { Lock, MapPin, Phone, Mail, User, Tag, Download, Trash2, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { exportarDatos, eliminarCuenta } from "@/lib/auth/cuenta.service";
+import { exportarDatos, solicitarCodigoEliminacion, eliminarCuenta } from "@/lib/auth/cuenta.service";
 import { clearSessionTokens } from "@/lib/auth/token-storage";
 
 function Field({ label, value, locked = false, icon = null, colSpan = 1 }) {
@@ -29,9 +29,67 @@ function Field({ label, value, locked = false, icon = null, colSpan = 1 }) {
   );
 }
 
-function DeleteConfirmModal({ onConfirm, onCancel }) {
+function DeleteConfirmModal({ onConfirm, onCancel, step, codigo, setCodigo, isLoading, error }) {
   const [confirmText, setConfirmText] = useState("");
   const isConfirmEnabled = confirmText === "ELIMINAR";
+
+  if (step === "codigo") {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <h3 className="text-lg font-bold text-gray-900">Código de verificación</h3>
+            <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <X size={20} />
+            </button>
+          </div>
+          <div className="p-6">
+            <p className="text-sm text-gray-600 mb-4">
+              Te enviamos un código de 6 dígitos a tu correo electrónico. Ingresalo a continuación para confirmar la eliminación de tu cuenta.
+            </p>
+            <input
+              type="text"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="Código de 6 dígitos"
+              maxLength={6}
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-xl text-center font-bold tracking-[8px] focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              autoFocus
+            />
+            {error && (
+              <p className="mt-3 text-sm text-red-500 text-center">{error}</p>
+            )}
+          </div>
+          <div className="px-6 pb-6 flex gap-3">
+            <button
+              onClick={onCancel}
+              className="flex-1 px-4 py-2 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={onConfirm}
+              disabled={codigo.length !== 6 || isLoading}
+              className={`flex-1 px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                codigo.length === 6 && !isLoading
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "bg-gray-100 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" />
+                  Verificando...
+                </>
+              ) : (
+                "Confirmar eliminación"
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -82,6 +140,10 @@ function DeleteConfirmModal({ onConfirm, onCancel }) {
 export function ProfileView({ profile }) {
   const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteStep, setDeleteStep] = useState("confirm"); // "confirm" | "codigo"
+  const [codigo, setCodigo] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   const fotoSrc = profile?.foto || profile?.foto_url || "/default-avatar.png";
   const tags = profile?.tags || [];
@@ -99,14 +161,39 @@ export function ProfileView({ profile }) {
     }
   };
 
-  const handleEliminarCuenta = async () => {
+  const handleSolicitarEliminacion = async () => {
     try {
-      await eliminarCuenta();
+      const result = await solicitarCodigoEliminacion();
+      if (result.success) {
+        setDeleteStep("codigo");
+        setDeleteError("");
+      }
+    } catch (error) {
+      const message = error?.response?.data?.message || "Error al solicitar el código de eliminación.";
+      setDeleteError(message);
+    }
+  };
+
+  const handleEliminarCuenta = async () => {
+    setIsDeleting(true);
+    setDeleteError("");
+    try {
+      await eliminarCuenta(codigo);
+      setShowDeleteModal(false);
       clearSessionTokens();
       router.push("/login");
     } catch (error) {
-      console.error("Error al eliminar cuenta:", error);
+      const message = error?.response?.data?.message || "Código inválido o expirado.";
+      setDeleteError(message);
+      setIsDeleting(false);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteStep("confirm");
+    setCodigo("");
+    setDeleteError("");
   };
 
   return (
@@ -189,7 +276,7 @@ export function ProfileView({ profile }) {
               Exportar mis datos
             </button>
             <button
-              onClick={() => setShowDeleteModal(true)}
+              onClick={() => { setShowDeleteModal(true); setDeleteStep("confirm"); setCodigo(""); setDeleteError(""); }}
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors"
             >
               <Trash2 size={15} />
@@ -201,8 +288,13 @@ export function ProfileView({ profile }) {
 
       {showDeleteModal && (
         <DeleteConfirmModal
-          onConfirm={handleEliminarCuenta}
-          onCancel={() => setShowDeleteModal(false)}
+          onConfirm={deleteStep === "codigo" ? handleEliminarCuenta : handleSolicitarEliminacion}
+          onCancel={handleCancelDelete}
+          step={deleteStep}
+          codigo={codigo}
+          setCodigo={setCodigo}
+          isLoading={isDeleting}
+          error={deleteError}
         />
       )}
     </>
