@@ -10,6 +10,7 @@ import { useWizard } from "@/features/adoptante/hooks/useWizard";
 import { cn } from "@/lib/utils/cn";
 import { PersonalDataStep } from "./PersonalDataStep";
 import { getEtiquetas, createAdoptanteProfile, getAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
+import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 // ─────────────────────────────────────────────
 // Tarjeta con imagen (paso de preferencia de raza)
@@ -239,8 +240,12 @@ function CompletionScreen({ selections }) {
           foto: selections.personalData?.profilePhotoBase64 || "",
         };
 
-        await createAdoptanteProfile(payload);
-        router.push("/");
+        const result = await createAdoptanteProfile(payload);
+        // Guardar el nuevo token y forzar recarga completa para que el navegador recoja la cookie
+        if (result?.accessToken) {
+          saveSessionTokens({ accessToken: result.accessToken });
+        }
+        window.location.href = "/adoptante/feed";
       } catch (err) {
         console.error("Error creating profile:", err);
         if (err.response?.status === 409) {
