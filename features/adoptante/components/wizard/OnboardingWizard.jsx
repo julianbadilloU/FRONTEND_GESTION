@@ -332,6 +332,7 @@ export function OnboardingWizard() {
 
   const [isFormValid, setIsFormValid] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const personalDataRef = useRef(null);
 
   // Verificar si ya hay un perfil guardado al montar el wizard
   useEffect(() => {
@@ -421,7 +422,14 @@ export function OnboardingWizard() {
 
         {/* Botón Siguiente */}
         <button
-          onClick={next}
+          onClick={() => {
+            if (isFormStep && personalDataRef.current) {
+              const d = personalDataRef.current.getData();
+              const photo = personalDataRef.current.getProfilePhotoBase64();
+              select({ fullName: d.fullName, whatsapp: d.whatsapp, departamento: d.departamento, city: d.city, direccion: d.direccion, profilePhotoBase64: photo });
+            }
+            next();
+          }}
           disabled={!canProceed}
           className={cn(
             "flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 shrink-0",
@@ -465,6 +473,7 @@ export function OnboardingWizard() {
             {/* Contenido según el tipo de paso */}
             {isFormStep ? (
               <PersonalDataStep
+                ref={personalDataRef}
                 selection={currentSelection}
                 onSelect={select}
                 onValidation={setIsFormValid}

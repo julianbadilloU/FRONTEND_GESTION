@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import { Camera, Upload, PawPrint } from "lucide-react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils/cn";
 
-export function PersonalDataStep({ selection, onSelect, onValidation }) {
+export const PersonalDataStep = forwardRef(function PersonalDataStep({ selection, onSelect, onValidation }, ref) {
   const [data, setData] = useState({
     fullName: selection?.fullName || "",
     whatsapp: selection?.whatsapp || "",
@@ -17,6 +17,17 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
   });
   const [preview, setPreview] = useState(selection?.profilePhoto || null);
   const [touched, setTouched] = useState({});
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
+  // Exponer data al padre para el botón Siguiente
+  useImperativeHandle(ref, () => ({
+    getData: () => dataRef.current,
+    getPreview: () => preview,
+    getProfilePhotoBase64: () => profilePhotoBase64Ref.current,
+  }));
+
+  const profilePhotoBase64Ref = useRef(null);
 
   // Sincronizar estado local cuando el selection cambia (ej: pre-fill desde API)
   useEffect(() => {
@@ -226,4 +237,4 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
       </div>
     </div>
   );
-}
+});
