@@ -65,7 +65,7 @@ export function AlbergueNavbar() {
   const notifNoLeidas = notifData?.total_no_leidas ?? 0;
 
   const displayName = profile?.nombre_albergue || "Mi Albergue";
-  const displayLogo = profile?.logo || null;
+  const displayLogo = profile?.logo || profile?.logo_url || null;
 
   const linkColor = "text-[#5e924e]";
 

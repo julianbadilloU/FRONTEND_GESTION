@@ -142,7 +142,7 @@ function EmojiCard({ option, selected, onSelect }) {
 // ─────────────────────────────────────────────
 // Pantalla de finalización
 // ─────────────────────────────────────────────
-function CompletionScreen({ selections }) {
+function CompletionScreen({ selections, personalDataRef }) {
   const router = useRouter();
   const called = useRef(false);
   const [error, setError] = useState(null);
@@ -237,7 +237,7 @@ function CompletionScreen({ selections }) {
           ciudad: selections.personalData?.city || "",
           direccion: selections.personalData?.direccion || selections.personalData?.address || "",
           tags: Array.from(selectedTagIds),
-          foto: selections.personalData?.profilePhotoBase64 || "",
+          foto: personalDataRef?.current?.getProfilePhotoBase64() || selections?.personalData?.profilePhotoBase64 || "",
         };
 
         const result = await createAdoptanteProfile(payload);
@@ -373,7 +373,7 @@ export function OnboardingWizard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (isComplete) return <CompletionScreen selections={selections} />;
+  if (isComplete) return <CompletionScreen selections={selections} personalDataRef={personalDataRef} />;
 
   const isColorStep     = currentStep.variant === "color";
   const isImageStep     = currentStep.variant === "image";

@@ -76,6 +76,7 @@ export const PersonalDataStep = forwardRef(function PersonalDataStep({ selection
       const reader = new FileReader();
       reader.onloadend = () => {
         setData(prev => ({ ...prev, profilePhoto: url, profilePhotoBase64: reader.result }));
+        profilePhotoBase64Ref.current = reader.result;
       };
       reader.readAsDataURL(file);
     }

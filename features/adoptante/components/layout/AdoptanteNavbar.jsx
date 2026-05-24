@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Heart, Bell, User, Search, LogOut, Menu, X, Sparkles } from "lucide-react";
+import { Heart, Bell, Search, LogOut, Menu, X, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -63,8 +63,8 @@ export function AdoptanteNavbar() {
 
   const notifNoLeidas = notifData?.total_no_leidas ?? 0;
 
-  const displayName = profile?.nombre || "Mi Perfil";
-  const displayPhoto = profile?.foto_perfil || null;
+  const displayName = profile?.nombre_completo || profile?.nombre || "Mi Perfil";
+  const displayPhoto = profile?.foto_url || profile?.foto_perfil || null;
 
   const linkColor = "text-[#e07a5f]";
 
@@ -133,8 +133,8 @@ export function AdoptanteNavbar() {
                 className="w-8 h-8 rounded-full object-cover ring-2 ring-[#e07a5f]/20 group-hover:ring-[#e07a5f]/50 transition-all"
               />
             ) : (
-              <div className="w-8 h-8 bg-[#fdf0ec] rounded-full flex items-center justify-center ring-2 ring-[#e07a5f]/20 group-hover:ring-[#e07a5f]/50 transition-all">
-                <User size={15} className="text-[#e07a5f]" />
+              <div className="w-8 h-8 bg-[#fdf0ec] rounded-full flex items-center justify-center text-sm font-bold text-[#e07a5f] ring-2 ring-[#e07a5f]/20 group-hover:ring-[#e07a5f]/50 transition-all">
+                {displayName.charAt(0).toUpperCase()}
               </div>
             )}
             <span className="text-sm font-semibold text-gray-800 hidden sm:inline max-w-[120px] truncate">
@@ -205,7 +205,9 @@ export function AdoptanteNavbar() {
               {displayPhoto ? (
                 <Image src={displayPhoto} alt="Foto" width={22} height={22} className="w-5.5 h-5.5 rounded-full object-cover" />
               ) : (
-                <User size={17} />
+                <div className="w-5 h-5 bg-[#fdf0ec] rounded-full flex items-center justify-center text-[10px] font-bold text-[#e07a5f]">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
               )}
               {displayName}
             </Link>
