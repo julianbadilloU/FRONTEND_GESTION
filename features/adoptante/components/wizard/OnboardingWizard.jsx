@@ -242,6 +242,11 @@ function CompletionScreen({ selections }) {
         router.push("/");
       } catch (err) {
         console.error("Error creating profile:", err);
+        if (err.response?.status === 409) {
+          setError("Tu perfil ya fue creado anteriormente. Redirigiendo al inicio...");
+          setTimeout(() => router.push("/"), 2000);
+          return;
+        }
         const errors = err.response?.data?.errors;
         if (errors?.length) {
           setError(errors.map(e => `• ${e.message}`).join('\n'));
