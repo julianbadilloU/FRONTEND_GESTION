@@ -125,10 +125,18 @@ export function ProfileForm({
   // IDs de tags seleccionados para búsqueda rápida
   const selectedIds = useMemo(() => new Set(tags.map((t) => t.id_opcion)), [tags]);
 
+  // Categorías que permiten múltiple selección (coinciden con el wizard)
+  const MULTI_SELECT_CATEGORIES = new Set(["Raza", "Color", "Compatibilidad", "Aceptación de condición especial"]);
+
   // ── Manejo de tags (chips) ──────────────────────────────────────────────
   const addTag = (tagObj) => {
     if (!tagObj || selectedIds.has(tagObj.id_opcion)) return;
-    setValue("tags", [...tags, tagObj], { shouldValidate: true });
+    // Si es single-select, remover cualquier tag existente de la misma categoría
+    let updatedTags = tags;
+    if (!MULTI_SELECT_CATEGORIES.has(tagObj.categoria)) {
+      updatedTags = tags.filter((t) => t.categoria !== tagObj.categoria);
+    }
+    setValue("tags", [...updatedTags, tagObj], { shouldValidate: true });
   };
 
   const removeTag = (tagObj) => {
