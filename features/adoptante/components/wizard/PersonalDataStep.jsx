@@ -41,8 +41,7 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
                     data.city.trim().length > 2 &&
                     data.direccion.trim().length > 2;
     onValidation?.(isValid);
-    onSelect?.(data);
-  }, [data, onValidation, onSelect]);
+  }, [data, onValidation]);
 
   // Errores por campo (solo si el usuario ya interactuó con el campo)
   const fieldErrors = {
