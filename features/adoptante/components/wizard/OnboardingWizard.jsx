@@ -193,18 +193,26 @@ function CompletionScreen({ selections }) {
         if (selections.energy === "active") addTag("Nivel de energía", "Muy activo");
         if (selections.energy === "any") addTag("Nivel de energía", "Sin preferencia");
 
-        // ── Compatibilidad ──
-        if (selections.compatibility === "kids") addTag("Compatibilidad", "Niños");
-        if (selections.compatibility === "dogs") addTag("Compatibilidad", "Otros perros");
-        if (selections.compatibility === "cats") addTag("Compatibilidad", "Gatos");
-        if (selections.compatibility === "seniors") addTag("Compatibilidad", "Adultos mayores");
-        if (selections.compatibility === "disabled") addTag("Compatibilidad", "Personas con discapacidad");
-        if (selections.compatibility === "none") addTag("Compatibilidad", "Ninguna");
+        // ── Compatibilidad (multi‑select o single) ──
+        const COMPAT_MAP = {
+          kids: "Niños",
+          dogs: "Otros perros",
+          cats: "Gatos",
+          seniors: "Adultos mayores",
+          disabled: "Personas con discapacidad",
+          none: "Ninguna",
+        };
+        (Array.isArray(selections.compatibility) ? selections.compatibility : [selections.compatibility])
+          .forEach((v) => { if (COMPAT_MAP[v]) addTag("Compatibilidad", COMPAT_MAP[v]); });
 
-        // ── Aceptación de condición especial ──
-        if (selections.specialCondition === "disabled_pet") addTag("Aceptación de condición especial", "Acepto mascotas con discapacidad");
-        if (selections.specialCondition === "medical_treatment") addTag("Aceptación de condición especial", "Acepto mascotas en tratamiento médico");
-        if (selections.specialCondition === "healthy_only") addTag("Aceptación de condición especial", "Solo mascotas sanas");
+        // ── Aceptación de condición especial (multi‑select o single) ──
+        const COND_MAP = {
+          disabled_pet: "Acepto mascotas con discapacidad",
+          medical_treatment: "Acepto mascotas en tratamiento médico",
+          healthy_only: "Solo mascotas sanas",
+        };
+        (Array.isArray(selections.specialCondition) ? selections.specialCondition : [selections.specialCondition])
+          .forEach((v) => { if (COND_MAP[v]) addTag("Aceptación de condición especial", COND_MAP[v]); });
 
         // ── Entorno del adoptante ──
         if (selections.residence === "apt_no_balcony") addTag("Entorno del adoptante", "Apartamento sin balcón");
@@ -349,11 +357,18 @@ export function OnboardingWizard() {
 
   if (isComplete) return <CompletionScreen selections={selections} />;
 
-  const isColorStep    = currentStep.variant === "color";
-  const isImageStep    = currentStep.variant === "image";
-  const isFormStep     = currentStep.variant === "form";
+  const isColorStep     = currentStep.variant === "color";
+  const isImageStep     = currentStep.variant === "image";
+  const isFormStep      = currentStep.variant === "form";
+  const isMultiSelect   = currentStep.multiSelect ?? false;
 
-  const optionsCount   = currentStep.options?.length || 0;
+  const optionsCount    = currentStep.options?.length || 0;
+
+  /** Determina si una opción está seleccionada según el modo del paso */
+  const getIsSelected = (optionId) => {
+    if (isMultiSelect) return currentSelection?.includes(optionId) ?? false;
+    return currentSelection === optionId;
+  };
 
   const canProceed = isFormStep ? isFormValid : canGoNext;
 
@@ -457,7 +472,7 @@ export function OnboardingWizard() {
                     <ImageCard
                       key={option.id}
                       option={option}
-                      selected={currentSelection === option.id}
+                      selected={getIsSelected(option.id)}
                       onSelect={select}
                     />
                   ))}
@@ -468,7 +483,7 @@ export function OnboardingWizard() {
                     onClick={() => select("any")}
                     className={cn(
                       "w-full flex items-center justify-center gap-4 py-4 rounded-3xl border-2 transition-all duration-200 overflow-hidden relative group",
-                      currentSelection === "any"
+                      getIsSelected("any")
                         ? "border-[#5e924e] bg-[#f4f8f2] shadow-lg"
                         : "border-[#d8e8d0] bg-white hover:border-[#a9c99a]"
                     )}
@@ -481,7 +496,7 @@ export function OnboardingWizard() {
                        />
                     </div>
                     <span className="text-lg font-bold text-gray-700 relative z-10">Sin preferencia</span>
-                    {currentSelection === "any" && (
+                    {getIsSelected("any") && (
                       <span className="w-6 h-6 bg-[#5e924e] rounded-full flex items-center justify-center shadow text-white relative z-10">
                         <Check size={14} strokeWidth={3} />
                       </span>
@@ -504,7 +519,7 @@ export function OnboardingWizard() {
                   <ColorCard
                     key={option.id}
                     option={option}
-                    selected={currentSelection === option.id}
+                    selected={getIsSelected(option.id)}
                     onSelect={select}
                   />
                 ))}
@@ -524,7 +539,7 @@ export function OnboardingWizard() {
                   <EmojiCard
                     key={option.id}
                     option={option}
-                    selected={currentSelection === option.id}
+                    selected={getIsSelected(option.id)}
                     onSelect={select}
                   />
                 ))}
