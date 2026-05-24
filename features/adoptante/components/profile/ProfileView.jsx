@@ -145,7 +145,7 @@ export function ProfileView({ profile }) {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  const fotoSrc = profile?.foto || profile?.foto_url || "/default-avatar.png";
+  const fotoSrc = profile?.foto || profile?.foto_url || "/default-avatar.svg";
   const tags = profile?.tags || [];
   // Compatibilidad: los tags pueden venir como strings (legacy) u objetos { id_opcion, valor }
   const tagDisplay = tags.map((t) => ({
@@ -209,7 +209,7 @@ export function ProfileView({ profile }) {
                 height={144}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.currentTarget.src = "/default-avatar.png";
+                  e.currentTarget.src = "/default-avatar.svg";
                 }}
               />
             </div>

@@ -120,7 +120,7 @@ export function ProfileForm({
   });
 
   const tags = watch("tags") ?? [];
-  const fotoSrc = fotoPreview || profile?.foto || profile?.foto_url || "/default-avatar.png";
+  const fotoSrc = fotoPreview || profile?.foto || profile?.foto_url || "/default-avatar.svg";
 
   // IDs de tags seleccionados para búsqueda rápida
   const selectedIds = useMemo(() => new Set(tags.map((t) => t.id_opcion)), [tags]);
@@ -161,7 +161,7 @@ export function ProfileForm({
                 height={144}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.currentTarget.src = "/default-avatar.png";
+                  e.currentTarget.src = "/default-avatar.svg";
                 }}
               />
               <label
