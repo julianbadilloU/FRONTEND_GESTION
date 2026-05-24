@@ -85,6 +85,8 @@ export function ProfileView({ profile }) {
 
   const fotoSrc = profile?.foto || profile?.foto_url || "/default-avatar.png";
   const tags = profile?.tags || [];
+  // Compatibilidad: los tags pueden venir como strings (legacy) u objetos { id_opcion, valor }
+  const tagDisplay = tags.map((t) => (typeof t === "string" ? t : t.valor));
 
   const handleExportarDatos = async () => {
     try {
@@ -159,7 +161,7 @@ export function ProfileView({ profile }) {
               Preferencias
             </p>
             <div className="flex flex-wrap gap-2">
-              {tags.map((tag) => (
+              {tagDisplay.map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center px-3 py-1 rounded-full bg-[#e8f0e2] text-[#5e7a50] text-xs font-medium border border-[#d4e0ca]"

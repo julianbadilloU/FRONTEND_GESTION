@@ -86,13 +86,17 @@ export function AdoptanteProfile() {
 
   const handleSave = useCallback(
     (data) => {
+      // Extraer solo IDs de los objetos de tags
+      const tagIds = (data.tags || []).map((t) =>
+        typeof t === "object" && t.id_opcion ? t.id_opcion : t,
+      );
       const payload = {
         nombre_completo: data.nombre_completo,
         whatsapp: data.whatsapp,
         departamento: data.departamento || "",
         ciudad: data.ciudad,
         direccion: data.direccion || "",
-        tags: data.tags,
+        tags: tagIds,
       };
       if (fotoBase64) {
         payload.foto = fotoBase64;

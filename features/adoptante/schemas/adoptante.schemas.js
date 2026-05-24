@@ -6,8 +6,14 @@ import { z } from "zod";
  * - whatsapp: formato colombiano (10 dígitos, opcional +57)
  * - ciudad: obligatorio, 2-100 caracteres
  * - direccion: opcional
- * - tags: array de strings (etiquetas de preferencia)
+ * - tags: array de objetos con id_opcion, valor y categoria
  */
+const tagObjectSchema = z.object({
+  id_opcion: z.number(),
+  valor: z.string(),
+  categoria: z.string().optional(),
+});
+
 export const adoptanteProfileSchema = z.object({
   nombre_completo: z
     .string()
@@ -34,5 +40,5 @@ export const adoptanteProfileSchema = z.object({
     .max(200, "Dirección demasiado larga")
     .optional()
     .or(z.literal("")),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(tagObjectSchema).default([]),
 });
