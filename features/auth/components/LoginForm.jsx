@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PawPrint, Dog, Mail } from "lucide-react";
+import { PawPrint, Dog } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -193,23 +193,22 @@ export function LoginForm({ onSuccess }) {
         <div className="w-full max-w-sm space-y-3">
           <AuthAlert type="error">{serverError ?? errors.root?.message}</AuthAlert>
           {isVerificationError && (
-            <div className="space-y-2">
-              <button
-                type="button"
-                onClick={handleResendVerification}
-                disabled={resending || resendCooldown > 0}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  backgroundColor: resendCooldown > 0 ? "#9ca3af" : "#a9c99a",
-                }}
-              >
-                <Mail size={16} />
-                {resending
-                  ? "Enviando..."
-                  : resendCooldown > 0
-                    ? `Reenviar código (${resendCooldown}s)`
-                    : "Reenviar código"}
-              </button>
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500 text-center">
+                ¿No llegó el correo?{" "}
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resending || resendCooldown > 0}
+                  className="text-[#5e924e] font-semibold hover:underline disabled:text-gray-400 disabled:no-underline"
+                >
+                  {resending
+                    ? "Enviando..."
+                    : resendCooldown > 0
+                      ? `Reenviar (${resendCooldown}s)`
+                      : "Reenviar código"}
+                </button>
+              </p>
               {resendMessage && (
                 <AuthAlert type={resendMessage.type === "success" ? "ok" : "error"}>
                   {resendMessage.text}
