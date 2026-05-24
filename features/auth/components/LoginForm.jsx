@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PawPrint, Dog } from "lucide-react";
+import { PawPrint, Dog, Mail } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -17,10 +17,45 @@ import { saveSessionTokens } from "@/lib/auth/token-storage";
 export function LoginForm({ onSuccess }) {
   const [showPw, setShowPw] = useState(false);
   const [serverError, setServerError] = useState(null);
+  const [isVerificationError, setIsVerificationError] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const cooldownRef = useRef(null);
+
+  // Limpiar el intervalo de cooldown al desmontar
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, []);
+
+  // Manejar countdown de 30 segundos
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      cooldownRef.current = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(cooldownRef.current);
+            cooldownRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (cooldownRef.current) {
+        clearInterval(cooldownRef.current);
+        cooldownRef.current = null;
+      }
+    };
+  }, [resendCooldown > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     register,
     handleSubmit,
+    getValues,
     setError,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -30,6 +65,8 @@ export function LoginForm({ onSuccess }) {
 
   const onSubmit = async (data) => {
     setServerError(null);
+    setIsVerificationError(false);
+    setResendMessage(null);
 
     try {
       const response = await apiClient.post("/api/auth/login", {
@@ -74,6 +111,7 @@ export function LoginForm({ onSuccess }) {
             setServerError("Tu cuenta ha sido suspendida. Contactá al administrador para más información.");
           } else if (msg.includes("verificar")) {
             setServerError(msg);
+            setIsVerificationError(true);
           } else {
             setServerError(errData?.message || "Demasiados intentos fallidos. Tu cuenta está bloqueada temporalmente. Intentá en 15 minutos.");
           }
@@ -85,6 +123,28 @@ export function LoginForm({ onSuccess }) {
       } else {
         setServerError("Error de conexión. Intenta de nuevo.");
       }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    const email = getValues("email");
+    if (!email) return;
+
+    setResending(true);
+    setResendMessage(null);
+
+    try {
+      const response = await apiClient.post("/api/auth/resend-verification", { email });
+      setResendMessage({ type: "success", text: response.data?.message || "Correo reenviado. Revisá tu bandeja de entrada." });
+      setResendCooldown(30);
+    } catch (error) {
+      if (error.response?.status === 429) {
+        setResendMessage({ type: "error", text: "Demasiadas solicitudes. Intentá de nuevo en 30 minutos." });
+      } else {
+        setResendMessage({ type: "error", text: "Error al reenviar el código. Intentá de nuevo más tarde." });
+      }
+    } finally {
+      setResending(false);
     }
   };
 
@@ -130,8 +190,33 @@ export function LoginForm({ onSuccess }) {
       </div>
 
       {(serverError || errors.root?.message) && (
-        <div className="w-full max-w-sm">
+        <div className="w-full max-w-sm space-y-3">
           <AuthAlert type="error">{serverError ?? errors.root?.message}</AuthAlert>
+          {isVerificationError && (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resending || resendCooldown > 0}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: resendCooldown > 0 ? "#9ca3af" : "#a9c99a",
+                }}
+              >
+                <Mail size={16} />
+                {resending
+                  ? "Enviando..."
+                  : resendCooldown > 0
+                    ? `Reenviar código (${resendCooldown}s)`
+                    : "Reenviar código"}
+              </button>
+              {resendMessage && (
+                <AuthAlert type={resendMessage.type === "success" ? "ok" : "error"}>
+                  {resendMessage.text}
+                </AuthAlert>
+              )}
+            </div>
+          )}
         </div>
       )}
 
