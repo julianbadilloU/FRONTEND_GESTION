@@ -65,12 +65,15 @@ export function LoginForm({ onSuccess }) {
           setError("email", { type: "server", message: "Correo o contraseña incorrectos" });
           setError("password", { type: "server", message: "Correo o contraseña incorrectos" });
         } else if (status === 403) {
+          const msg = errData?.message || "";
           const isSuspendido =
             errData?.tipo === "suspendido" ||
             errData?.reason === "suspendido" ||
-            errData?.message?.toLowerCase().includes("suspendida");
+            msg.toLowerCase().includes("suspendida");
           if (isSuspendido) {
             setServerError("Tu cuenta ha sido suspendida. Contactá al administrador para más información.");
+          } else if (msg.includes("verificar")) {
+            setServerError(msg);
           } else {
             setServerError(errData?.message || "Demasiados intentos fallidos. Tu cuenta está bloqueada temporalmente. Intentá en 15 minutos.");
           }
