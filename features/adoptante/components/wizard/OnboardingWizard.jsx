@@ -234,6 +234,7 @@ function CompletionScreen({ selections }) {
           whatsapp: selections.personalData?.whatsapp || "",
           departamento: selections.personalData?.departamento || "",
           ciudad: selections.personalData?.city || "",
+          direccion: selections.personalData?.direccion || selections.personalData?.address || "",
           tags: Array.from(selectedTagIds),
           foto: selections.personalData?.profilePhotoBase64 || "",
         };
@@ -353,6 +354,7 @@ export function OnboardingWizard() {
             whatsapp: profile.whatsapp || "",
             departamento: profile.departamento || "",
             city: profile.ciudad || "",
+            direccion: profile.direccion || "",
             profilePhoto: null,
           });
         }

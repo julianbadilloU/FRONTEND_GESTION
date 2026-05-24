@@ -7,11 +7,12 @@ import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 
 export function PersonalDataStep({ selection, onSelect, onValidation }) {
-  const [data, setData] = useState(selection || {
-    fullName: "",
-    whatsapp: "",
-    departamento: "",
-    city: "",
+  const [data, setData] = useState({
+    fullName: selection?.fullName || "",
+    whatsapp: selection?.whatsapp || "",
+    departamento: selection?.departamento || "",
+    city: selection?.city || "",
+    direccion: selection?.direccion || selection?.address || "",
     profilePhoto: null
   });
   const [preview, setPreview] = useState(selection?.profilePhoto || null);
@@ -20,11 +21,14 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
   // Sincronizar estado local cuando el selection cambia (ej: pre-fill desde API)
   useEffect(() => {
     if (selection) {
-      setData(selection);
+      setData(prev => ({
+        ...prev,
+        ...selection,
+        direccion: selection.direccion || selection.address || prev.direccion || "",
+      }));
       if (selection.profilePhoto) {
         setPreview(selection.profilePhoto);
       }
-
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selection]);
@@ -34,7 +38,8 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
     const isValid = data.fullName.trim().length > 3 && 
                     data.whatsapp.trim().length >= 10 && 
                     data.departamento.trim().length > 2 &&
-                    data.city.trim().length > 2;
+                    data.city.trim().length > 2 &&
+                    data.direccion.trim().length > 2;
     onValidation?.(isValid);
     onSelect?.(data);
   }, [data, onValidation, onSelect]);
@@ -45,6 +50,7 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
     whatsapp: touched.whatsapp && data.whatsapp.trim().length < 10 ? "Ingresa al menos 10 dígitos" : null,
     departamento: touched.departamento && data.departamento.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
     city: touched.city && data.city.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+    direccion: touched.direccion && data.direccion.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
   };
 
   const handleBlur = (field) => {
@@ -194,6 +200,27 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           />
           {fieldErrors.city && (
             <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.city}</p>
+          )}
+        </div>
+
+        {/* Dirección */}
+        <div className="space-y-2">
+          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">Dirección</label>
+          <input
+            type="text"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.direccion
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
+            placeholder="Ej: Calle 14 # 16-50"
+            value={data.direccion}
+            onChange={(e) => handleChange("direccion", e.target.value)}
+            onBlur={() => handleBlur("direccion")}
+          />
+          {fieldErrors.direccion && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.direccion}</p>
           )}
         </div>
 
