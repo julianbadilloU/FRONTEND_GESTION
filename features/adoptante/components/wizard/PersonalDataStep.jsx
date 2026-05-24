@@ -19,6 +19,7 @@ export const PersonalDataStep = forwardRef(function PersonalDataStep({ selection
   const [touched, setTouched] = useState({});
   const dataRef = useRef(data);
   dataRef.current = data;
+  const profilePhotoBase64Ref = useRef(null);
 
   // Exponer data al padre para el botón Siguiente
   useImperativeHandle(ref, () => ({
@@ -26,8 +27,6 @@ export const PersonalDataStep = forwardRef(function PersonalDataStep({ selection
     getPreview: () => preview,
     getProfilePhotoBase64: () => profilePhotoBase64Ref.current,
   }));
-
-  const profilePhotoBase64Ref = useRef(null);
 
   // Sincronizar estado local cuando el selection cambia (ej: pre-fill desde API)
   useEffect(() => {
