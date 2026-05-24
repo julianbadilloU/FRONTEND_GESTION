@@ -320,7 +320,7 @@ export function OnboardingWizard() {
     async function loadProfile() {
       try {
         const profile = await getAdoptanteProfile();
-        if (cancelled || !profile) return;
+        if (cancelled || !profile) return; // null = 404, perfil no creado — wizard vacío
 
         // Perfil completo (tiene tags de preferencia) → redirigir al feed
         if (profile.nombre_completo && profile.whatsapp && profile.ciudad && profile.tags?.length > 0) {
@@ -338,8 +338,6 @@ export function OnboardingWizard() {
             profilePhoto: null,
           });
         }
-      } catch {
-        // 404 = no hay perfil, es normal — mostrar wizard vacío
       } finally {
         if (!cancelled) setIsLoadingProfile(false);
       }
