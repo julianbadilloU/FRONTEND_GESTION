@@ -89,6 +89,7 @@ export function AdoptanteProfile() {
       const payload = {
         nombre_completo: data.nombre_completo,
         whatsapp: data.whatsapp,
+        departamento: data.departamento || "",
         ciudad: data.ciudad,
         direccion: data.direccion || "",
         tags: data.tags,
