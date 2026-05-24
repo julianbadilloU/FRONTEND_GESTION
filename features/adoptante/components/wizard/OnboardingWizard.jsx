@@ -242,7 +242,12 @@ function CompletionScreen({ selections }) {
         router.push("/");
       } catch (err) {
         console.error("Error creating profile:", err);
-        setError("Ocurrió un error al crear tu perfil. Por favor, intenta de nuevo.");
+        const errors = err.response?.data?.errors;
+        if (errors?.length) {
+          setError(errors.map(e => `• ${e.message}`).join('\n'));
+        } else {
+          setError(err.response?.data?.message || "Ocurrió un error al crear tu perfil. Por favor, intenta de nuevo.");
+        }
       }
     }
 
@@ -275,7 +280,7 @@ function CompletionScreen({ selections }) {
           {error ? "Uy!" : "Listo!"}
         </h1>
         
-        <p className="text-gray-500 text-center text-lg leading-relaxed px-4">
+        <p className="text-gray-500 text-center text-lg leading-relaxed px-4 whitespace-pre-line">
           {error ? error : <>Estamos personalizando tu perfil<br className="hidden sm:block" />con tus preferencias</>}
         </p>
 
