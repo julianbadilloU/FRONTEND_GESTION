@@ -137,9 +137,10 @@ export function PublicarMascotaWizard() {
     setPhotosProgress({ done: 0, total: photos.length });
 
     try {
-      const tagsIds = buildTagsIds(tags, etiquetas);
+      const tagResult = buildTagsIds(tags, etiquetas);
+      const tagsIds = tagResult.ids || tagResult;
 
-      if (tagsIds.length === 0) {
+      if (!Array.isArray(tagsIds) || tagsIds.length === 0) {
         setSubmitError(
           "No se pudo asociar ninguna etiqueta válida. Recarga la página e intenta de nuevo.",
         );
