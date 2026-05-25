@@ -295,7 +295,7 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
         <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           <WhatsAppContactButton
             idMatch={candidato.id_match}
-            adoptante={candidato}
+            adoptante={adoptante}
             nombreMascota={nombreMascota}
             estadoInicial={candidato.estado}
             onContactado={onContactado}
