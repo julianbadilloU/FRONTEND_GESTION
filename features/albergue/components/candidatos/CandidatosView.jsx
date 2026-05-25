@@ -107,14 +107,13 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
   const yaContactado = candidato.estado === "contactado";
 
   return (
-    <AnimatePresence>
-      <motion.div
-        key={candidato.id_match}
-        initial={{ opacity: 0, scale: 0.95, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: -12 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-        className="bg-white rounded-3xl border border-[#e5e0d8] shadow-sm p-6 space-y-5"
+    <motion.div
+      key={candidato.id_match}
+      initial={{ opacity: 0, scale: 0.95, y: 12 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -12 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="bg-white rounded-3xl border border-[#e5e0d8] shadow-sm p-6 space-y-5"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
@@ -203,7 +202,6 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
           className="w-full justify-center py-3"
         />
       </motion.div>
-    </AnimatePresence>
   );
 }
 
@@ -541,24 +539,26 @@ export function CandidatosView() {
             </div>
 
             {/* Right: Detail panel */}
-            <div className="w-80 flex-shrink-0">
-              {selectedCandidato ? (
-                <CandidatoDetailPanel
-                  candidato={selectedCandidato}
-                  nombreMascota={selectedMascota?.nombre}
-                  onContactado={handleContactado}
-                  onClose={() => setSelectedCandidato(null)}
-                />
-              ) : (
-                <div className="bg-white rounded-3xl border border-dashed border-[#e0dbd3] p-8 text-center space-y-3">
-                  <MessageCircle size={36} className="mx-auto text-gray-200" />
-                  <p className="text-sm text-gray-400">
-                    Selecciona un candidato para ver su detalle y contactarlo
-                  </p>
-                </div>
-              )}
+            <div className="w-80 flex-shrink-0 relative" style={{ minHeight: '500px' }}>
+              <AnimatePresence mode="wait">
+                {selectedCandidato ? (
+                  <CandidatoDetailPanel
+                    key={selectedCandidato.id_match}
+                    candidato={selectedCandidato}
+                    nombreMascota={selectedMascota?.nombre}
+                    onContactado={handleContactado}
+                    onClose={() => setSelectedCandidato(null)}
+                  />
+                ) : (
+                  <div className="bg-white rounded-3xl border border-dashed border-[#e0dbd3] p-8 text-center space-y-3">
+                    <MessageCircle size={36} className="mx-auto text-gray-200" />
+                    <p className="text-sm text-gray-400">
+                      Selecciona un candidato para ver su detalle y contactarlo
+                    </p>
+                  </div>
+                )}
+              </AnimatePresence>
             </div>
-          </div>
         </div>
 
         {/* Toast */}
