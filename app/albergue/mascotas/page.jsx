@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Dog, Plus, Pencil, ToggleRight, Eye, Search, Trash2, X } from "lucide-react";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import PetDetailModal from "@/features/shared/components/PetDetailModal";
+import MascotaEstadoModal from "@/features/albergue/components/mascota-estado/MascotaEstadoModal";
 import { getMisMascotas, deleteMascota } from "@/features/albergue/services/mascota.service";
 
 function EstadoBadge({ estado }) {
@@ -43,6 +44,7 @@ export default function MisMascotasPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [selectedMascotaId, setSelectedMascotaId] = useState(null);
+  const [selectedPetForState, setSelectedPetForState] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [mascotaAEliminar, setMascotaAEliminar] = useState(null);
   const [motivo, setMotivo] = useState("");
@@ -192,7 +194,7 @@ export default function MisMascotasPage() {
                             <Pencil size={16} />
                           </button>
                           <button
-                            onClick={() => router.push(`/albergue/mascotas/${mascota.id_mascota}/estado`)}
+                            onClick={() => setSelectedPetForState(mascota.id_mascota)}
                             className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                             title="Cambiar estado"
                           >
@@ -291,6 +293,15 @@ export default function MisMascotasPage() {
       <PetDetailModal
         mascotaId={selectedMascotaId}
         onClose={() => setSelectedMascotaId(null)}
+      />
+
+      {/* Modal de cambio de estado */}
+      <MascotaEstadoModal
+        mascotaId={selectedPetForState}
+        onClose={() => {
+          setSelectedPetForState(null);
+          queryClient.invalidateQueries({ queryKey: ["mis-mascotas"] });
+        }}
       />
     </ClientAuthGuard>
   );
