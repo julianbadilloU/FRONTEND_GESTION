@@ -55,13 +55,13 @@ function pickTags(mascota) {
   const all = mascota.tags || [];
   const preferred = all
     .filter((t) =>
-      ["Raza", "Temperamento", "Color", "Tamaño", "Tipo de animal"].includes(
+      ["Raza", "Color", "Tamaño", "Tipo de animal", "Sexo", "Nivel de energía", "Compatibilidad"].includes(
         t.nombre_tag,
       ),
     )
-    .slice(0, 3);
-  if (preferred.length >= 3) return preferred;
-  const filler = all.filter((t) => !preferred.includes(t)).slice(0, 3 - preferred.length);
+    .slice(0, 6);
+  if (preferred.length >= 4) return preferred;
+  const filler = all.filter((t) => !preferred.includes(t)).slice(0, 6 - preferred.length);
   return [...preferred, ...filler];
 }
 
