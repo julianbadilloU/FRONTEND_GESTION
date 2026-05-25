@@ -176,16 +176,16 @@ export default function MatchesPage() {
                   {matches.map((d) => (
                     <tr key={d.id_match} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-3">
-                        <div className="flex items-center gap-3">
+                        <div
+                          onClick={() => router.push(`/mascota/${d.id_mascota}`)}
+                          className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                        >
                           <img
                             src={d.mascota?.mascota_foto?.[0]?.url_foto || "/default-avatar.svg"}
                             alt={d.mascota?.nombre}
                             className="w-10 h-10 rounded-lg object-cover"
                           />
-                          <span
-                            onClick={() => router.push(`/mascota/${d.id_mascota}`)}
-                            className="font-medium text-gray-900 text-sm hover:text-[#5e924e] hover:underline cursor-pointer"
-                          >
+                          <span className="font-medium text-gray-900 text-sm hover:text-[#5e924e] hover:underline">
                             {d.mascota?.nombre}
                           </span>
                         </div>
