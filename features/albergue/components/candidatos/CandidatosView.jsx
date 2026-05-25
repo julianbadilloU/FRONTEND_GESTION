@@ -541,7 +541,7 @@ export function CandidatosView() {
             </div>
 
             {/* Right: Detail panel */}
-            <div className="w-80 flex-shrink-0">
+            <div className="w-80 flex-shrink-0 relative" style={{ minHeight: '400px' }}>
               {selectedCandidato ? (
                 <CandidatoDetailPanel
                   candidato={selectedCandidato}
