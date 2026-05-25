@@ -45,12 +45,23 @@ export default function MascotaDetallePage() {
   const [fotoIdx, setFotoIdx] = useState(0);
   const [liked, setLiked] = useState(false);
   const [shared, setShared] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
   const handleLike = async () => {
     try {
       await registrarMeInteresa(id);
       setLiked(true);
-    } catch {}
+      setFeedback("¡Te gusta esta mascota! La agregamos a tus matches.");
+      setTimeout(() => setFeedback(null), 3000);
+    } catch (err) {
+      console.error("Error al registrar me interesa:", err);
+      if (err.response?.status === 401) {
+        setFeedback("Debes iniciar sesión para guardar este match.");
+      } else {
+        setFeedback("No se pudo registrar. Intentá de nuevo.");
+      }
+      setTimeout(() => setFeedback(null), 3000);
+    }
   };
 
   const handleShare = async () => {
@@ -187,6 +198,13 @@ export default function MascotaDetallePage() {
                 {shared ? <Check size={18} /> : <Share2 size={18} />}
               </button>
             </div>
+            )}
+
+            {/* Feedback toast */}
+            {feedback && (
+              <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg text-sm text-gray-700 animate-pulse">
+                {feedback}
+              </div>
             )}
           </div>
 
