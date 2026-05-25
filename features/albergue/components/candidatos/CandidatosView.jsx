@@ -270,24 +270,22 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
           </div>
 
           {/* Tags */}
-        {adoptante.tags?.length > 0 && (
-          <div className="bg-[#f7faf5] rounded-2xl p-4 space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">Preferencias</p>
-            <div className="flex flex-wrap gap-1.5">
-              {adoptante.tags.map((tag) => {
-            <div className="flex flex-wrap gap-1">
-              {candidato.tags.slice(0, 3).map((tag) => {
-                const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
-                return (
-                  <span
-                    key={tag.id_tag}
-                    className="text-[10px] font-medium px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: colors.bg, color: colors.text }}
-                  >
-                    {tag.valor}
-                  </span>
-                );
-              })}
+          {candidato.adoptante?.tags?.length > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap gap-1">
+                {candidato.adoptante.tags.slice(0, 4).map((tag) => {
+                  const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
+                  return (
+                    <span
+                      key={tag.id_tag}
+                      className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: colors.bg, color: colors.text }}
+                    >
+                      {tag.valor}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
