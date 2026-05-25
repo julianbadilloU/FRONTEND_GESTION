@@ -562,7 +562,7 @@ export function CandidatosView() {
         </div>
 
         {/* Toast */}
-        <AnimatePresence>
+    <AnimatePresence mode="wait">
           {toast.show && (
             <motion.div
               initial={{ opacity: 0, y: 50 }}
