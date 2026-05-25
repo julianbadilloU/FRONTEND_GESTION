@@ -321,7 +321,7 @@ export function CandidatosView() {
     queryFn: getMisCandidatos,
     staleTime: 30_000,
   });
-  const mascotas = mascotasData?.data ?? [];
+  const mascotas = Array.isArray(mascotasData) ? mascotasData : (mascotasData?.data ?? []);
 
   // Auto-select first mascota when list loads
   if (!selectedMascota && mascotas.length > 0) {
@@ -336,7 +336,7 @@ export function CandidatosView() {
     staleTime: 20_000,
   });
 
-  const candidatos = candidatosData?.data ?? [];
+  const candidatos = Array.isArray(candidatosData) ? candidatosData : (candidatosData?.data ?? []);
 
   // Handle contact registered — update local state optimistically
   const handleContactado = useCallback((idMatch, errorMsg) => {
