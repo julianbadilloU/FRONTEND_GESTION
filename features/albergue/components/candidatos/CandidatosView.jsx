@@ -186,27 +186,6 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
           </div>
         </div>
 
-        {/* Tags */}
-        {candidato.tags?.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">Preferencias</p>
-            <div className="flex flex-wrap gap-1.5">
-              {candidato.tags.map((tag) => {
-                const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
-                return (
-                  <span
-                    key={tag.id_tag}
-                    className="text-xs font-medium px-2.5 py-1 rounded-full"
-                    style={{ backgroundColor: colors.bg, color: colors.text }}
-                  >
-                    {tag.valor}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Veces contactado */}
         <div className="bg-gray-50 rounded-2xl px-4 py-3 flex items-center justify-between">
           <span className="text-xs text-gray-500 font-medium">Veces contactado</span>
