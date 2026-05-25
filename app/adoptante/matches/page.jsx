@@ -64,7 +64,7 @@ export default function MatchesPage() {
     ? rawData.map(d => ({
         id_match: `descarte-${d.id_mascota}`,
         id_mascota: d.id_mascota,
-        fecha_match: d.fecha,
+        fecha_match: d.fecha || new Date().toISOString(),
         estado: 'descartado',
         mascota: d.mascota,
         albergue: d.mascota?.albergue,
