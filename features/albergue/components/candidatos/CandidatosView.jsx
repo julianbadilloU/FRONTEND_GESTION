@@ -110,10 +110,11 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
     <AnimatePresence>
       <motion.div
         key={candidato.id_match}
-        initial={{ opacity: 0, x: 32 }}
-        animate={{ opacity: 1, x: 0 }}
-        exit={{ opacity: 0, x: 32 }}
-        className="bg-white rounded-3xl border border-[#e5e0d8] shadow-sm p-6 space-y-5 sticky top-6"
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: -12 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        className="bg-white rounded-3xl border border-[#e5e0d8] shadow-sm p-6 space-y-5"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
