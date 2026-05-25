@@ -121,8 +121,8 @@ export function MatchDetail({ matchData, isLoading, error }) {
 
       {/* Card principal */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Foto */}
-        <div className="relative h-64 bg-gray-100">
+        {/* Foto - más grande */}
+        <div className="relative h-80 sm:h-96 bg-gray-100">
           {foto ? (
             <img
               src={foto}
@@ -190,6 +190,25 @@ export function MatchDetail({ matchData, isLoading, error }) {
                 Compatibilidad
               </p>
               <CompatibilityBar pct={pct} />
+            </div>
+          )}
+
+          {/* Tags de la mascota */}
+          {mascota?.tags?.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Características
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {mascota.tags.slice(0, 8).map((t, i) => {
+                  const colors = ["bg-[#e8a55a]", "bg-[#f0c97a]", "bg-[#e8b8c4]", "bg-[#b8d8a8]", "bg-[#a3c9e8]", "bg-[#d4b8e8]", "bg-[#e8d4a5]", "bg-[#a8d8c8]"];
+                  return (
+                    <span key={i} className={`px-3 py-1 text-[11px] font-semibold rounded-full text-white shadow-sm ${colors[i % colors.length]}`}>
+                      {t.nombre_tag}: {t.valor}
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           )}
 
