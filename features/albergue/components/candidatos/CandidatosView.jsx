@@ -179,6 +179,51 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
           </div>
         </div>
 
+        {/* Miembro desde */}
+        <div className="bg-gray-50 rounded-2xl px-4 py-3 flex items-center justify-between">
+          <span className="text-xs text-gray-500 font-medium">Miembro desde</span>
+          <span className="text-sm font-bold text-gray-900">{adoptante.fecha_registro ? formatDate(adoptante.fecha_registro) : '—'}</span>
+        </div>
+
+        {/* Adopciones anteriores */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">Adopciones anteriores</p>
+          {!adoptante.adopciones_previas || adoptante.adopciones_previas.length === 0 ? (
+            <p className="text-xs text-gray-400 italic py-1">Sin adopciones previas.</p>
+          ) : (
+            <div className="space-y-1.5">
+              <p className="text-xs text-gray-500 font-medium">{adoptante.adopciones_previas.length} adopción(es) registrada(s)</p>
+              {adoptante.adopciones_previas.map((a, i) => (
+                <div key={i} className="flex items-center justify-between text-xs bg-gray-50 rounded-xl px-3 py-2">
+                  <span className="text-gray-700 font-medium">{a.mascota_nombre}</span>
+                  <span className="text-gray-400">{formatDate(a.fecha)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Preferencias — tags del adoptante */}
+        {adoptante.tags?.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">Preferencias</p>
+            <div className="flex flex-wrap gap-1.5">
+              {adoptante.tags.map((tag) => {
+                const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
+                return (
+                  <span
+                    key={`${tag.id_tag}-${tag.valor}`}
+                    className="text-[11px] font-medium px-2.5 py-1 rounded-full"
+                    style={{ backgroundColor: colors.bg, color: colors.text }}
+                  >
+                    {tag.valor}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Veces contactado */}
         <div className="bg-gray-50 rounded-2xl px-4 py-3 flex items-center justify-between">
           <span className="text-xs text-gray-500 font-medium">Veces contactado</span>
