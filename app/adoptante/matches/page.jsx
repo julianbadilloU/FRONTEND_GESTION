@@ -58,7 +58,7 @@ export default function MatchesPage() {
     keepPreviousData: true,
   });
 
-  const rawData = data?.data ?? [];
+  const rawData = estadoTab === "descartado" ? (data ?? []) : (data?.data ?? []);
   // Para descartes, adaptar el formato para que funcione con MatchCard
   const matches = estadoTab === "descartado"
     ? rawData.map(d => ({
