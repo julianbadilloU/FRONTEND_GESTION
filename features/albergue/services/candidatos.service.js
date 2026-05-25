@@ -70,7 +70,7 @@ export function buildWhatsAppUrl(whatsapp, nombreAdoptante, nombreMascota) {
   }
 
   const mensaje = encodeURIComponent(
-    `Hola ${nombreAdoptante}, te contactamos desde FurMatch porque tu perfil es compatible con ${nombreMascota}. ¿Te gustaría conocerlo/a? 🐾`
+    `Hola ${nombreAdoptante}, te contactamos desde FurMatch porque tu perfil es compatible con ${nombreMascota}. ¿Te gustaría conocerlo/a?`
   );
 
   return `https://wa.me/${numero}?text=${mensaje}`;
