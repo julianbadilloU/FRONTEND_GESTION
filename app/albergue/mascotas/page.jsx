@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Dog, Plus, Pencil, ToggleRight, Eye, Search, Trash2, X } from "lucide-react";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
+import PetDetailModal from "@/features/shared/components/PetDetailModal";
 import { getMisMascotas, deleteMascota } from "@/features/albergue/services/mascota.service";
 
 function EstadoBadge({ estado }) {
@@ -41,6 +42,7 @@ export default function MisMascotasPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [selectedMascotaId, setSelectedMascotaId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [mascotaAEliminar, setMascotaAEliminar] = useState(null);
   const [motivo, setMotivo] = useState("");
@@ -176,7 +178,7 @@ export default function MisMascotasPage() {
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-1 sm:gap-2">
                           <button
-                            onClick={() => router.push(`/mascota/${mascota.id_mascota}`)}
+                            onClick={() => setSelectedMascotaId(mascota.id_mascota)}
                             className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                             title="Ver"
                           >
@@ -284,6 +286,12 @@ export default function MisMascotasPage() {
         )}
       </div>
     </div>
+
+      {/* Modal de detalle de mascota */}
+      <PetDetailModal
+        mascotaId={selectedMascotaId}
+        onClose={() => setSelectedMascotaId(null)}
+      />
     </ClientAuthGuard>
   );
 }

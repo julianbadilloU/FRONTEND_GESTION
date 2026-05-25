@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Heart, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
+import PetDetailModal from "@/features/shared/components/PetDetailModal";
 import { getMatchesAdoptante } from "@/features/adoptante/services/match.service";
 import { getDescartes, deshacerDescarte } from "@/features/adoptante/services/adoptante.service";
 import { MatchCard } from "@/features/adoptante/components/matches/MatchCard";
@@ -47,6 +48,7 @@ export default function MatchesPage() {
   const router = useRouter();
   const [estadoTab, setEstadoTab] = useState("");
   const [offset, setOffset] = useState(0);
+  const [selectedMascotaId, setSelectedMascotaId] = useState(null);
 
   // ── Query ──────────────────────────────────────────────────────────────────
   const { data, isLoading, error } = useQuery({
@@ -177,7 +179,7 @@ export default function MatchesPage() {
                     <tr key={d.id_match} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-6 py-3">
                         <div
-                          onClick={() => router.push(`/mascota/${d.id_mascota}`)}
+                          onClick={() => setSelectedMascotaId(d.id_mascota)}
                           className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
                         >
                           <img
@@ -290,6 +292,11 @@ export default function MatchesPage() {
           )}
         </div>
       </div>
+      {/* Modal de detalle de mascota */}
+      <PetDetailModal
+        mascotaId={selectedMascotaId}
+        onClose={() => setSelectedMascotaId(null)}
+      />
     </ClientAuthGuard>
   );
 }

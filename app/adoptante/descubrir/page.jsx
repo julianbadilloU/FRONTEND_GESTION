@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Heart, X, Undo2, PawPrint, RefreshCw, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
+import PetDetailModal from "@/features/shared/components/PetDetailModal";
 import {
   getFeedMascotas,
   getMatchMascotas,
@@ -24,6 +25,7 @@ export default function DescubrirPage() {
   const [command, setCommand] = useState(null);
   const [history, setHistory] = useState([]); // { idMascota, action }
   const [feedback, setFeedback] = useState(null);
+  const [selectedMascotaId, setSelectedMascotaId] = useState(null);
   const isAnimating = useRef(false);
 
   const {
@@ -175,7 +177,7 @@ export default function DescubrirPage() {
                             onSwipe={isTop ? handleSwipeComplete : undefined}
                             onCardClick={
                               isTop
-                                ? () => router.push(`/mascota/${m.id_mascota}`)
+                                ? () => setSelectedMascotaId(m.id_mascota)
                                 : undefined
                             }
                           />
@@ -257,6 +259,11 @@ export default function DescubrirPage() {
           )}
         </AnimatePresence>
       </div>
+      {/* Modal de detalle de mascota */}
+      <PetDetailModal
+        mascotaId={selectedMascotaId}
+        onClose={() => setSelectedMascotaId(null)}
+      />
     </ClientAuthGuard>
   );
 }
