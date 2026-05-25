@@ -216,6 +216,7 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
 
 // ── CandidatoRow ──────────────────────────────────────────────────────────────
 function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContactado }) {
+  const adoptante = candidato.adoptante || candidato;
   const yaContactado = candidato.estado === "contactado";
   const ultimoContacto = candidato.historial_contactos?.at(-1);
 
@@ -233,8 +234,8 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
       <div className="flex items-center gap-4 p-4">
         {/* Avatar */}
         <div className="w-11 h-11 rounded-xl bg-[#f0ede8] flex items-center justify-center overflow-hidden flex-shrink-0">
-          {candidato.foto_perfil ? (
-            <img src={candidato.foto_perfil} alt={candidato.nombre_completo} className="w-full h-full object-cover" />
+          {adoptante.foto_perfil ? (
+            <img src={adoptante.foto_perfil} alt={adoptante.nombre_completo} className="w-full h-full object-cover" />
           ) : (
             <Users size={18} className="text-[#8b9e7e]" />
           )}
@@ -243,8 +244,8 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="font-semibold text-gray-900 text-sm truncate">{candidato.nombre_completo}</span>
-            <span className="text-xs text-gray-400 flex-shrink-0">{candidato.ciudad}</span>
+            <span className="font-semibold text-gray-900 text-sm truncate">{adoptante.nombre_completo}</span>
+            <span className="text-xs text-gray-400 flex-shrink-0">{adoptante.ciudad}</span>
             <span className="text-xs text-gray-300 flex-shrink-0">{formatDate(candidato.fecha)}</span>
           </div>
 
@@ -270,10 +271,10 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
           </div>
 
           {/* Tags */}
-          {candidato.adoptante?.tags?.length > 0 && (
+          {adoptante.tags?.length > 0 && (
             <div className="space-y-1.5">
               <div className="flex flex-wrap gap-1">
-                {candidato.adoptante.tags.slice(0, 4).map((tag) => {
+                {adoptante.tags.slice(0, 4).map((tag) => {
                   const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
                   return (
                     <span
