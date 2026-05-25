@@ -19,6 +19,7 @@ const ESTADO_TABS = [
   { value: "aceptado", label: "Aceptados" },
   { value: "rechazado", label: "Rechazados" },
   { value: "adoptado", label: "Adoptados" },
+  { value: "descartado", label: "Descartados" },
 ];
 
 // ─── Skeleton de carga ────────────────────────────────────────────────────────
