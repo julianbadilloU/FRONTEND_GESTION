@@ -61,6 +61,7 @@ export default function PetDetailContent({
 }) {
   const userRole = useUserRole();
   const [fotoIdx, setFotoIdx] = useState(0);
+  const [lightbox, setLightbox] = useState(false);
   const [liked, setLiked] = useState(false);
   const [shared, setShared] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -168,7 +169,8 @@ export default function PetDetailContent({
             <img
               src={fotoActual}
               alt={`${mascota.nombre} foto ${fotoIdx + 1}`}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain cursor-pointer"
+              onClick={() => setLightbox(true)}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-300">
@@ -258,7 +260,7 @@ export default function PetDetailContent({
 
         {/* Miniaturas */}
         {totalFotos > 1 && (
-          <div className="flex gap-2 px-4 py-3 overflow-x-auto border-b border-gray-50">
+          <div className="flex gap-2 px-4 py-3 overflow-x-auto border-b border-gray-50 justify-center">
             {fotos.map((f, i) => (
               <button
                 key={f.id_foto ?? i}
@@ -390,6 +392,42 @@ export default function PetDetailContent({
           )}
         </div>
       </div>
+      {/* Lightbox / visor de imagen */}
+      {lightbox && fotoActual && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 cursor-pointer"
+          onClick={() => setLightbox(false)}
+        >
+          <button
+            onClick={() => setLightbox(false)}
+            className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center text-xl transition-colors z-10"
+          >
+            ✕
+          </button>
+          {totalFotos > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setFotoIdx((i) => (i - 1 + totalFotos) % totalFotos); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-colors z-10"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setFotoIdx((i) => (i + 1) % totalFotos); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-colors z-10"
+              >
+                <ChevronRight size={22} />
+              </button>
+            </>
+          )}
+          <img
+            src={fotoActual}
+            alt={`${mascota.nombre} foto ${fotoIdx + 1}`}
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
