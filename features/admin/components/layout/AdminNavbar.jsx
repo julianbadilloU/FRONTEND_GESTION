@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Shield, Tag, Users, BarChart3, Settings, LogOut, Menu, X, PawPrint } from "lucide-react";
+import { Shield, Tag, Users, BarChart3, Settings, LogOut, Menu, X, PawPrint, Bell } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: "/admin/tags", label: "Tags", icon: Tag },
   { href: "/admin/usuarios", label: "Usuarios", icon: Users },
   { href: "/admin/mascotas", label: "Mascotas", icon: PawPrint },
+  { href: "/admin/notificaciones", label: "Notificaciones", icon: Bell },
   { href: "/admin/dashboard", label: "Dashboard", icon: BarChart3 },
   { href: "/admin/configuracion", label: "Configuración", icon: Settings },
 ];
