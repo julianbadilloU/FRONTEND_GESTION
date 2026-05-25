@@ -52,7 +52,7 @@ const TAG_PALETTE = [
 ];
 
 function pickTags(mascota) {
-  const all = mascota.tags || [];
+  const all = (mascota.tags || []).filter(t => !(t.nombre_tag === "Raza" && t.valor === "Otra"));
   const preferred = all
     .filter((t) =>
       ["Raza", "Color", "Tamaño", "Tipo de animal", "Sexo", "Nivel de energía", "Compatibilidad"].includes(

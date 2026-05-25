@@ -349,7 +349,9 @@ export default function PetDetailContent({
                 Características
               </h2>
               <div className="flex flex-wrap gap-2">
-                {mascota.tags.map((tag, i) => (
+                {mascota.tags
+                  .filter(t => !(t.nombre_tag === "Raza" && t.valor === "Otra"))
+                  .map((tag, i) => (
                   <span
                     key={i}
                     className="px-3 py-1.5 bg-gray-50 text-gray-600 text-xs rounded-lg border border-gray-100"

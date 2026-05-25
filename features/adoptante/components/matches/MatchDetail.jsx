@@ -200,7 +200,7 @@ export function MatchDetail({ matchData, isLoading, error }) {
                 Características
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {mascota.tags.slice(0, 8).map((t, i) => {
+                {mascota.tags.filter(t => !(t.nombre_tag === "Raza" && t.valor === "Otra")).slice(0, 8).map((t, i) => {
                   const colors = ["bg-[#e8a55a]", "bg-[#f0c97a]", "bg-[#e8b8c4]", "bg-[#b8d8a8]", "bg-[#a3c9e8]", "bg-[#d4b8e8]", "bg-[#e8d4a5]", "bg-[#a8d8c8]"];
                   return (
                     <span key={i} className={`px-3 py-1 text-[11px] font-semibold rounded-full text-white shadow-sm ${colors[i % colors.length]}`}>
