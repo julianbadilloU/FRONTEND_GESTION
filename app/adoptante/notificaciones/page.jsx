@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCheck, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -33,6 +34,7 @@ function formatFecha(dateString) {
 
 export default function NotificacionesPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [selectedMascotaId, setSelectedMascotaId] = useState(null);
 
   const { data: notifData, isLoading } = useQuery({
