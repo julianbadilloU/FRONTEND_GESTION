@@ -36,6 +36,8 @@ export default function DescubrirPage() {
   } = useQuery({
     queryKey: FEED_QUERY_KEY,
     queryFn: () => getFeedMascotas({ page: 1, limit: 30 }),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const { data: matchData } = useQuery({
