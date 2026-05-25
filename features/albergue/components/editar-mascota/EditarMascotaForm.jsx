@@ -176,7 +176,7 @@ export function EditarMascotaForm() {
     // Auto-crear razas custom que no existen en el catálogo
     if (tagResult.pendingBreeds?.length > 0) {
       try {
-        const { data: newData } = await apiClient.post("/api/admin/etiquetas/opcion", 
+        const { data: newData } = await apiClient.post("/api/opcion", 
           tagResult.pendingBreeds.map(breed => ({ categoria: "Raza", valor: breed }))
         );
         const newIds = (newData?.data || newData || []).map(o => o.id_opcion).filter(Boolean);
