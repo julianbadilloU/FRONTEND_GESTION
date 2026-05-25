@@ -182,7 +182,12 @@ export default function MatchesPage() {
                             alt={d.mascota?.nombre}
                             className="w-10 h-10 rounded-lg object-cover"
                           />
-                          <span className="font-medium text-gray-900 text-sm">{d.mascota?.nombre}</span>
+                          <span
+                            onClick={() => router.push(`/mascota/${d.id_mascota}`)}
+                            className="font-medium text-gray-900 text-sm hover:text-[#5e924e] hover:underline cursor-pointer"
+                          >
+                            {d.mascota?.nombre}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-3 hidden sm:table-cell">
@@ -205,7 +210,7 @@ export default function MatchesPage() {
                           }}
                           className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-full transition-colors"
                         >
-                          Recuperar
+                          Quitar
                         </button>
                       </td>
                     </tr>
