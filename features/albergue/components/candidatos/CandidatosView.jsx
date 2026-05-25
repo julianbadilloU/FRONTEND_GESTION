@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -315,15 +315,36 @@ export function CandidatosView() {
     setTimeout(() => setToast({ show: false, message: "", type: "success" }), 3500);
   }, []);
 
-  // Fetch mascotas list
+  // Fetch mascotas list (getMisCandidatos returns MATCH objects with nested mascota + adoptante)
   const { data: mascotasData, isLoading: loadingMascotas, error: errorMascotas } = useQuery({
     queryKey: ["mis-mascotas-candidatos"],
     queryFn: getMisCandidatos,
     staleTime: 30_000,
   });
-  const mascotas = Array.isArray(mascotasData) ? mascotasData : (mascotasData?.data ?? []);
+  const rawMatches = Array.isArray(mascotasData) ? mascotasData : (mascotasData?.data ?? []);
 
-  // Auto-select first mascota when list loads
+  // Group matches by mascota.id_mascota to build a unique pet list for the sidebar.
+  // Each unique pet shows: name, photo, match count.
+  const mascotas = useMemo(() => {
+    const map = new Map();
+    rawMatches.forEach((match) => {
+      const pet = match.mascota;
+      if (!pet?.id_mascota) return;
+      if (!map.has(pet.id_mascota)) {
+        map.set(pet.id_mascota, {
+          id_mascota: pet.id_mascota,
+          nombre: pet.nombre,
+          foto: pet.foto,
+          especie: pet.especie,
+          candidatos_count: 0,
+        });
+      }
+      map.get(pet.id_mascota).candidatos_count++;
+    });
+    return Array.from(map.values());
+  }, [rawMatches]);
+
+  // Auto-select first pet when list loads
   if (!selectedMascota && mascotas.length > 0) {
     setSelectedMascota(mascotas[0]);
   }
