@@ -43,4 +43,16 @@ export async function getMatchById(idMatch) {
   return data;
 }
 
+/**
+ * Rechaza un match como adoptante.
+ * El match debe estar en estado "pendiente" o "contactado".
+ *
+ * @param {number|string} idMatch
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export async function rejectMatch(idMatch) {
+  const { data } = await apiClient.post(`/api/matches/${idMatch}/reject`);
+  return data;
+}
+
 

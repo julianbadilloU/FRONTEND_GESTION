@@ -7,6 +7,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -19,9 +20,11 @@ import {
   Heart,
   Dog,
   History,
+  ThumbsDown,
 } from "lucide-react";
 import { CompatibilityBar } from "@/features/adoptante/components/feed/CompatibilityBadge";
 import { EstadoBadge } from "@/features/adoptante/components/matches/MatchCard";
+import { rejectMatch } from "@/features/adoptante/services/match.service";
 
 // ─── Mensaje por estado ───────────────────────────────────────────────────────
 
@@ -65,8 +68,31 @@ const ESTADO_MENSAJES = {
  *
  * @param {{ matchData: object, isLoading: boolean, error: Error|null }} props
  */
-export function MatchDetail({ matchData, isLoading, error }) {
+export function MatchDetail({ matchData, isLoading, error, onMatchUpdate }) {
   const router = useRouter();
+  const [estadoLocal, setEstadoLocal] = useState(matchData?.estado ?? null);
+  const [rechazando, setRechazando] = useState(false);
+
+  const handleReject = async () => {
+    const confirmar = window.confirm(
+      "¿Estás seguro de que deseas rechazar este match? Esta acción no se puede deshacer."
+    );
+    if (!confirmar) return;
+
+    setRechazando(true);
+    try {
+      const result = await rejectMatch(matchData.id_match);
+      if (result.success) {
+        setEstadoLocal("rechazado");
+        if (onMatchUpdate) onMatchUpdate("rechazado");
+      }
+    } catch (err) {
+      console.error("Error al rechazar match:", err);
+      alert("Ocurrió un error al rechazar el match. Intenta de nuevo.");
+    } finally {
+      setRechazando(false);
+    }
+  };
 
   // ── Loading ─────────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -95,9 +121,10 @@ export function MatchDetail({ matchData, isLoading, error }) {
   }
 
   const { mascota, albergue, estado, puntaje_compatibilidad, fecha_match, contactos } = matchData;
+  const estadoActual = estadoLocal ?? estado;
   const foto = mascota?.fotos?.[0]?.url ?? null;  // fotos es array de {id_foto, url, orden}
   const pct = puntaje_compatibilidad ?? null;
-  const msgConfig = ESTADO_MENSAJES[estado] ?? ESTADO_MENSAJES.pendiente;
+  const msgConfig = ESTADO_MENSAJES[estadoActual] ?? ESTADO_MENSAJES.pendiente;
   const MsgIcon = msgConfig.icon;
 
   const handleWhatsApp = () => {
@@ -136,7 +163,7 @@ export function MatchDetail({ matchData, isLoading, error }) {
           )}
           {/* Estado sobre la foto */}
           <div className="absolute top-4 right-4">
-            <EstadoBadge estado={estado} />
+            <EstadoBadge estado={estadoActual} />
           </div>
         </div>
 
@@ -269,6 +296,19 @@ export function MatchDetail({ matchData, isLoading, error }) {
             >
               <MessageCircle size={18} />
               Contactar al albergue por WhatsApp
+            </button>
+          )}
+
+          {/* Botón Rechazar — solo visible en estados que permiten rechazo */}
+          {(estadoActual === "contactado" || estadoActual === "pendiente") && (
+            <button
+              id="btn-rechazar-match"
+              onClick={handleReject}
+              disabled={rechazando}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-semibold rounded-xl transition-colors text-sm"
+            >
+              <ThumbsDown size={18} />
+              {rechazando ? "Rechazando…" : "Rechazar match"}
             </button>
           )}
         </div>
