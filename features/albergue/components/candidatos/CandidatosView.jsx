@@ -277,7 +277,7 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
                   const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
                   return (
                     <span
-                      key={tag.id_tag}
+                      key={`${tag.id_tag}-${tag.valor}`}
                       className="text-[10px] font-medium px-2 py-0.5 rounded-full"
                       style={{ backgroundColor: colors.bg, color: colors.text }}
                     >
