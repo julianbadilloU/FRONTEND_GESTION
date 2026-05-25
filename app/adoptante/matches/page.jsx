@@ -6,7 +6,7 @@ import { Heart, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { getMatchesAdoptante } from "@/features/adoptante/services/match.service";
-import { getDescartes } from "@/features/adoptante/services/adoptante.service";
+import { getDescartes, deshacerDescarte } from "@/features/adoptante/services/adoptante.service";
 import { MatchCard } from "@/features/adoptante/components/matches/MatchCard";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -173,9 +173,18 @@ export default function MatchesPage() {
                   <div key={match.id_match} role="listitem">
                     <MatchCard
                       match={match}
-                      onClick={() =>
-                        router.push(`/adoptante/matches/${match.id_match}`)
-                      }
+                      onClick={() => {
+                        if (estadoTab === "descartado") {
+                          if (confirm("¿Querés recuperar esta mascota? Volverá a aparecer en Descubrir.")) {
+                            deshacerDescarte(match.id_mascota).then(() => {
+                              setEstadoTab("");
+                              setTimeout(() => setEstadoTab("descartado"), 100);
+                            });
+                          }
+                        } else {
+                          router.push(`/adoptante/matches/${match.id_match}`);
+                        }
+                      }}
                     />
                   </div>
                 ))}
