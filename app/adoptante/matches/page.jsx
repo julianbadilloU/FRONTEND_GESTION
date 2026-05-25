@@ -58,7 +58,18 @@ export default function MatchesPage() {
     keepPreviousData: true,
   });
 
-  const matches = data?.data ?? [];
+  const rawData = data?.data ?? [];
+  // Para descartes, adaptar el formato para que funcione con MatchCard
+  const matches = estadoTab === "descartado"
+    ? rawData.map(d => ({
+        id_match: `descarte-${d.id_mascota}`,
+        id_mascota: d.id_mascota,
+        fecha_match: d.fecha,
+        estado: 'descartado',
+        mascota: d.mascota,
+        albergue: d.mascota?.albergue,
+      }))
+    : rawData;
   const pagination = data?.pagination ?? { total: 0, limit: LIMIT, offset: 0 };
   const totalPages = Math.ceil(pagination.total / LIMIT);
   const currentPage = Math.floor(offset / LIMIT) + 1;
