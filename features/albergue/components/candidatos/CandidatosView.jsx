@@ -44,6 +44,14 @@ function getBarColor(pct) {
   return "#9ca3af";
 }
 
+const TAG_COLORS = {
+  fisica: { bg: "#e8f5e9", text: "#2e7d32" },
+  animal: { bg: "#e3f2fd", text: "#1565c0" },
+  personalidad: { bg: "#f3e5f5", text: "#7b1fa2" },
+  estilo_vida: { bg: "#fff3e0", text: "#e65100" },
+  hogar: { bg: "#e0f2f1", text: "#00695c" },
+};
+
 // ── ContactadoBadge ───────────────────────────────────────────────────────────
 function ContactadoBadge({ fecha }) {
   return (
@@ -149,7 +157,7 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
               className="text-sm font-semibold text-gray-800 font-mono"
               id={`whatsapp-number-${candidato.id_match}`}
             >
-              {candidato.whatsapp_adoptante || "No disponible"}
+              {candidato.whatsapp || "No disponible"}
             </span>
           </div>
         </div>
@@ -182,11 +190,18 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
           <div className="space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">Preferencias</p>
             <div className="flex flex-wrap gap-1.5">
-              {candidato.tags.map((tag) => (
-                <span key={tag} className="text-xs font-medium bg-[#f0ede8] text-[#6b7280] px-2.5 py-1 rounded-full">
-                  {tag}
-                </span>
-              ))}
+              {candidato.tags.map((tag) => {
+                const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
+                return (
+                  <span
+                    key={tag.id_tag}
+                    className="text-xs font-medium px-2.5 py-1 rounded-full"
+                    style={{ backgroundColor: colors.bg, color: colors.text }}
+                  >
+                    {tag.valor}
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}
@@ -277,11 +292,18 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
           {/* Tags */}
           {candidato.tags?.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {candidato.tags.slice(0, 3).map((tag) => (
-                <span key={tag} className="text-[10px] font-medium bg-[#f0ede8] text-[#6b7280] px-2 py-0.5 rounded-full">
-                  {tag}
-                </span>
-              ))}
+              {candidato.tags.slice(0, 3).map((tag) => {
+                const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
+                return (
+                  <span
+                    key={tag.id_tag}
+                    className="text-[10px] font-medium px-2 py-0.5 rounded-full"
+                    style={{ backgroundColor: colors.bg, color: colors.text }}
+                  >
+                    {tag.valor}
+                  </span>
+                );
+              })}
             </div>
           )}
         </div>
