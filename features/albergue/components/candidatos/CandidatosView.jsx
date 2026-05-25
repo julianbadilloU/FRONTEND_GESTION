@@ -25,7 +25,7 @@ import {
   contactarAdoptante,
   buildWhatsAppUrl,
 } from "@/features/albergue/services/candidatos.service";
-import { WhatsAppContactButton, WhatsAppIcon } from "./WhatsAppContactButton";
+import { WhatsAppContactButton } from "./WhatsAppContactButton";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { AdopcionModal } from "@/features/albergue/components/adopciones/AdopcionModal";
 
@@ -149,18 +149,10 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
           }
         </div>
 
-        {/* WhatsApp number */}
-        <div className="bg-[#f7faf5] rounded-2xl p-4 space-y-1">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">WhatsApp</p>
-          <div className="flex items-center gap-2">
-            <WhatsAppIcon size={14} className="text-[#25D366]" />
-            <span
-              className="text-sm font-semibold text-gray-800 font-mono"
-              id={`whatsapp-number-${candidato.id_match}`}
-            >
-              {adoptante.whatsapp || "No disponible"}
-            </span>
-          </div>
+        {/* Dirección */}
+        <div className="bg-gray-50 rounded-2xl px-4 py-3 flex items-center justify-between">
+          <span className="text-xs text-gray-500 font-medium">Dirección</span>
+          <span className="text-sm font-bold text-gray-900 text-right ml-4">{adoptante.direccion || "Sin dirección"}</span>
         </div>
 
         {/* Compatibility */}
@@ -291,16 +283,6 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
           )}
         </div>
 
-        {/* Action */}
-        <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-          <WhatsAppContactButton
-            idMatch={candidato.id_match}
-            adoptante={adoptante}
-            nombreMascota={nombreMascota}
-            estadoInicial={candidato.estado}
-            onContactado={onContactado}
-          />
-        </div>
       </div>
     </motion.div>
   );
