@@ -595,7 +595,6 @@ export function CandidatosView() {
           candidatos={candidatos}
           onSuccess={handleAdopcionSuccess}
         />
-      </div>
     </ClientAuthGuard>
   );
 }
