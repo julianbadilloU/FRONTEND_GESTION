@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
@@ -46,6 +46,7 @@ function MatchSkeleton() {
 
 export default function MatchesPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [estadoTab, setEstadoTab] = useState("");
   const [offset, setOffset] = useState(0);
   const [selectedMascotaId, setSelectedMascotaId] = useState(null);
@@ -205,8 +206,7 @@ export default function MatchesPage() {
                           onClick={() => {
                             if (confirm("¿Recuperar esta mascota?")) {
                               deshacerDescarte(d.id_mascota).then(() => {
-                                setEstadoTab("");
-                                setTimeout(() => setEstadoTab("descartado"), 100);
+                                queryClient.invalidateQueries({ queryKey: [MATCHES_QUERY_KEY, "descartado"] });
                               });
                             }
                           }}
@@ -243,8 +243,7 @@ export default function MatchesPage() {
                         if (estadoTab === "descartado") {
                           if (confirm("¿Querés recuperar esta mascota? Volverá a aparecer en Descubrir.")) {
                             deshacerDescarte(match.id_mascota).then(() => {
-                              setEstadoTab("");
-                              setTimeout(() => setEstadoTab("descartado"), 100);
+                              queryClient.invalidateQueries({ queryKey: [MATCHES_QUERY_KEY, "descartado"] });
                             });
                           }
                         } else {
