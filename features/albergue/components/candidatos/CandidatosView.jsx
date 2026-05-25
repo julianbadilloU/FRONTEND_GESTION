@@ -103,6 +103,7 @@ function HistorialTable({ historial }) {
 // ── CandidatoDetailPanel ──────────────────────────────────────────────────────
 function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose }) {
   if (!candidato) return null;
+  const adoptante = candidato.adoptante || candidato;
   const yaContactado = candidato.estado === "contactado";
 
   return (
@@ -118,16 +119,16 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-14 h-14 rounded-2xl bg-[#f0ede8] flex items-center justify-center overflow-hidden flex-shrink-0">
-              {candidato.foto_perfil ? (
-                <img src={candidato.foto_perfil} alt={candidato.nombre_completo} className="w-full h-full object-cover" />
+              {adoptante.foto_perfil ? (
+                <img src={adoptante.foto_perfil} alt={adoptante.nombre_completo} className="w-full h-full object-cover" />
               ) : (
                 <Users size={22} className="text-[#8b9e7e]" />
               )}
             </div>
             <div>
-              <h3 className="font-bold text-gray-900 text-base">{candidato.nombre_completo}</h3>
+              <h3 className="font-bold text-gray-900 text-base">{adoptante.nombre_completo}</h3>
               <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                <MapPin size={10} /> {candidato.ciudad}
+                <MapPin size={10} /> {adoptante.ciudad}
               </p>
             </div>
           </div>
@@ -157,7 +158,7 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
               className="text-sm font-semibold text-gray-800 font-mono"
               id={`whatsapp-number-${candidato.id_match}`}
             >
-              {candidato.whatsapp || "No disponible"}
+              {adoptante.whatsapp || "No disponible"}
             </span>
           </div>
         </div>
@@ -290,7 +291,11 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
           </div>
 
           {/* Tags */}
-          {candidato.tags?.length > 0 && (
+        {adoptante.tags?.length > 0 && (
+          <div className="bg-[#f7faf5] rounded-2xl p-4 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890]">Preferencias</p>
+            <div className="flex flex-wrap gap-1.5">
+              {adoptante.tags.map((tag) => {
             <div className="flex flex-wrap gap-1">
               {candidato.tags.slice(0, 3).map((tag) => {
                 const colors = TAG_COLORS[tag.categoria] || { bg: "#f0ede8", text: "#6b7280" };
