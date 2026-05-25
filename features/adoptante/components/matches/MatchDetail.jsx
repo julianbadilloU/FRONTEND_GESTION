@@ -1,7 +1,7 @@
 /**
- * MatchDetail
+ * MatchDetail / MatchDetailContent
  * Panel/sección de detalle de un match individual.
- * Usado en app/adoptante/matches/[id]/page.jsx
+ * Usado en app/adoptante/matches/[id]/page.jsx y en MatchDetailModal.
  * HU-MCH-03 – Sprint 4
  */
 
@@ -12,7 +12,6 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   MessageCircle,
-  MapPin,
   Calendar,
   CheckCircle2,
   XCircle,
@@ -64,12 +63,12 @@ const ESTADO_MENSAJES = {
 };
 
 /**
- * Detalle completo de un match.
+ * Contenido reutilizable del detalle de un match (sin layout ni back button).
+ * Usado tanto en la página dedicada como dentro del modal.
  *
- * @param {{ matchData: object, isLoading: boolean, error: Error|null }} props
+ * @param {{ matchData: object, onMatchUpdate?: (estado: string) => void }} props
  */
-export function MatchDetail({ matchData, isLoading, error, onMatchUpdate }) {
-  const router = useRouter();
+export function MatchDetailContent({ matchData, onMatchUpdate }) {
   const [estadoLocal, setEstadoLocal] = useState(matchData?.estado ?? null);
   const [rechazando, setRechazando] = useState(false);
 
@@ -94,35 +93,11 @@ export function MatchDetail({ matchData, isLoading, error, onMatchUpdate }) {
     }
   };
 
-  // ── Loading ─────────────────────────────────────────────────────────────────
-  if (isLoading) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-8 space-y-4 animate-pulse">
-        <div className="h-6 w-32 bg-gray-200 rounded" />
-        <div className="h-64 bg-gray-200 rounded-2xl" />
-        <div className="h-24 bg-gray-100 rounded-xl" />
-      </div>
-    );
-  }
-
-  // ── Error ────────────────────────────────────────────────────────────────────
-  if (error || !matchData) {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <p className="text-red-500 font-medium">No se pudo cargar el detalle del match.</p>
-        <button
-          onClick={() => router.back()}
-          className="mt-4 text-sm text-gray-500 underline"
-        >
-          Volver al historial
-        </button>
-      </div>
-    );
-  }
+  if (!matchData) return null;
 
   const { mascota, albergue, estado, puntaje_compatibilidad, fecha_match, contactos } = matchData;
   const estadoActual = estadoLocal ?? estado;
-  const foto = mascota?.fotos?.[0]?.url ?? null;  // fotos es array de {id_foto, url, orden}
+  const foto = mascota?.fotos?.[0]?.url ?? null;
   const pct = puntaje_compatibilidad ?? null;
   const msgConfig = ESTADO_MENSAJES[estadoActual] ?? ESTADO_MENSAJES.pendiente;
   const MsgIcon = msgConfig.icon;
@@ -135,111 +110,99 @@ export function MatchDetail({ matchData, isLoading, error, onMatchUpdate }) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      {/* Botón volver */}
-      <button
-        id="btn-volver-matches"
-        onClick={() => router.push("/adoptante/matches")}
-        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors mb-6"
-      >
-        <ArrowLeft size={16} />
-        Volver al historial
-      </button>
-
-      {/* Card principal */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        {/* Foto - más grande */}
-        <div className="relative h-80 sm:h-96 bg-gray-100">
-          {foto ? (
-            <img
-              src={foto}
-              alt={mascota?.nombre}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-300">
-              <Dog size={64} />
-            </div>
-          )}
-          {/* Estado sobre la foto */}
-          <div className="absolute top-4 right-4">
-            <EstadoBadge estado={estadoActual} />
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* Foto - más grande */}
+      <div className="relative h-80 sm:h-96 bg-gray-100">
+        {foto ? (
+          <img
+            src={foto}
+            alt={mascota?.nombre}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-300">
+            <Dog size={64} />
           </div>
+        )}
+        {/* Estado sobre la foto */}
+        <div className="absolute top-4 right-4">
+          <EstadoBadge estado={estadoActual} />
+        </div>
+      </div>
+
+      {/* Información */}
+      <div className="p-6 space-y-4">
+        {/* Nombre y albergue */}
+        <div>
+          <h1
+            id="match-detail-nombre"
+            className="text-2xl font-bold text-gray-900"
+          >
+            {mascota?.nombre}
+          </h1>
+          <p className="text-sm text-[#7a9e6a] font-medium mt-0.5">
+            {albergue?.nombre_albergue}
+          </p>
         </div>
 
-        {/* Información */}
-        <div className="p-6 space-y-4">
-          {/* Nombre y albergue */}
-          <div>
-            <h1
-              id="match-detail-nombre"
-              className="text-2xl font-bold text-gray-900"
-            >
-              {mascota?.nombre}
-            </h1>
-            <p className="text-sm text-[#7a9e6a] font-medium mt-0.5">
-              {albergue?.nombre_albergue}
-            </p>
-          </div>
+        {/* Fecha */}
+        <div className="flex items-center gap-2 text-sm text-gray-400">
+          <Calendar size={14} />
+          <span>
+            Match realizado el{" "}
+            {new Date(fecha_match).toLocaleDateString("es-CO", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </span>
+        </div>
 
-          {/* Fecha */}
+        {/* Estado de la mascota */}
+        {mascota?.estado_adopcion && (
           <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Calendar size={14} />
-            <span>
-              Match realizado el{" "}
-              {new Date(fecha_match).toLocaleDateString("es-CO", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Estado de la mascota:</span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              mascota.estado_adopcion === "disponible"  ? "bg-emerald-50 text-emerald-700" :
+              mascota.estado_adopcion === "en_proceso"  ? "bg-blue-50 text-blue-700" :
+              mascota.estado_adopcion === "adoptado"    ? "bg-[#e8f0e4] text-[#4a7c59]" :
+              "bg-gray-100 text-gray-500"
+            }`}>
+              {mascota.estado_adopcion.replace(/_/g, " ")}
             </span>
           </div>
+        )}
 
-          {/* Estado de la mascota */}
-          {mascota?.estado_adopcion && (
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Estado de la mascota:</span>
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                mascota.estado_adopcion === "disponible"  ? "bg-emerald-50 text-emerald-700" :
-                mascota.estado_adopcion === "en_proceso"  ? "bg-blue-50 text-blue-700" :
-                mascota.estado_adopcion === "adoptado"    ? "bg-[#e8f0e4] text-[#4a7c59]" :
-                "bg-gray-100 text-gray-500"
-              }`}>
-                {mascota.estado_adopcion.replace(/_/g, " ")}
-              </span>
+        {/* Barra de compatibilidad */}
+        {pct !== null && (
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              Compatibilidad
+            </p>
+            <CompatibilityBar pct={pct} />
+          </div>
+        )}
+
+        {/* Tags de la mascota */}
+        {mascota?.tags?.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              Características
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {mascota.tags.filter(t => !(t.nombre_tag === "Raza" && t.valor === "Otra")).slice(0, 8).map((t, i) => {
+                const colors = ["bg-[#e8a55a]", "bg-[#f0c97a]", "bg-[#e8b8c4]", "bg-[#b8d8a8]", "bg-[#a3c9e8]", "bg-[#d4b8e8]", "bg-[#e8d4a5]", "bg-[#a8d8c8]"];
+                return (
+                  <span key={i} className={`px-3 py-1 text-[11px] font-semibold rounded-full text-white shadow-sm ${colors[i % colors.length]}`}>
+                    {t.nombre_tag}: {t.valor}
+                  </span>
+                );
+              })}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Barra de compatibilidad */}
-          {pct !== null && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                Compatibilidad
-              </p>
-              <CompatibilityBar pct={pct} />
-            </div>
-          )}
-
-          {/* Tags de la mascota */}
-          {mascota?.tags?.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                Características
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {mascota.tags.filter(t => !(t.nombre_tag === "Raza" && t.valor === "Otra")).slice(0, 8).map((t, i) => {
-                  const colors = ["bg-[#e8a55a]", "bg-[#f0c97a]", "bg-[#e8b8c4]", "bg-[#b8d8a8]", "bg-[#a3c9e8]", "bg-[#d4b8e8]", "bg-[#e8d4a5]", "bg-[#a8d8c8]"];
-                  return (
-                    <span key={i} className={`px-3 py-1 text-[11px] font-semibold rounded-full text-white shadow-sm ${colors[i % colors.length]}`}>
-                      {t.nombre_tag}: {t.valor}
-                    </span>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-      {/* Mensaje por estado */}
+        {/* Mensaje por estado */}
         <div
           id="match-detail-mensaje"
           className={`flex items-start gap-3 p-4 rounded-xl ${msgConfig.bg}`}
@@ -287,32 +250,83 @@ export function MatchDetail({ matchData, isLoading, error, onMatchUpdate }) {
           </div>
         )}
 
-          {/* Botón WhatsApp */}
-          {albergue?.whatsapp && (
-            <button
-              id="btn-whatsapp-detail"
-              onClick={handleWhatsApp}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors text-sm"
-            >
-              <MessageCircle size={18} />
-              Contactar al albergue por WhatsApp
-            </button>
-          )}
+        {/* Botón WhatsApp */}
+        {albergue?.whatsapp && (
+          <button
+            id="btn-whatsapp-detail"
+            onClick={handleWhatsApp}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors text-sm"
+          >
+            <MessageCircle size={18} />
+            Contactar al albergue por WhatsApp
+          </button>
+        )}
 
-          {/* Botón Rechazar — solo visible en estados que permiten rechazo */}
-          {(estadoActual === "contactado" || estadoActual === "pendiente") && (
-            <button
-              id="btn-rechazar-match"
-              onClick={handleReject}
-              disabled={rechazando}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-semibold rounded-xl transition-colors text-sm"
-            >
-              <ThumbsDown size={18} />
-              {rechazando ? "Rechazando…" : "Rechazar match"}
-            </button>
-          )}
-        </div>
+        {/* Botón Rechazar — solo visible en estados que permiten rechazo */}
+        {(estadoActual === "contactado" || estadoActual === "pendiente") && (
+          <button
+            id="btn-rechazar-match"
+            onClick={handleReject}
+            disabled={rechazando}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-semibold rounded-xl transition-colors text-sm"
+          >
+            <ThumbsDown size={18} />
+            {rechazando ? "Rechazando…" : "Rechazar match"}
+          </button>
+        )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Detalle completo de un match con layout de página (back button + card).
+ * Usado en app/adoptante/matches/[id]/page.jsx
+ *
+ * @param {{ matchData: object, isLoading: boolean, error: Error|null, onMatchUpdate?: (estado: string) => void }} props
+ */
+export function MatchDetail({ matchData, isLoading, error, onMatchUpdate }) {
+  const router = useRouter();
+
+  // ── Loading ─────────────────────────────────────────────────────────────────
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-4 animate-pulse">
+        <div className="h-6 w-32 bg-gray-200 rounded" />
+        <div className="h-64 bg-gray-200 rounded-2xl" />
+        <div className="h-24 bg-gray-100 rounded-xl" />
+      </div>
+    );
+  }
+
+  // ── Error ────────────────────────────────────────────────────────────────────
+  if (error || !matchData) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
+        <p className="text-red-500 font-medium">No se pudo cargar el detalle del match.</p>
+        <button
+          onClick={() => router.back()}
+          className="mt-4 text-sm text-gray-500 underline"
+        >
+          Volver al historial
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8">
+      {/* Botón volver */}
+      <button
+        id="btn-volver-matches"
+        onClick={() => router.push("/adoptante/matches")}
+        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 transition-colors mb-6"
+      >
+        <ArrowLeft size={16} />
+        Volver al historial
+      </button>
+
+      <MatchDetailContent matchData={matchData} onMatchUpdate={onMatchUpdate} />
     </div>
   );
 }

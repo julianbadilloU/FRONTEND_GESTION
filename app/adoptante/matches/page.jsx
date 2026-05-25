@@ -6,6 +6,7 @@ import { Heart, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import PetDetailModal from "@/features/shared/components/PetDetailModal";
+import MatchDetailModal from "@/features/shared/components/MatchDetailModal";
 import { getMatchesAdoptante } from "@/features/adoptante/services/match.service";
 import { getDescartes, deshacerDescarte } from "@/features/adoptante/services/adoptante.service";
 import { MatchCard } from "@/features/adoptante/components/matches/MatchCard";
@@ -50,6 +51,7 @@ export default function MatchesPage() {
   const [estadoTab, setEstadoTab] = useState("");
   const [offset, setOffset] = useState(0);
   const [selectedMascotaId, setSelectedMascotaId] = useState(null);
+  const [selectedMatchId, setSelectedMatchId] = useState(null);
 
   // ── Query ──────────────────────────────────────────────────────────────────
   const { data, isLoading, error } = useQuery({
@@ -247,7 +249,7 @@ export default function MatchesPage() {
                             });
                           }
                         } else {
-                          router.push(`/adoptante/matches/${match.id_match}`);
+                          setSelectedMatchId(match.id_match);
                         }
                       }}
                     />
@@ -295,6 +297,11 @@ export default function MatchesPage() {
       <PetDetailModal
         mascotaId={selectedMascotaId}
         onClose={() => setSelectedMascotaId(null)}
+      />
+      {/* Modal de detalle de match */}
+      <MatchDetailModal
+        matchId={selectedMatchId}
+        onClose={() => setSelectedMatchId(null)}
       />
     </ClientAuthGuard>
   );
