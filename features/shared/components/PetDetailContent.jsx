@@ -62,6 +62,7 @@ export default function PetDetailContent({
   const userRole = useUserRole();
   const [fotoIdx, setFotoIdx] = useState(0);
   const [lightbox, setLightbox] = useState(false);
+  const [zoom, setZoom] = useState(1);
   const [liked, setLiked] = useState(false);
   const [shared, setShared] = useState(false);
   const [feedback, setFeedback] = useState(null);
@@ -169,7 +170,7 @@ export default function PetDetailContent({
             <img
               src={fotoActual}
               alt={`${mascota.nombre} foto ${fotoIdx + 1}`}
-              className="w-full h-full object-contain cursor-pointer"
+              className="w-full h-full object-cover cursor-pointer"
               onClick={() => setLightbox(true)}
             />
           ) : (
@@ -392,28 +393,49 @@ export default function PetDetailContent({
           )}
         </div>
       </div>
-      {/* Lightbox / visor de imagen */}
+      {/* Lightbox / visor de imagen con zoom */}
       {lightbox && fotoActual && (
         <div
-          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4 cursor-pointer"
-          onClick={() => setLightbox(false)}
+          className="fixed inset-0 z-[60] bg-black/95 flex items-center justify-center p-4"
+          onClick={() => { setLightbox(false); setZoom(1); }}
         >
           <button
-            onClick={() => setLightbox(false)}
+            onClick={() => { setLightbox(false); setZoom(1); }}
             className="absolute top-4 right-4 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center text-xl transition-colors z-10"
           >
             ✕
           </button>
+          {/* Controles de zoom */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-10">
+            <button
+              onClick={(e) => { e.stopPropagation(); setZoom(z => Math.max(0.5, z - 0.5)); }}
+              className="w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center text-lg font-bold transition-colors"
+            >
+              −
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setZoom(z => Math.min(3, z + 0.5)); }}
+              className="w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center text-lg font-bold transition-colors"
+            >
+              +
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); setZoom(1); }}
+              className="w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors"
+            >
+              1:1
+            </button>
+          </div>
           {totalFotos > 1 && (
             <>
               <button
-                onClick={(e) => { e.stopPropagation(); setFotoIdx((i) => (i - 1 + totalFotos) % totalFotos); }}
+                onClick={(e) => { e.stopPropagation(); setZoom(1); setFotoIdx((i) => (i - 1 + totalFotos) % totalFotos); }}
                 className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-colors z-10"
               >
                 <ChevronLeft size={22} />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); setFotoIdx((i) => (i + 1) % totalFotos); }}
+                onClick={(e) => { e.stopPropagation(); setZoom(1); setFotoIdx((i) => (i + 1) % totalFotos); }}
                 className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full flex items-center justify-center transition-colors z-10"
               >
                 <ChevronRight size={22} />
@@ -423,8 +445,13 @@ export default function PetDetailContent({
           <img
             src={fotoActual}
             alt={`${mascota.nombre} foto ${fotoIdx + 1}`}
-            className="max-w-full max-h-full object-contain"
+            className="max-w-full max-h-full object-contain transition-transform duration-200"
+            style={{ transform: `scale(${zoom})`, cursor: zoom > 1 ? 'grab' : 'zoom-in' }}
             onClick={(e) => e.stopPropagation()}
+            onWheel={(e) => {
+              e.stopPropagation();
+              setZoom(z => Math.max(0.5, Math.min(3, z + (e.deltaY < 0 ? 0.25 : -0.25))));
+            }}
           />
         </div>
       )}
