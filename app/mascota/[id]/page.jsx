@@ -4,8 +4,9 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Dog, Cat, ArrowLeft, MapPin, Calendar, Heart, Share2, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Dog, Cat, ArrowLeft, MapPin, Calendar, Heart, Share2, MessageCircle, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { getMascotaById } from "@/features/albergue/services/mascota.service";
+import { registrarMeInteresa } from "@/features/adoptante/services/adoptante.service";
 
 /**
  * Obtiene el rol del usuario actual decodificando el JWT del localStorage.
@@ -42,6 +43,26 @@ export default function MascotaDetallePage() {
   const id = params?.id;
   const userRole = useUserRole();
   const [fotoIdx, setFotoIdx] = useState(0);
+  const [liked, setLiked] = useState(false);
+  const [shared, setShared] = useState(false);
+
+  const handleLike = async () => {
+    try {
+      await registrarMeInteresa(id);
+      setLiked(true);
+    } catch {}
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      await navigator.share({ title: mascota?.nombre || 'Mascota en adopción', url: window.location.href });
+      setShared(true);
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    }
+  };
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["mascota", id],
@@ -152,11 +173,18 @@ export default function MascotaDetallePage() {
             {/* Botones top-right: solo visibles para adoptante */}
             {userRole !== "albergue" && (
             <div className="absolute top-3 right-3 flex gap-2">
-              <button className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-red-400 transition-colors">
-                <Heart size={18} />
+              <button 
+                onClick={handleLike}
+                disabled={liked}
+                className={`p-2.5 bg-white/90 backdrop-blur-sm rounded-full transition-colors ${liked ? 'text-red-400' : 'text-gray-500 hover:text-red-400'}`}
+              >
+                {liked ? <Heart size={18} fill="currentColor" /> : <Heart size={18} />}
               </button>
-              <button className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full text-gray-500 hover:text-gray-800 transition-colors">
-                <Share2 size={18} />
+              <button 
+                onClick={handleShare}
+                className={`p-2.5 bg-white/90 backdrop-blur-sm rounded-full transition-colors ${shared ? 'text-green-500' : 'text-gray-500 hover:text-gray-800'}`}
+              >
+                {shared ? <Check size={18} /> : <Share2 size={18} />}
               </button>
             </div>
             )}
