@@ -22,10 +22,12 @@ const ESTADOS = [
   { id: "disponible", label: "Disponible", icon: Sparkles, color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", active: "border-emerald-500 bg-emerald-50 text-emerald-700" },
   { id: "en_proceso", label: "En Proceso", icon: Clock, color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", active: "border-amber-500 bg-amber-50 text-amber-700" },
   { id: "adoptado", label: "Adoptado", icon: Home, color: "text-indigo-600", bg: "bg-indigo-50", border: "border-indigo-200", active: "border-indigo-500 bg-indigo-50 text-indigo-700", hint: "Acción irreversible" },
-  { id: "oculto", label: "Oculto", icon: EyeOff, color: "text-slate-500", bg: "bg-slate-50", border: "border-slate-200", active: "border-slate-500 bg-slate-50 text-slate-700" },
+  { id: "oculto", label: "Oculto", icon: EyeOff, color: "text-slate-500", bg: "bg-slate-50", border: "border-slate-200", active: "border-slate-500 bg-slate-50 text-slate-700", hint: "Requiere motivo" },
   { id: "inactivo", label: "Inactivo", icon: Ban, color: "text-rose-600", bg: "bg-rose-50", border: "border-rose-200", active: "border-rose-500 bg-rose-50 text-rose-700", hint: "Requiere motivo" },
   { id: "archivado", label: "Archivado", icon: Archive, color: "text-stone-600", bg: "bg-stone-50", border: "border-stone-200", active: "border-stone-500 bg-stone-50 text-stone-700", hint: "Requiere motivo" },
 ];
+
+const ESTADOS_REQUIEREN_MOTIVO = ["oculto", "inactivo", "archivado"];
 
 /**
  * MascotaEstadoForm — core state change form for a pet.
@@ -46,6 +48,7 @@ export default function MascotaEstadoForm({ mascotaId, onSuccess, onCancel }) {
   const [selectedEstado, setSelectedEstado] = useState("");
   const [motivo, setMotivo] = useState("");
   const [motivoError, setMotivoError] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [showAdoptadoModal, setShowAdoptadoModal] = useState(false);
   const [confirmAdoptado, setConfirmAdoptado] = useState(false);
@@ -92,9 +95,12 @@ export default function MascotaEstadoForm({ mascotaId, onSuccess, onCancel }) {
       return;
     }
 
-    if ((selectedEstado === "inactivo" || selectedEstado === "archivado") && !motivo.trim()) {
-      setMotivoError(true);
-      return;
+    if (ESTADOS_REQUIEREN_MOTIVO.includes(selectedEstado)) {
+      if (!motivo.trim() || motivo.trim().length < 5) {
+        setMotivoError(true);
+        setFieldErrors({ motivo: "El motivo es obligatorio y debe tener al menos 5 caracteres." });
+        return;
+      }
     }
 
     if (selectedEstado === "adoptado") {
@@ -107,11 +113,12 @@ export default function MascotaEstadoForm({ mascotaId, onSuccess, onCancel }) {
 
   const executeChange = async () => {
     setUpdating(true);
+    setFieldErrors({});
     try {
       if (mascotaId !== "demo-123") {
         await updateMascotaEstado(mascotaId, {
           estado: selectedEstado,
-          motivo: (selectedEstado === "inactivo" || selectedEstado === "archivado") ? motivo.trim() : undefined
+          motivo: ESTADOS_REQUIEREN_MOTIVO.includes(selectedEstado) ? motivo.trim() : undefined
         });
       } else {
         await new Promise(r => setTimeout(r, 1000));
@@ -124,15 +131,25 @@ export default function MascotaEstadoForm({ mascotaId, onSuccess, onCancel }) {
 
       onSuccess?.();
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Ocurrió un error al actualizar el estado.";
-      showToast(errorMsg, "error");
+      const errors = err.response?.data?.errors;
+      if (Array.isArray(errors) && errors.length > 0) {
+        const fieldMap = {};
+        errors.forEach((e) => {
+          if (e.field) fieldMap[e.field] = e.message;
+        });
+        setFieldErrors(fieldMap);
+        if (fieldMap.motivo) setMotivoError(true);
+      } else {
+        const errorMsg = err.response?.data?.message || "Ocurrió un error al actualizar el estado.";
+        showToast(errorMsg, "error");
+      }
     } finally {
       setUpdating(false);
     }
   };
 
   const currentEstadoObj = ESTADOS.find((e) => e.id === (mascota?.estado_adopcion ?? mascota?.estado));
-  const needsMotivo = selectedEstado === "inactivo" || selectedEstado === "archivado";
+  const needsMotivo = ESTADOS_REQUIEREN_MOTIVO.includes(selectedEstado);
 
   if (loading) {
     return (
@@ -219,6 +236,7 @@ export default function MascotaEstadoForm({ mascotaId, onSuccess, onCancel }) {
                   onClick={() => {
                     setSelectedEstado(est.id);
                     setMotivoError(false);
+                    setFieldErrors({});
                   }}
                   disabled={updating}
                   className={cn(
@@ -261,8 +279,10 @@ export default function MascotaEstadoForm({ mascotaId, onSuccess, onCancel }) {
                   disabled={updating}
                 />
                 <div className="flex justify-between items-center px-1">
-                  {motivoError ? (
-                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">El motivo es obligatorio</p>
+                  {motivoError || fieldErrors.motivo ? (
+                    <p className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">
+                      {fieldErrors.motivo || "El motivo es obligatorio"}
+                    </p>
                   ) : <div />}
                   <p className="text-[10px] text-gray-400 font-bold">{motivo.length}/200</p>
                 </div>

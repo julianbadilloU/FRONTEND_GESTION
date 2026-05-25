@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { Dog, Plus, Pencil, ToggleRight, Eye, Search, Trash2, X } from "lucide-react";
+import { Dog, Plus, Pencil, ToggleRight, Eye, Search, Trash2, X, Filter } from "lucide-react";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import PetDetailModal from "@/features/shared/components/PetDetailModal";
 import MascotaEstadoModal from "@/features/albergue/components/mascota-estado/MascotaEstadoModal";
@@ -43,6 +43,9 @@ export default function MisMascotasPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
+  const [estadoFiltro, setEstadoFiltro] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedMascotaId, setSelectedMascotaId] = useState(null);
   const [selectedPetForState, setSelectedPetForState] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -50,9 +53,23 @@ export default function MisMascotasPage() {
   const [motivo, setMotivo] = useState("");
   const [eliminando, setEliminando] = useState(false);
 
+  const handleSearch = () => {
+    setSearchTerm(searchInput);
+    setPage(1);
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") handleSearch();
+  };
+
+  const handleEstadoChange = (e) => {
+    setEstadoFiltro(e.target.value);
+    setPage(1);
+  };
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ["mis-mascotas", page],
-    queryFn: () => getMisMascotas({ page, limit: 10 }),
+    queryKey: ["mis-mascotas", page, estadoFiltro, searchTerm],
+    queryFn: () => getMisMascotas({ page, limit: 10, estado: estadoFiltro, busqueda: searchTerm }),
   });
 
   const mascotas = data?.data || [];
@@ -97,6 +114,34 @@ export default function MisMascotasPage() {
             <Plus size={18} />
             Publicar nueva
           </button>
+        </div>
+
+        {/* Filtros */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+          <div className="relative flex-1">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Buscar por nombre..."
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8b9e7e]/20 focus:border-[#8b9e7e] transition-all"
+            />
+          </div>
+          <select
+            value={estadoFiltro}
+            onChange={handleEstadoChange}
+            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#8b9e7e]/20 focus:border-[#8b9e7e] transition-all min-w-[160px]"
+          >
+            <option value="">Todos los estados</option>
+            <option value="disponible">Disponible</option>
+            <option value="en_proceso">En proceso</option>
+            <option value="adoptado">Adoptado</option>
+            <option value="oculto">Oculto</option>
+            <option value="inactivo">Inactivo</option>
+            <option value="archivado">Archivado</option>
+          </select>
         </div>
 
         {/* Tabla / Grid */}
