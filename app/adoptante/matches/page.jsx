@@ -6,6 +6,7 @@ import { Heart, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
 import { getMatchesAdoptante } from "@/features/adoptante/services/match.service";
+import { getDescartes } from "@/features/adoptante/services/adoptante.service";
 import { MatchCard } from "@/features/adoptante/components/matches/MatchCard";
 
 // ─── Constantes ───────────────────────────────────────────────────────────────
@@ -51,7 +52,9 @@ export default function MatchesPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: [MATCHES_QUERY_KEY, estadoTab, offset],
     queryFn: () =>
-      getMatchesAdoptante({ estado: estadoTab, limit: LIMIT, offset }),
+      estadoTab === "descartado"
+        ? getDescartes()
+        : getMatchesAdoptante({ estado: estadoTab, limit: LIMIT, offset }),
     keepPreviousData: true,
   });
 
