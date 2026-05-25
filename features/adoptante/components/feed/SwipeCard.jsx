@@ -247,7 +247,7 @@ export function SwipeCard({
                     key={`${t.nombre_tag}-${t.valor}-${i}`}
                     className={`px-3 py-1 text-[11px] font-semibold rounded-full ${palette.bg} ${palette.text} shadow-sm`}
                   >
-                    {t.valor}
+                    {t.valor.length > 12 ? t.valor : `${t.nombre_tag}: ${t.valor}`}
                   </span>
                 );
               })}
