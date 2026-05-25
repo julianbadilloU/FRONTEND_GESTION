@@ -141,7 +141,7 @@ export default function AlbergueNotificacionesPage() {
                   {/* Link al recurso si existe */}
                   {notif.recurso_tipo && notif.recurso_id && (
                     <Link
-                      href={`#`}
+                      href={notif.recurso_tipo === 'match' ? `/albergue/candidatos?match=${notif.recurso_id}` : `#`}
                       className="text-xs text-[#5e924e] hover:underline mt-1 inline-block"
                     >
                       Ver detalles
