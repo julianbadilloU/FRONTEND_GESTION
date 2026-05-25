@@ -290,7 +290,7 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
 }
 
 // ── Main View ─────────────────────────────────────────────────────────────────
-export function CandidatosView() {
+export function CandidatosView({ preselectedMatchId = null }) {
   const queryClient = useQueryClient();
   const [selectedMascota, setSelectedMascota] = useState(null);
   const [selectedCandidato, setSelectedCandidato] = useState(null);
@@ -346,6 +346,19 @@ export function CandidatosView() {
   });
 
   const candidatos = Array.isArray(candidatosData) ? candidatosData : (candidatosData?.data ?? []);
+
+  // Auto-select candidato from notification link (preselectedMatchId)
+  useEffect(() => {
+    if (preselectedMatchId && candidatos.length > 0 && !selectedCandidato) {
+      const match = candidatos.find(c => c.id_match === preselectedMatchId);
+      if (match) {
+        // Also select the corresponding pet
+        const pet = mascotas.find(p => p.id_mascota === match.mascota?.id_mascota || p.id_mascota === match.id_mascota);
+        if (pet) setSelectedMascota(pet);
+        setSelectedCandidato(match);
+      }
+    }
+  }, [preselectedMatchId, candidatos, mascotas, selectedCandidato]);
 
   // Handle contact registered — update local state optimistically
   const handleContactado = useCallback((idMatch, errorMsg) => {
