@@ -40,6 +40,13 @@ const ESTADO_CONFIG = {
     border: "border-[#4a7c59]/20",
     dot: "bg-[#4a7c59]",
   },
+  descartado: {
+    label: "Descartado",
+    bg: "bg-red-50",
+    text: "text-red-600",
+    border: "border-red-200",
+    dot: "bg-red-400",
+  },
 };
 
 /**
