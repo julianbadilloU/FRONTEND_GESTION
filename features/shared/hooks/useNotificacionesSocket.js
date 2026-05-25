@@ -25,8 +25,10 @@ export function useNotificacionesSocket() {
     if (!socket.connected) socket.connect();
 
     const onNuevaNotificacion = () => {
-      // Invalidate all notification queries so pages refresh automatically
+      // Invalidate both the main list and the unread count query so the
+      // navbar badge updates in real time alongside the notification pages.
       queryClient.invalidateQueries({ queryKey: ['notificaciones'] });
+      queryClient.invalidateQueries({ queryKey: ['notificaciones', 'noLeidas'] });
     };
 
     socket.on('nueva_notificacion', onNuevaNotificacion);

@@ -138,10 +138,26 @@ export default function AlbergueNotificacionesPage() {
                     {formatFecha(notif.fecha_creacion)}
                   </p>
 
-                  {/* Link al recurso si existe */}
-                  {notif.recurso_tipo && notif.recurso_id && (
+                  {/* Link al recurso según su tipo */}
+                  {notif.recurso_tipo === 'match' && notif.recurso_id && (
                     <Link
-                      href={notif.recurso_tipo === 'match' ? `/albergue/candidatos?match=${notif.recurso_id}` : `#`}
+                      href={`/albergue/candidatos?match=${notif.recurso_id}`}
+                      className="text-xs text-[#5e924e] hover:underline mt-1 inline-block"
+                    >
+                      Ver detalles
+                    </Link>
+                  )}
+                  {notif.recurso_tipo === 'mascota' && notif.recurso_id && (
+                    <Link
+                      href={`/albergue/mascotas/${notif.recurso_id}/estado`}
+                      className="text-xs text-[#5e924e] hover:underline mt-1 inline-block"
+                    >
+                      Ver detalles
+                    </Link>
+                  )}
+                  {notif.recurso_tipo === 'adopcion' && (
+                    <Link
+                      href="/albergue/adopciones"
                       className="text-xs text-[#5e924e] hover:underline mt-1 inline-block"
                     >
                       Ver detalles

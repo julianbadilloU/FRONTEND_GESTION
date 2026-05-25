@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCheck, Loader2 } from "lucide-react";
 import Link from "next/link";
 
+import PetDetailModal from "@/features/shared/components/PetDetailModal";
 import {
   getNotificaciones,
   marcarLeida,
@@ -31,6 +33,7 @@ function formatFecha(dateString) {
 
 export default function NotificacionesPage() {
   const queryClient = useQueryClient();
+  const [selectedMascotaId, setSelectedMascotaId] = useState(null);
 
   const { data: notifData, isLoading } = useQuery({
     queryKey: ["notificaciones"],
@@ -138,10 +141,26 @@ export default function NotificacionesPage() {
                     {formatFecha(notif.fecha_creacion)}
                   </p>
 
-                  {/* Link al recurso si existe */}
-                  {notif.recurso_tipo && notif.recurso_id && (
+                  {/* Link al recurso según su tipo */}
+                  {notif.recurso_tipo === 'match' && notif.recurso_id && (
                     <Link
-                      href={`#`}
+                      href={`/adoptante/matches/${notif.recurso_id}`}
+                      className="text-xs text-[#81af6d] hover:underline mt-1 inline-block"
+                    >
+                      Ver detalles
+                    </Link>
+                  )}
+                  {notif.recurso_tipo === 'mascota' && notif.recurso_id && (
+                    <button
+                      onClick={() => setSelectedMascotaId(notif.recurso_id)}
+                      className="text-xs text-[#81af6d] hover:underline mt-1 inline-block text-left"
+                    >
+                      Ver detalles
+                    </button>
+                  )}
+                  {notif.recurso_tipo === 'adopcion' && (
+                    <Link
+                      href="/adoptante/matches"
                       className="text-xs text-[#81af6d] hover:underline mt-1 inline-block"
                     >
                       Ver detalles
@@ -166,5 +185,9 @@ export default function NotificacionesPage() {
         </div>
       )}
     </div>
+    <PetDetailModal
+      mascotaId={selectedMascotaId}
+      onClose={() => setSelectedMascotaId(null)}
+    />
   );
 }
