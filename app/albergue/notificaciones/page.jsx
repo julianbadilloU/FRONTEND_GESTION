@@ -32,6 +32,7 @@ function formatFecha(dateString) {
 
 export default function AlbergueNotificacionesPage() {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const { data: notifData, isLoading } = useQuery({
     queryKey: ["notificaciones"],
