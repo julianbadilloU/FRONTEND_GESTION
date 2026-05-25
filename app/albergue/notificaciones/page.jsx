@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Bell, CheckCheck, Loader2 } from "lucide-react";
 import Link from "next/link";
@@ -140,28 +141,37 @@ export default function AlbergueNotificacionesPage() {
 
                   {/* Link al recurso según su tipo */}
                   {notif.recurso_tipo === 'match' && notif.recurso_id && (
-                    <Link
-                      href={`/albergue/candidatos?match=${notif.recurso_id}`}
+                    <button
+                      onClick={() => {
+                        marcarLeidaMut.mutate(notifId);
+                        router.push(`/albergue/candidatos?match=${notif.recurso_id}`);
+                      }}
                       className="text-xs text-[#5e924e] hover:underline mt-1 inline-block"
                     >
                       Ver detalles
-                    </Link>
+                    </button>
                   )}
                   {notif.recurso_tipo === 'mascota' && notif.recurso_id && (
-                    <Link
-                      href={`/albergue/mascotas/${notif.recurso_id}/estado`}
+                    <button
+                      onClick={() => {
+                        marcarLeidaMut.mutate(notifId);
+                        router.push(`/albergue/mascotas/${notif.recurso_id}/estado`);
+                      }}
                       className="text-xs text-[#5e924e] hover:underline mt-1 inline-block"
                     >
                       Ver detalles
-                    </Link>
+                    </button>
                   )}
                   {notif.recurso_tipo === 'adopcion' && (
-                    <Link
-                      href="/albergue/adopciones"
+                    <button
+                      onClick={() => {
+                        marcarLeidaMut.mutate(notifId);
+                        router.push("/albergue/adopciones");
+                      }}
                       className="text-xs text-[#5e924e] hover:underline mt-1 inline-block"
                     >
                       Ver detalles
-                    </Link>
+                    </button>
                   )}
                 </div>
 

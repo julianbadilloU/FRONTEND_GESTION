@@ -144,12 +144,15 @@ export default function NotificacionesPage() {
 
                   {/* Link al recurso según su tipo */}
                   {notif.recurso_tipo === 'match' && notif.recurso_id && (
-                    <Link
-                      href={`/adoptante/matches/${notif.recurso_id}`}
+                    <button
+                      onClick={() => {
+                        marcarLeidaMut.mutate(notifId);
+                        router.push(`/adoptante/matches/${notif.recurso_id}`);
+                      }}
                       className="text-xs text-[#81af6d] hover:underline mt-1 inline-block"
                     >
                       Ver detalles
-                    </Link>
+                    </button>
                   )}
                   {notif.recurso_tipo === 'mascota' && notif.recurso_id && (
                     <button
