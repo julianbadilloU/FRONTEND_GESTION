@@ -241,7 +241,7 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
         {/* Action button */}
         <WhatsAppContactButton
           idMatch={candidato.id_match}
-          adoptante={candidato}
+          adoptante={adoptante}
           nombreMascota={nombreMascota}
           estadoInicial={candidato.estado}
           onContactado={onContactado}
