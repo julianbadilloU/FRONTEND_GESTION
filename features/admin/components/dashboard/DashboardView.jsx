@@ -3,13 +3,18 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  AlertCircle,
   BarChart2,
+  ChevronDown,
+  ChevronUp,
   Loader2,
   Users,
   Home,
   PawPrint,
   Heart,
   RefreshCw,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import {
   PieChart,
@@ -22,9 +27,13 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  BarChart as RechartsBarChart,
+  Bar,
 } from "recharts";
 import { getEstadisticas } from "@/features/admin/services/adminStats.service";
 import { DateRangeFilter } from "./DateRangeFilter";
+import { AdoptionFunnel } from "./AdoptionFunnel";
+import { MatchFunnel } from "./MatchFunnel";
 
 const MONTH_LABELS = [
   "Ene", "Feb", "Mar", "Abr", "May", "Jun",
@@ -35,14 +44,57 @@ const SPECIES_COLORS = ["#8b9e7e", "#6b8fa3", "#c9a96e", "#b8b8b8"];
 
 // ── Sub-components ──────────────────────────────────────────────
 
-function KpiCard({ label, value, sub }) {
+function KpiCard({ label, value, sub, trend, trendLabel, sparkline }) {
   return (
     <div className="bg-white rounded-3xl border border-gray-100 p-6 flex flex-col gap-3 shadow-sm">
       <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">
         {label}
       </p>
       <p className="text-4xl font-bold text-gray-900">{value ?? "—"}</p>
-      {sub !== undefined && (
+
+      {/* Trend indicator (Task 2.1) */}
+      {trend !== undefined && trend !== null && (
+        <div className="flex items-center gap-1">
+          {trend >= 0 ? (
+            <TrendingUp size={14} className="text-emerald-600" strokeWidth={2.5} />
+          ) : (
+            <TrendingDown size={14} className="text-rose-500" strokeWidth={2.5} />
+          )}
+          <span
+            className={`text-xs font-bold ${
+              trend >= 0 ? "text-emerald-600" : "text-rose-500"
+            }`}
+          >
+            {trend >= 0 ? "+" : ""}
+            {trend}%
+          </span>
+          {trendLabel && (
+            <span className="text-[10px] text-gray-400 ml-0.5">{trendLabel}</span>
+          )}
+        </div>
+      )}
+
+      {/* Sparkline chart (Task 2.1) */}
+      {sparkline && sparkline.length > 0 && (
+        <div className="h-[30px]">
+          <ResponsiveContainer width="100%" height={30}>
+            <AreaChart data={sparkline.map((v, i) => ({ i, v }))} margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
+              <Area
+                type="monotone"
+                dataKey="v"
+                stroke="#8b9e7e"
+                strokeWidth={1.5}
+                fill="#8b9e7e"
+                fillOpacity={0.15}
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Legacy sub (progress bar) — only when no trend/sparkline */}
+      {sub !== undefined && trend === undefined && !sparkline && (
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-gray-400">
             <span>Completitud de perfil</span>
@@ -95,6 +147,7 @@ function EmptyState({ icon: Icon, message, sub }) {
 function ErrorState({ message, onRetry }) {
   return (
     <div className="max-w-md mx-auto mt-12 bg-rose-50 border border-rose-100 p-8 rounded-3xl flex flex-col items-center gap-4 text-center">
+      <AlertCircle size={32} className="text-rose-400" strokeWidth={2} />
       <p className="text-rose-900 font-bold text-lg">
         Error al cargar estadísticas
       </p>
@@ -107,6 +160,31 @@ function ErrorState({ message, onRetry }) {
         Reintentar
       </button>
     </div>
+  );
+}
+
+// ── Collapsible Section Wrapper ──────────────────────────────────
+
+function CollapsibleSection({ title, icon: Icon, children, defaultOpen = true }) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <section className="space-y-4">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2 text-gray-700 w-full text-left"
+      >
+        {Icon && <Icon size={16} strokeWidth={2.5} />}
+        <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
+          {title}
+        </h2>
+        <span className="ml-auto text-gray-400">
+          {open ? <ChevronUp size={16} strokeWidth={2.5} /> : <ChevronDown size={16} strokeWidth={2.5} />}
+        </span>
+      </button>
+      {open && children}
+    </section>
   );
 }
 
@@ -328,6 +406,113 @@ function NewUsersChart({ data }) {
   );
 }
 
+function GeographicBarChart({ data }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+          Adopciones por departamento
+        </p>
+        <EmptyState
+          icon={BarChart2}
+          message="Sin datos geográficos"
+          sub="No hay adopciones registradas en el período seleccionado"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+        Adopciones por departamento
+      </p>
+      <div className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <RechartsBarChart
+            data={data}
+            layout="vertical"
+            margin={{ top: 0, right: 16, bottom: 0, left: 80 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" horizontal={false} />
+            <XAxis type="number" tick={{ fontSize: 11, fill: "#9ca3af" }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <YAxis
+              type="category"
+              dataKey="departamento"
+              tick={{ fontSize: 11, fill: "#4b5563" }}
+              tickLine={false}
+              axisLine={false}
+              width={72}
+            />
+            <Tooltip
+              formatter={(value) => [`${value} adopciones`, "Total"]}
+              contentStyle={{ borderRadius: "12px", border: "1px solid #e5e7eb", fontSize: "13px" }}
+            />
+            <Bar dataKey="total" fill="#8b9e7e" radius={[0, 4, 4, 0]} barSize={16} />
+          </RechartsBarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+function TagBarChart({ data }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+          Tags populares
+        </p>
+        <EmptyState
+          icon={BarChart2}
+          message="Sin datos de tags"
+          sub="No hay tags registrados"
+        />
+      </div>
+    );
+  }
+
+  const MAX_HEIGHT = 120;
+  const max = Math.max(...data.map((d) => d.total ?? 0), 1);
+
+  return (
+    <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+        Tags populares
+      </p>
+      <div className="space-y-3">
+        {data.map((d, i) => {
+          const height = Math.round(((d.total ?? 0) / max) * MAX_HEIGHT);
+          return (
+            <div key={d.valor ?? i} className="flex items-center gap-3">
+              <span className="text-xs text-gray-500 font-semibold w-6 text-right shrink-0">
+                {i + 1}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-700 font-medium truncate">
+                    {d.valor ?? d.tag ?? `Tag ${i + 1}`}
+                  </span>
+                  <span className="font-bold text-gray-900 ml-2">{d.total}</span>
+                </div>
+                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${Math.max(height, 2)}%`,
+                      backgroundColor: "#e07a5f",
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Component ──────────────────────────────────────────────
 
 export function DashboardView() {
@@ -368,6 +553,10 @@ export function DashboardView() {
   const especies = stats?.especies_distribucion ?? [];
   const nuevosUsuarios = stats?.nuevos_usuarios_por_mes ?? [];
   const tasa = usuarios.tasa_completitud ?? usuarios.tasa_completitud_perfil ?? 0;
+  const kpiTrends = stats?.kpi_trends ?? {};
+  const distribucionGeografica = stats?.distribucion_geografica ?? [];
+  const tagsPopulares = stats?.tags_populares ?? [];
+  const matchFunnelData = stats?.match_funnel ?? {};
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-screen space-y-8 sm:space-y-10">
@@ -407,13 +596,54 @@ export function DashboardView() {
             </div>
           </section>
 
-          {/* Chart Skeletons */}
+          {/* Gráficos de adopción Skeletons */}
           <section className="space-y-4">
-            <div className="h-4 bg-gray-100 rounded w-32 animate-pulse" />
+            <div className="h-4 bg-gray-100 rounded w-36 animate-pulse" />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <WidgetSkeleton height="h-48" />
               <WidgetSkeleton height="h-48" />
             </div>
+          </section>
+
+          {/* Embudos Skeletons */}
+          <section className="space-y-4">
+            <div className="h-4 bg-gray-100 rounded w-24 animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <WidgetSkeleton height="h-56" />
+              <WidgetSkeleton height="h-56" />
+            </div>
+          </section>
+
+          {/* Nuevos Usuarios Skeleton */}
+          <section className="space-y-4">
+            <div className="h-4 bg-gray-100 rounded w-40 animate-pulse" />
+            <WidgetSkeleton height="h-48" />
+          </section>
+
+          {/* Matching KPI Skeletons */}
+          <section className="space-y-4">
+            <div className="h-4 bg-gray-100 rounded w-44 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <KpiCardSkeleton key={i} />
+              ))}
+            </div>
+            <WidgetSkeleton height="h-32" />
+          </section>
+
+          {/* Geo + Tags Skeletons */}
+          <section className="space-y-4">
+            <div className="h-4 bg-gray-100 rounded w-48 animate-pulse" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <WidgetSkeleton height="h-64" />
+              <WidgetSkeleton height="h-48" />
+            </div>
+          </section>
+
+          {/* Ranking Skeleton */}
+          <section className="space-y-4">
+            <div className="h-4 bg-gray-100 rounded w-36 animate-pulse" />
+            <WidgetSkeleton height="h-40" />
           </section>
         </div>
       ) : (
@@ -439,39 +669,42 @@ export function DashboardView() {
             </div>
           </section>
 
-          {/* Section 2 — Mascotas */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 text-gray-700">
-              <PawPrint size={16} strokeWidth={2.5} />
-              <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
-                Mascotas
-              </h2>
-            </div>
+          {/* Section 2 — Gráficos de adopción */}
+          <CollapsibleSection title="Gráficos de adopción" icon={PawPrint}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <DonutLegend mascotas={mascotas} porEstado={mascotasPorEstado} />
               <SpeciesPieChart data={especies} />
             </div>
-          </section>
+          </CollapsibleSection>
 
-          {/* Section 3 — Nuevos Usuarios */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 text-gray-700">
-              <Users size={16} strokeWidth={2.5} />
-              <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
-                Nuevos Usuarios
-              </h2>
+          {/* Section 3 — Embudos */}
+          <CollapsibleSection title="Embudos" icon={BarChart2}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <AdoptionFunnel
+                data={[
+                  { label: "disponible", count: mascotasPorEstado.disponible ?? 0 },
+                  { label: "en_proceso", count: mascotasPorEstado.en_proceso ?? 0 },
+                  { label: "adoptado", count: mascotasPorEstado.adoptado ?? 0 },
+                ]}
+              />
+              <MatchFunnel
+                data={[
+                  { label: "pendiente", count: matchFunnelData.pendiente ?? 0 },
+                  { label: "contactado", count: matchFunnelData.contactado ?? 0 },
+                  { label: "en_adopcion", count: matchFunnelData.en_adopcion ?? 0 },
+                  { label: "adoptado", count: matchFunnelData.adoptado ?? 0 },
+                ]}
+              />
             </div>
+          </CollapsibleSection>
+
+          {/* Section 4 — Nuevos Usuarios */}
+          <CollapsibleSection title="Nuevos Usuarios" icon={Users}>
             <NewUsersChart data={nuevosUsuarios} />
-          </section>
+          </CollapsibleSection>
 
-          {/* Section 4 — Matching y Adopciones */}
-          <section className="space-y-4">
-            <div className="flex items-center gap-2 text-gray-700">
-              <Heart size={16} strokeWidth={2.5} />
-              <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
-                Matching y Adopciones
-              </h2>
-            </div>
+          {/* Section 5 — Matching KPIs con tendencias */}
+          <CollapsibleSection title="Matching KPIs con tendencias" icon={Heart}>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mb-6">
               <KpiCard label="Total matches" value={matching.total_matches} />
               <KpiCard label="Total adopciones" value={matching.total_adopciones} />
@@ -484,8 +717,30 @@ export function DashboardView() {
                       )}%`
                     : "0%"
                 }
+                trend={kpiTrends.variacion_tasa_adopcion}
+                trendLabel="vs periodo anterior"
               />
               <KpiCard label="Mascotas disponibles" value={mascotasPorEstado.disponible ?? 0} />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-lg mb-6">
+              <KpiCard
+                label="Tasa adopción actual"
+                value={`${kpiTrends.tasa_adopcion_actual ?? 0}%`}
+                trend={kpiTrends.variacion_tasa_adopcion}
+                trendLabel="vs anterior"
+              />
+              <KpiCard
+                label="Promedio días adopción"
+                value={kpiTrends.promedio_dias_adopcion != null ? `${kpiTrends.promedio_dias_adopcion} días` : "—"}
+              />
+              <KpiCard
+                label="Tasa de descarte"
+                value={`${kpiTrends.tasa_descarte ?? 0}%`}
+              />
+              <KpiCard
+                label="Crecimiento mensual"
+                value={kpiTrends.crecimiento_mensual != null ? `${kpiTrends.crecimiento_mensual}%` : "—"}
+              />
             </div>
 
             {adopcionesPorMes.length > 0 ? (
@@ -506,17 +761,19 @@ export function DashboardView() {
                 />
               </div>
             )}
-          </section>
+          </CollapsibleSection>
 
-          {/* Section 5 — Rendimiento de Albergues */}
-          {topAlbergues.length > 0 && (
-            <section className="space-y-4">
-              <div className="flex items-center gap-2 text-gray-700">
-                <Home size={16} strokeWidth={2.5} />
-                <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
-                  Rendimiento de Albergues
-                </h2>
-              </div>
+          {/* Section 6 — Distribución geográfica + tags */}
+          <CollapsibleSection title="Distribución geográfica + tags" icon={BarChart2}>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <GeographicBarChart data={distribucionGeografica} />
+              <TagBarChart data={tagsPopulares} />
+            </div>
+          </CollapsibleSection>
+
+          {/* Section 7 — Ranking albergues */}
+          <CollapsibleSection title="Ranking albergues" icon={Home}>
+            {topAlbergues.length > 0 ? (
               <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -556,8 +813,14 @@ export function DashboardView() {
                   </tbody>
                 </table>
               </div>
-            </section>
-          )}
+            ) : (
+              <EmptyState
+                icon={Home}
+                message="Sin datos de albergues"
+                sub="No hay albergues con adopciones registradas en el período"
+              />
+            )}
+          </CollapsibleSection>
         </>
       )}
     </div>
