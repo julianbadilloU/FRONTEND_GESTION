@@ -78,15 +78,10 @@ export default function AlbergueInfoCard({ albergue }) {
             href={googleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center gap-3 h-[200px] bg-gradient-to-br from-[#e8f0e4] to-[#f5f9f3] rounded-xl text-gray-500 hover:shadow-md transition-all group border border-[#d4e0ca]"
+            className="flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-[#a9c99a]/10 text-[#5e924e] text-xs font-semibold hover:bg-[#a9c99a]/20 transition-colors"
           >
-            <div className="w-14 h-14 rounded-full bg-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-              <MapPin size={24} className="text-[#e07a5f]" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-semibold text-gray-700">Ver ubicación</p>
-              <p className="text-xs text-gray-400 mt-0.5">Abrir en Google Maps</p>
-            </div>
+            <MapPin size={13} />
+            Ver en Google Maps
           </a>
         </div>
       )}
