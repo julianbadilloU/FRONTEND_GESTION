@@ -40,6 +40,13 @@ const ESTADO_CONFIG = {
     border: "border-[#4a7c59]/20",
     dot: "bg-[#4a7c59]",
   },
+  adoptado_por_otro: {
+    label: "Adoptado por otro",
+    bg: "bg-orange-50",
+    text: "text-orange-600",
+    border: "border-orange-200",
+    dot: "bg-orange-400",
+  },
   descartado: {
     label: "Descartado",
     bg: "bg-red-50",
