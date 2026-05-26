@@ -94,7 +94,7 @@ export function ProfileForm({
     const map = {};
     catalogo.forEach((tag) => {
       // Filtrar tags de mascota que no aplican para adoptante
-      if (tag.nombre_tag === "Condición especial") return;
+      if (tag.categoria === "Condición especial" || tag.nombre_tag === "Condición especial") return;
       const cat = tag.categoria || "General";
       if (!map[cat]) map[cat] = [];
       map[cat].push({ id_opcion: tag.id_opcion, valor: tag.valor, categoria: cat });
