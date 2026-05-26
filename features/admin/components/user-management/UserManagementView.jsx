@@ -7,7 +7,7 @@ import { UserTable } from "./UserTable";
 import { UserStatusModal } from "./UserStatusModal";
 import { UserDetailModal } from "./UserDetailModal";
 import { Toast } from "@/features/shared/components/Toast";
-import { getUsuarios, cambiarEstadoUsuario } from "@/features/admin/services/adminUser.service";
+import { getUsuarios, cambiarEstadoUsuario, eliminarUsuario } from "@/features/admin/services/adminUser.service";
 
 export function UserManagementView() {
   const queryClient = useQueryClient();
@@ -33,7 +33,24 @@ export function UserManagementView() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => eliminarUsuario(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      showToast("Usuario eliminado correctamente.");
+    },
+    onError: (err) => {
+      showToast(err?.response?.data?.message || "Error al eliminar usuario.", "error");
+    },
+  });
+
   const handleAction = (user, action) => {
+    if (action === "eliminar") {
+      if (window.confirm(`¿Eliminar permanentemente a ${user.nombre || user.correo}?`)) {
+        deleteMutation.mutate(user.id);
+      }
+      return;
+    }
     setModalState({ open: true, user, action });
   };
 
@@ -97,9 +114,10 @@ export function UserManagementView() {
           aria-label="Filtrar por estado"
           className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#8b9e7e]/30 focus:border-[#8b9e7e]"
         >
-          <option value="">Todos los estados</option>
-          <option value="activo">Activo</option>
-          <option value="suspendido">Suspendido</option>
+           <option value="">Todos los estados</option>
+           <option value="activo">Activo</option>
+           <option value="suspendido">Suspendido</option>
+           <option value="perfil_incompleto">Perfil incompleto</option>
         </select>
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Users, Loader2 } from "lucide-react";
+import { Eye, Users, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const ESTADO_BADGE = {
@@ -127,6 +127,16 @@ export function UserTable({ users, loading, onAction, onDetail }) {
                       className="px-3 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                     >
                       Suspender
+                    </button>
+                  )}
+                  {user.estado === "perfil_incompleto" && (
+                    <button
+                      onClick={() => onAction(user, "eliminar")}
+                      className="px-3 py-1.5 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1"
+                      title="Eliminar usuario con perfil incompleto"
+                    >
+                      <Trash2 size={11} />
+                      Eliminar
                     </button>
                   )}
                 </div>
