@@ -10,22 +10,13 @@
 export function MatchFunnel({ data }) {
   if (!data || data.length === 0) return null;
 
-  const total = Math.max(data.reduce((s, d) => s + (d.count ?? 0), 0), 1);
-
-  // Colors: blue-to-green gradient (match pipeline)
-  const DEFAULT_COLORS = ["#6b8fa3", "#7da3ba", "#8b9e7e", "#6d8f5e"];
-
-  const STAGE_LABELS = {
-    pendiente: "Pendiente",
-    contactado: "Contactado",
-    en_adopcion: "En adopción",
-    adoptado: "Adoptado",
-  };
+  // Stage-to-stage conversion: each stage's % is relative to first stage (pendiente)
+  const firstCount = Math.max(data[0]?.count ?? 0, 1);
 
   const funnelData = data.map((d, i) => ({
     label: STAGE_LABELS[d.label] ?? d.label,
     count: d.count ?? 0,
-    pct: Math.round(((d.count ?? 0) / total) * 100),
+    pct: Math.round(((d.count ?? 0) / firstCount) * 100),
     color: d.color ?? DEFAULT_COLORS[i % DEFAULT_COLORS.length],
   }));
 
