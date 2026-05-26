@@ -58,6 +58,7 @@ export default function PetDetailContent({
   mascotaId,
   onBack,
   showActions = true,
+  extraContent,
   className = "",
 }) {
   const userRole = useUserRole();
@@ -366,6 +367,9 @@ export default function PetDetailContent({
               </div>
             </div>
           )}
+
+          {/* Extra content slot — render function receives mascota data (admin moderation, etc.) */}
+          {typeof extraContent === "function" ? extraContent(mascota) : extraContent}
 
           {/* CTA — Solo visible para adoptantes */}
           {showActions && userRole !== "albergue" && (

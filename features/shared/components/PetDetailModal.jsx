@@ -57,8 +57,7 @@ export default function PetDetailModal({ mascotaId, onClose, showActions = true,
               </button>
 
               <div className="pt-12 pb-8 sm:px-2 sm:pt-4">
-                <PetDetailContent mascotaId={mascotaId} showActions={showActions} />
-                {extraContent}
+                <PetDetailContent mascotaId={mascotaId} showActions={showActions} extraContent={extraContent} />
               </div>
             </div>
           </motion.div>

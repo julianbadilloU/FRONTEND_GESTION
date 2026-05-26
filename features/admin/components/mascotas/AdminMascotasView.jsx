@@ -229,56 +229,6 @@ function FiltersBar({ filtroEstado, setFiltroEstado, filtroEspecie, setFiltroEsp
   );
 }
 
-// ─── Admin extra content for PetDetailModal ────────────────────────────────────
-function AdminPetExtras({ mascotaId, onClose }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["admin-mascota-detalle", mascotaId],
-    queryFn: async () => {
-      const { getMascotaDetalle } = await import("@/features/admin/services/adminMascota.service");
-      const res = await getMascotaDetalle(mascotaId);
-      return res?.data ?? res;
-    },
-    enabled: !!mascotaId,
-  });
-
-  const mascota = data;
-
-  if (isLoading) {
-    return (
-      <div className="px-2 pb-4">
-        <div className="animate-pulse h-16 bg-gray-100 rounded-xl" />
-      </div>
-    );
-  }
-
-  if (!mascota) return null;
-
-  return (
-    <div className="px-2 pb-8 space-y-4">
-      {/* Estado de moderación */}
-      <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-4 border border-gray-100">
-        <span className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">Estado de moderación</span>
-        <EstadoBadge estado={mascota.estado_adopcion} />
-      </div>
-
-      {/* Motivo de moderación */}
-      {mascota.motivo_moderacion && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-600 mb-1.5">Motivo de moderación</p>
-          <p className="text-sm text-amber-800 leading-relaxed">{mascota.motivo_moderacion}</p>
-        </div>
-      )}
-
-      {/* Botón cerrar */}
-      <button
-        onClick={onClose}
-        className="w-full py-2.5 text-sm font-semibold text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
-        Cerrar
-      </button>
-    </div>
-  );
-}
-
 // ─── Main View ────────────────────────────────────────────────────────────────
 export function AdminMascotasView() {
   const queryClient = useQueryClient();
@@ -411,7 +361,20 @@ export function AdminMascotasView() {
           mascotaId={detalleId}
           showActions={false}
           onClose={() => setDetalleId(null)}
-          extraContent={<AdminPetExtras mascotaId={detalleId} onClose={() => setDetalleId(null)} />}
+          extraContent={(mascota) => (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                <span className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">Estado de moderación</span>
+                <EstadoBadge estado={mascota?.estado_adopcion} />
+              </div>
+              {mascota?.motivo_moderacion && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-amber-600 mb-1.5">Motivo de moderación</p>
+                  <p className="text-sm text-amber-800 leading-relaxed">{mascota.motivo_moderacion}</p>
+                </div>
+              )}
+            </div>
+          )}
         />
       )}
 
