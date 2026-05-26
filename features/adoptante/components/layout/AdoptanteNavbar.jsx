@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils/cn";
 import { getAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
 import { getNotificaciones } from "@/features/shared/services/notificacion.service";
 import { useNotificacionesSocket, requestNotificationPermission } from "@/features/shared/hooks/useNotificacionesSocket";
+import NotificationsModal from "@/features/shared/components/NotificationsModal";
+import PetDetailModal from "@/features/shared/components/PetDetailModal";
 
 const NAV_LINKS = [
   { href: "/adoptante/descubrir", label: "Descubrir", icon: Sparkles },
@@ -24,6 +26,8 @@ export function AdoptanteNavbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifModalOpen, setNotifModalOpen] = useState(false);
+  const [petModalId, setPetModalId] = useState(null);
   const headerRef = useRef(null);
 
   // HU-NOT-01: real-time notifications via Socket.IO
@@ -116,7 +120,26 @@ export function AdoptanteNavbar() {
 
         {/* Nav links (desktop) */}
         <nav className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map((link) => renderNavLink(link))}
+          {NAV_LINKS.map((link) => {
+            if (link.href === "/adoptante/notificaciones") {
+              return (
+                <button
+                  key={link.href}
+                  onClick={() => setNotifModalOpen(true)}
+                  className="flex items-center gap-2 text-sm font-medium transition-colors relative pb-0.5 text-gray-500 hover:text-gray-900 border-b-2 border-transparent"
+                >
+                  {notifNoLeidas > 0 && (
+                    <span className="absolute -top-2.5 -right-2.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-1 leading-none z-10">
+                      {notifNoLeidas > 99 ? "99+" : notifNoLeidas}
+                    </span>
+                  )}
+                  <Bell size={15} />
+                  {link.label}
+                </button>
+              );
+            }
+            return renderNavLink(link);
+          })}
         </nav>
 
         {/* Perfil / Logout / Hamburguesa (desktop) */}
@@ -225,5 +248,19 @@ export function AdoptanteNavbar() {
         </div>
       )}
     </header>
+
+    <NotificationsModal
+      isOpen={notifModalOpen}
+      onClose={() => setNotifModalOpen(false)}
+      role="adoptante"
+      onMascotaClick={(mascotaId) => {
+        setNotifModalOpen(false);
+        setPetModalId(mascotaId);
+      }}
+    />
+    <PetDetailModal
+      mascotaId={petModalId}
+      onClose={() => setPetModalId(null)}
+    />
   );
 }
