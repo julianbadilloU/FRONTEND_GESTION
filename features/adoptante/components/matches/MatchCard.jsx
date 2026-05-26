@@ -47,6 +47,13 @@ const ESTADO_CONFIG = {
     border: "border-blue-200",
     dot: "bg-blue-400",
   },
+  en_espera: {
+    label: "En proceso (otro adoptante)",
+    bg: "bg-orange-50",
+    text: "text-orange-600",
+    border: "border-orange-200",
+    dot: "bg-orange-400",
+  },
   adoptado_por_otro: {
     label: "Adoptado por otro",
     bg: "bg-orange-50",

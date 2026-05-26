@@ -169,6 +169,8 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose,
             ? <EnAdopcionBadge />
             : candidato.estado === 'adoptado'
             ? <AdoptadoBadge />
+            : candidato.estado === 'en_espera'
+            ? <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full">En espera</span>
             : yaContactado
             ? <ContactadoBadge fecha={candidato.historial_contactos?.at(-1)?.fecha} />
             : <PendienteBadge />
@@ -319,6 +321,8 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
             ? <EnAdopcionBadge />
             : candidato.estado === 'adoptado'
             ? <AdoptadoBadge />
+            : candidato.estado === 'en_espera'
+            ? <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1 rounded-full">En espera</span>
             : yaContactado
               ? <ContactadoBadge fecha={ultimoContacto?.fecha} />
               : <PendienteBadge />
