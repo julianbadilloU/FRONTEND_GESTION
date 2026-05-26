@@ -102,6 +102,7 @@ export function AlbergueNavbar() {
   };
 
   return (
+    <>
     <header
       ref={headerRef}
       className="bg-white border-b border-[#e4d5c4] px-6 py-3.5 sticky top-0 z-40 shadow-sm"
@@ -253,5 +254,6 @@ export function AlbergueNavbar() {
       onClose={() => setNotifModalOpen(false)}
       role="albergue"
     />
+    </>
   );
 }

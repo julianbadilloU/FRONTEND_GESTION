@@ -103,6 +103,7 @@ export function AdoptanteNavbar() {
   };
 
   return (
+    <>
     <header
       ref={headerRef}
       className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-40 shadow-sm"
@@ -262,5 +263,6 @@ export function AdoptanteNavbar() {
       mascotaId={petModalId}
       onClose={() => setPetModalId(null)}
     />
+    </>
   );
 }
