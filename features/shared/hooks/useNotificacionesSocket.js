@@ -1,18 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getSocket } from '@/lib/socket/socket-client';
 
-/**
- * HU-NOT-01 — Real-time notification hook.
- * Connects to Socket.IO server and invalidates the 'notificaciones'
- * query whenever a 'nueva_notificacion' event arrives.
- *
- * Mount this hook in any authenticated layout or navbar.
- */
+let permissionRequested = false;
+
 export function useNotificacionesSocket() {
   const queryClient = useQueryClient();
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    // Pre-cargar sonido de notificación
+    if (typeof window !== 'undefined') {
+      audioRef.current = new Audio('/notification.mp3');
+      audioRef.current.volume = 0.5;
+    }
+  }, []);
 
   useEffect(() => {
     const token = typeof window !== 'undefined'
@@ -24,17 +28,28 @@ export function useNotificacionesSocket() {
     const socket = getSocket(token);
     if (!socket.connected) socket.connect();
 
-    const onNuevaNotificacion = () => {
-      // Invalidate both the main list and the unread count query so the
-      // navbar badge updates in real time alongside the notification pages.
+    const onNuevaNotificacion = (data) => {
+      // Refresh queries
       queryClient.invalidateQueries({ queryKey: ['notificaciones'] });
       queryClient.invalidateQueries({ queryKey: ['notificaciones', 'noLeidas'] });
+
+      // Reproducir sonido
+      if (audioRef.current) {
+        audioRef.current.play().catch(() => {});
+      }
+
+      // Notificación nativa del navegador
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(data.tipo || 'FurMatch', {
+          body: data.mensaje || 'Tenés una nueva notificación',
+          icon: '/favicon.ico',
+        });
+      }
     };
 
     socket.on('nueva_notificacion', onNuevaNotificacion);
 
     socket.on('connect_error', (err) => {
-      // Non-blocking — pull-based fallback still works
       console.warn('[socket] Notification socket error:', err.message);
     });
 
@@ -43,3 +58,18 @@ export function useNotificacionesSocket() {
     };
   }, [queryClient]);
 }
+
+/**
+ * Solicita permiso para notificaciones del navegador.
+ * Llamar desde un botón o al iniciar sesión.
+ */
+export function requestNotificationPermission() {
+  if (typeof window === 'undefined') return;
+  if (permissionRequested) return;
+  permissionRequested = true;
+
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
