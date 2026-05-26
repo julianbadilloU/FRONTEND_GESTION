@@ -122,7 +122,7 @@ function HistorialTable({ historial }) {
 }
 
 // ── CandidatoDetailPanel ──────────────────────────────────────────────────────
-function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose }) {
+function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose, candidatos = [] }) {
   if (!candidato) return null;
   const adoptante = candidato.adoptante || candidato;
   const yaContactado = candidato.estado === "contactado";
@@ -263,13 +263,14 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
           <HistorialTable historial={candidato.historial_contactos} />
         </div>
 
-        {/* Action button */}
+        {/* Action button — solo habilitado si no hay un seleccionado o es el seleccionado */}
         <WhatsAppContactButton
           idMatch={candidato.id_match}
           adoptante={adoptante}
           nombreMascota={nombreMascota}
           estadoInicial={candidato.estado}
           onContactado={onContactado}
+          disabled={candidato.estado !== 'en_adopcion' && candidatos.some(c => c.estado === 'en_adopcion')}
           className="w-full justify-center py-3"
         />
       </motion.div>
@@ -635,6 +636,7 @@ export function CandidatosView({ preselectedMatchId = null }) {
                   nombreMascota={selectedMascota?.nombre}
                   onContactado={handleContactado}
                   onClose={() => setSelectedCandidato(null)}
+                  candidatos={candidatos}
                 />
               ) : (
                 <div className="bg-white rounded-3xl border border-dashed border-[#e0dbd3] p-8 text-center space-y-3">
