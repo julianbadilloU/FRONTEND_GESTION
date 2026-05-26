@@ -12,19 +12,20 @@ export default function LoginPage() {
     <AnimatePresence mode="wait">
       <LoginForm
         onSuccess={({ email, role, estado_cuenta }) => {
-          // Si el perfil está incompleto, redirigir al onboarding correspondiente
+          // Si el perfil está incompleto, redirigir al onboarding correspondiente.
+          // Admin y otros roles sin onboarding van directo a su dashboard.
           if (estado_cuenta === "perfil_incompleto") {
             if (role === "adoptante") {
               router.push("/adoptante/onboarding");
-            } else if (role === "albergue") {
-              router.push("/albergue/onboarding");
-            } else {
-              router.push("/");
+              return;
             }
-            return;
+            if (role === "albergue") {
+              router.push("/albergue/onboarding");
+              return;
+            }
           }
 
-          // Perfil completo → redirigir al dashboard según rol
+          // Perfil completo (o roles sin onboarding como admin) → dashboard según rol
           if (role === "adoptante") {
             router.push("/adoptante/feed");
           } else if (role === "albergue") {
