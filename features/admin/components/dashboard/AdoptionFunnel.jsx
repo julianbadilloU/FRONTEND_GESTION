@@ -22,8 +22,6 @@ export function AdoptionFunnel({ data }) {
     adoptado: "Adoptado",
   };
 
-  const firstCount = Math.max(data[0]?.count ?? 0, 1);
-
   const funnelData = data.map((d, i) => ({
     label: STAGE_LABELS[d.label] ?? d.label,
     count: d.count ?? 0,
