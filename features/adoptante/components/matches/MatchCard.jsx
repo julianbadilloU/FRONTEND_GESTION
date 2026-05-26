@@ -41,7 +41,7 @@ const ESTADO_CONFIG = {
     dot: "bg-[#4a7c59]",
   },
   en_adopcion: {
-    label: "Adopción en proceso",
+    label: "Aceptado",
     bg: "bg-blue-50",
     text: "text-blue-700",
     border: "border-blue-200",
