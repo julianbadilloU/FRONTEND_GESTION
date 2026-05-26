@@ -1,15 +1,46 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BarChart2, Loader2, Users, Home, PawPrint, Heart } from "lucide-react";
+import {
+  BarChart2,
+  Loader2,
+  Users,
+  Home,
+  PawPrint,
+  Heart,
+  RefreshCw,
+} from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 import { getEstadisticas } from "@/features/admin/services/adminStats.service";
+import { DateRangeFilter } from "./DateRangeFilter";
 
-const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const MONTH_LABELS = [
+  "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+  "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
+];
+
+const SPECIES_COLORS = ["#8b9e7e", "#6b8fa3", "#c9a96e", "#b8b8b8"];
+
+// ── Sub-components ──────────────────────────────────────────────
 
 function KpiCard({ label, value, sub }) {
   return (
     <div className="bg-white rounded-3xl border border-gray-100 p-6 flex flex-col gap-3 shadow-sm">
-      <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">{label}</p>
+      <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400">
+        {label}
+      </p>
       <p className="text-4xl font-bold text-gray-900">{value ?? "—"}</p>
       {sub !== undefined && (
         <div className="space-y-1">
@@ -29,6 +60,56 @@ function KpiCard({ label, value, sub }) {
   );
 }
 
+function KpiCardSkeleton() {
+  return (
+    <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm animate-pulse space-y-3">
+      <div className="h-3 bg-gray-100 rounded w-24" />
+      <div className="h-9 bg-gray-100 rounded w-16" />
+    </div>
+  );
+}
+
+function WidgetSkeleton({ height = "h-48" }) {
+  return (
+    <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm animate-pulse">
+      <div className="h-3 bg-gray-100 rounded w-32 mb-6" />
+      <div className={`${height} bg-gray-50 rounded-xl flex items-center justify-center`}>
+        <Loader2 className="animate-spin text-gray-200" size={24} />
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ icon: Icon, message, sub }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-10 text-center">
+      <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3">
+        <Icon size={24} className="text-gray-300" strokeWidth={1.5} />
+      </div>
+      <p className="text-sm font-semibold text-gray-400">{message}</p>
+      {sub && <p className="text-xs text-gray-300 mt-1">{sub}</p>}
+    </div>
+  );
+}
+
+function ErrorState({ message, onRetry }) {
+  return (
+    <div className="max-w-md mx-auto mt-12 bg-rose-50 border border-rose-100 p-8 rounded-3xl flex flex-col items-center gap-4 text-center">
+      <p className="text-rose-900 font-bold text-lg">
+        Error al cargar estadísticas
+      </p>
+      <p className="text-rose-700 text-sm">{message}</p>
+      <button
+        onClick={onRetry}
+        className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-colors"
+      >
+        <RefreshCw size={14} strokeWidth={2.5} />
+        Reintentar
+      </button>
+    </div>
+  );
+}
+
 const MASCOTA_ESTADOS = [
   { key: "disponible", label: "Disponible", color: "bg-emerald-400" },
   { key: "en_proceso", label: "En proceso", color: "bg-blue-400" },
@@ -41,9 +122,13 @@ function DonutLegend({ mascotas, porEstado }) {
 
   return (
     <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-      <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">Mascotas por estado</p>
+      <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+        Mascotas por estado
+      </p>
       <p className="text-5xl font-bold text-gray-900 mb-6">{total}</p>
-      <p className="text-xs text-gray-400 mb-4 font-semibold uppercase tracking-widest">Total publicadas</p>
+      <p className="text-xs text-gray-400 mb-4 font-semibold uppercase tracking-widest">
+        Total publicadas
+      </p>
       <div className="space-y-3">
         {MASCOTA_ESTADOS.map(({ key, label, color }) => (
           <div key={key} className="flex items-center justify-between">
@@ -76,12 +161,19 @@ function BarChart({ data }) {
 
         return (
           <div key={i} className="flex flex-col items-center gap-1 flex-1">
-            <span className="text-xs font-bold text-gray-700">{item.total ?? 0}</span>
+            <span className="text-xs font-bold text-gray-700">
+              {item.total ?? 0}
+            </span>
             <div
               className="w-full bg-[#8b9e7e] rounded-t-lg transition-all"
-              style={{ height: `${height}px`, minHeight: height > 0 ? "4px" : "0" }}
+              style={{
+                height: `${height}px`,
+                minHeight: height > 0 ? "4px" : "0",
+              }}
             />
-            <span className="text-[10px] text-gray-400 font-semibold">{label}</span>
+            <span className="text-[10px] text-gray-400 font-semibold">
+              {label}
+            </span>
           </div>
         );
       })}
@@ -89,33 +181,180 @@ function BarChart({ data }) {
   );
 }
 
-export function DashboardView() {
-  const queryClient = useQueryClient();
-
-  const { data: stats, isLoading, error } = useQuery({
-    queryKey: ["admin-stats"],
-    queryFn: getEstadisticas,
-  });
-
-  if (isLoading) {
+function SpeciesPieChart({ data }) {
+  if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="animate-spin text-[#8b9e7e]" size={40} />
+      <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+          Distribución por especie
+        </p>
+        <EmptyState
+          icon={PawPrint}
+          message="Sin datos de especie"
+          sub="No hay mascotas registradas con esta información"
+        />
       </div>
     );
   }
 
+  return (
+    <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+        Distribución por especie
+      </p>
+      <div className="flex flex-col sm:flex-row items-center gap-6">
+        <div className="w-40 h-40 shrink-0">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={data}
+                cx="50%"
+                cy="50%"
+                innerRadius={35}
+                outerRadius={65}
+                dataKey="total"
+                nameKey="especie"
+                strokeWidth={0}
+              >
+                {data.map((entry, index) => (
+                  <Cell
+                    key={entry.especie}
+                    fill={SPECIES_COLORS[index % SPECIES_COLORS.length]}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value, _name, props) => [
+                  `${value} mascotas`,
+                  props.payload.especie,
+                ]}
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "1px solid #e5e7eb",
+                  fontSize: "13px",
+                }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="space-y-2.5">
+          {data.map((entry, index) => (
+            <div key={entry.especie} className="flex items-center gap-2.5">
+              <span
+                className="w-3 h-3 rounded-full shrink-0"
+                style={{
+                  backgroundColor:
+                    SPECIES_COLORS[index % SPECIES_COLORS.length],
+                }}
+              />
+              <span className="text-sm text-gray-600">{entry.especie}</span>
+              <span className="text-sm font-bold text-gray-900 ml-2">
+                {entry.total}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewUsersChart({ data }) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+          Nuevos usuarios por mes
+        </p>
+        <EmptyState
+          icon={Users}
+          message="Sin datos de nuevos usuarios"
+          sub="No hay registros en el período seleccionado"
+        />
+      </div>
+    );
+  }
+
+  const chartData = data.map((d) => ({
+    ...d,
+    index: d.mes,
+  }));
+
+  return (
+    <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+      <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+        Nuevos usuarios por mes
+      </p>
+      <div className="h-48">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="userGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8b9e7e" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="#8b9e7e" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis
+              dataKey="mes"
+              tick={{ fontSize: 11, fill: "#9ca3af" }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 11, fill: "#9ca3af" }}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <Tooltip
+              contentStyle={{
+                borderRadius: "12px",
+                border: "1px solid #e5e7eb",
+                fontSize: "13px",
+              }}
+            />
+            <Area
+              type="monotone"
+              dataKey="total"
+              stroke="#8b9e7e"
+              strokeWidth={2}
+              fill="url(#userGradient)"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Component ──────────────────────────────────────────────
+
+export function DashboardView() {
+  const queryClient = useQueryClient();
+  const [dateFilter, setDateFilter] = useState({ desde: "", hasta: "" });
+
+  const queryParams = {};
+  if (dateFilter.desde) queryParams.desde = dateFilter.desde;
+  if (dateFilter.hasta) queryParams.hasta = dateFilter.hasta;
+
+  const {
+    data: stats,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["admin-stats", queryParams],
+    queryFn: () => getEstadisticas(queryParams),
+  });
+
+  const handleRetry = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+  };
+
   if (error) {
     return (
-      <div className="max-w-md mx-auto mt-24 bg-rose-50 border border-rose-100 p-8 rounded-3xl flex flex-col items-center gap-4 text-center">
-        <p className="text-rose-900 font-bold text-lg">Error al cargar estadísticas</p>
-        <p className="text-rose-700 text-sm">{error.message}</p>
-        <button
-          onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-stats"] })}
-          className="text-rose-600 text-xs font-bold uppercase tracking-widest hover:underline"
-        >
-          Reintentar
-        </button>
+      <div className="max-w-6xl mx-auto px-6 py-12 min-h-screen">
+        <ErrorState message={error.message} onRetry={handleRetry} />
       </div>
     );
   }
@@ -126,127 +365,200 @@ export function DashboardView() {
   const matching = stats?.matching ?? {};
   const adopcionesPorMes = matching.adopciones_por_mes ?? [];
   const topAlbergues = stats?.albergues_ranking ?? stats?.top_albergues ?? [];
-
+  const especies = stats?.especies_distribucion ?? [];
+  const nuevosUsuarios = stats?.nuevos_usuarios_por_mes ?? [];
   const tasa = usuarios.tasa_completitud ?? usuarios.tasa_completitud_perfil ?? 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 min-h-screen space-y-10">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-screen space-y-8 sm:space-y-10">
       {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2.5 text-[#8b9e7e] mb-1">
           <BarChart2 size={20} strokeWidth={2.5} />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Administración</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em]">
+            Administración
+          </span>
         </div>
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 font-serif italic">
           Dashboard de Estadísticas
         </h1>
-        <p className="text-gray-500 text-sm">Resumen global de la plataforma FurMatch.</p>
+        <p className="text-gray-500 text-sm">
+          Resumen global de la plataforma FurMatch.
+        </p>
       </div>
 
-      {/* Section 1 — Usuarios y Crecimiento */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-gray-700">
-          <Users size={16} strokeWidth={2.5} />
-          <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
-            Usuarios y Crecimiento
-          </h2>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          <KpiCard label="Total adoptantes" value={usuarios.total_adoptantes} />
-          <KpiCard label="Adoptantes activos" value={usuarios.adoptantes_activos} />
-          <KpiCard label="Adoptantes inactivos" value={usuarios.adoptantes_inactivos} />
-          <KpiCard label="Total albergues" value={usuarios.total_albergues} />
-          <KpiCard label="Albergues activos" value={usuarios.albergues_activos} />
-          <KpiCard label="Suspendidos" value={usuarios.suspendidos} />
-        </div>
-        <div className="grid grid-cols-1 max-w-xs">
-          <KpiCard label="Completitud perfil" value={`${tasa}%`} sub={tasa} />
-        </div>
-      </section>
+      {/* Date Filter */}
+      <DateRangeFilter
+        desde={dateFilter.desde}
+        hasta={dateFilter.hasta}
+        onChange={(f) => setDateFilter(f)}
+      />
 
-      {/* Section 2 — Mascotas */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-gray-700">
-          <PawPrint size={16} strokeWidth={2.5} />
-          <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">Mascotas</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg">
-          <DonutLegend mascotas={mascotas} porEstado={mascotasPorEstado} />
-        </div>
-      </section>
+      {/* Loading State */}
+      {isLoading ? (
+        <div className="space-y-8 sm:space-y-10">
+          {/* KPI Skeletons */}
+          <section className="space-y-4">
+            <div className="h-4 bg-gray-100 rounded w-48 animate-pulse" />
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <KpiCardSkeleton key={i} />
+              ))}
+            </div>
+          </section>
 
-      {/* Section 3 — Matching y Adopciones */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-gray-700">
-          <Heart size={16} strokeWidth={2.5} />
-          <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
-            Matching y Adopciones
-          </h2>
+          {/* Chart Skeletons */}
+          <section className="space-y-4">
+            <div className="h-4 bg-gray-100 rounded w-32 animate-pulse" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <WidgetSkeleton height="h-48" />
+              <WidgetSkeleton height="h-48" />
+            </div>
+          </section>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mb-6">
-          <KpiCard label="Total matches" value={matching.total_matches} />
-          <KpiCard label="Total adopciones" value={matching.total_adopciones} />
-          <KpiCard
-            label="Tasa conversión"
-            value={
-              matching.total_matches > 0
-                ? `${Math.round((matching.total_adopciones / matching.total_matches) * 100)}%`
-                : "0%"
-            }
-          />
-          <KpiCard label="Mascotas disponibles" value={mascotasPorEstado.disponible ?? 0} />
-        </div>
+      ) : (
+        <>
+          {/* Section 1 — Usuarios y Crecimiento */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-gray-700">
+              <Users size={16} strokeWidth={2.5} />
+              <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
+                Usuarios y Crecimiento
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+              <KpiCard label="Total adoptantes" value={usuarios.total_adoptantes} />
+              <KpiCard label="Adoptantes activos" value={usuarios.adoptantes_activos} />
+              <KpiCard label="Adoptantes inactivos" value={usuarios.adoptantes_inactivos} />
+              <KpiCard label="Total albergues" value={usuarios.total_albergues} />
+              <KpiCard label="Albergues activos" value={usuarios.albergues_activos} />
+              <KpiCard label="Suspendidos" value={usuarios.suspendidos} />
+            </div>
+            <div className="grid grid-cols-1 max-w-xs">
+              <KpiCard label="Completitud perfil" value={`${tasa}%`} sub={tasa} />
+            </div>
+          </section>
 
-        {adopcionesPorMes.length > 0 && (
-          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-6">
-              Adopciones por mes (últimos 6 meses)
-            </p>
-            <BarChart data={adopcionesPorMes.slice(-6)} />
-          </div>
-        )}
-      </section>
+          {/* Section 2 — Mascotas */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-gray-700">
+              <PawPrint size={16} strokeWidth={2.5} />
+              <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
+                Mascotas
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <DonutLegend mascotas={mascotas} porEstado={mascotasPorEstado} />
+              <SpeciesPieChart data={especies} />
+            </div>
+          </section>
 
-      {/* Section 4 — Rendimiento de Albergues */}
-      {topAlbergues.length > 0 && (
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 text-gray-700">
-            <Home size={16} strokeWidth={2.5} />
-            <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
-              Rendimiento de Albergues
-            </h2>
-          </div>
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-gray-400 w-12">
-                    #
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-gray-400">
-                    Albergue
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-gray-400">
-                    Adopciones
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {topAlbergues.slice(0, 5).map((albergue, i) => (
-                  <tr key={i} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 text-gray-400 font-bold">{i + 1}</td>
-                    <td className="px-6 py-4 text-gray-900 font-semibold">
-                      {albergue.nombre ?? albergue.nombre_albergue ?? `Albergue ${i + 1}`}
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold text-[#8b9e7e]">
-                      {albergue.adopciones ?? albergue.total_adopciones ?? 0}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+          {/* Section 3 — Nuevos Usuarios */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-gray-700">
+              <Users size={16} strokeWidth={2.5} />
+              <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
+                Nuevos Usuarios
+              </h2>
+            </div>
+            <NewUsersChart data={nuevosUsuarios} />
+          </section>
+
+          {/* Section 4 — Matching y Adopciones */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-gray-700">
+              <Heart size={16} strokeWidth={2.5} />
+              <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
+                Matching y Adopciones
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mb-6">
+              <KpiCard label="Total matches" value={matching.total_matches} />
+              <KpiCard label="Total adopciones" value={matching.total_adopciones} />
+              <KpiCard
+                label="Tasa conversión"
+                value={
+                  matching.total_matches > 0
+                    ? `${Math.round(
+                        (matching.total_adopciones / matching.total_matches) * 100
+                      )}%`
+                    : "0%"
+                }
+              />
+              <KpiCard label="Mascotas disponibles" value={mascotasPorEstado.disponible ?? 0} />
+            </div>
+
+            {adopcionesPorMes.length > 0 ? (
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-6">
+                  Adopciones por mes
+                </p>
+                <BarChart data={adopcionesPorMes.slice(-6)} />
+              </div>
+            ) : (
+              <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm">
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-gray-400 mb-4">
+                  Adopciones por mes
+                </p>
+                <EmptyState
+                  icon={Heart}
+                  message="Sin adopciones en este período"
+                />
+              </div>
+            )}
+          </section>
+
+          {/* Section 5 — Rendimiento de Albergues */}
+          {topAlbergues.length > 0 && (
+            <section className="space-y-4">
+              <div className="flex items-center gap-2 text-gray-700">
+                <Home size={16} strokeWidth={2.5} />
+                <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-gray-500">
+                  Rendimiento de Albergues
+                </h2>
+              </div>
+              <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left px-4 sm:px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-gray-400 w-12">
+                        #
+                      </th>
+                      <th className="text-left px-4 sm:px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-gray-400">
+                        Albergue
+                      </th>
+                      <th className="text-right px-4 sm:px-6 py-4 text-xs font-bold uppercase tracking-[0.15em] text-gray-400">
+                        Adopciones
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topAlbergues.slice(0, 5).map((albergue, i) => (
+                      <tr
+                        key={i}
+                        className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors"
+                      >
+                        <td className="px-4 sm:px-6 py-4 text-gray-400 font-bold text-xs sm:text-sm">
+                          {i + 1}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 text-gray-900 font-semibold text-sm truncate max-w-[120px] sm:max-w-none">
+                          {albergue.nombre ??
+                            albergue.nombre_albergue ??
+                            `Albergue ${i + 1}`}
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 text-right font-bold text-[#8b9e7e] text-sm">
+                          {albergue.adopciones ??
+                            albergue.total_adopciones ??
+                            0}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   );

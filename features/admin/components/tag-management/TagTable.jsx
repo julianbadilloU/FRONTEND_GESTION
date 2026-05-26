@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, Trash2, CheckCircle, XCircle } from "lucide-react";
+import { Edit, Trash2, CheckCircle, XCircle, Tag as TagIcon } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const TIPO_LABELS = {
@@ -22,8 +22,12 @@ export function TagTable({ tags, onEdit, onDeactivate, loading }) {
 
   if (!tags || tags.length === 0) {
     return (
-      <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm">
+      <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center gap-3">
+        <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
+          <TagIcon size={24} className="text-gray-300" strokeWidth={1.5} />
+        </div>
         <p className="text-gray-500 font-medium font-serif italic text-lg">No se encontraron etiquetas.</p>
+        <p className="text-gray-400 text-xs">Creá una nueva etiqueta para comenzar.</p>
       </div>
     );
   }
@@ -72,7 +76,7 @@ export function TagTable({ tags, onEdit, onDeactivate, loading }) {
                 </div>
               </td>
               <td className="px-6 py-4 text-right">
-                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={() => onEdit(tag)}
                     className="p-2 text-gray-400 hover:text-[#8b9e7e] transition-colors hover:bg-[#8b9e7e]/10 rounded-lg"

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   PawPrint, Eye, EyeOff, ChevronDown, ChevronUp,
-  Loader2, AlertCircle, Clock, CheckCircle2, X, Search
+  Loader2, AlertCircle, Clock, CheckCircle2, X, Search, RefreshCw
 } from "lucide-react";
 import {
   getAdminMascotas,
@@ -178,11 +178,11 @@ function MascotaRow({ mascota, onEstadoChange, onVerDetalle }) {
     <div className="border-b border-gray-50 last:border-0">
       {/* Fila principal */}
       <div
-        className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors cursor-pointer"
+        className="flex items-center gap-3 sm:gap-4 px-4 sm:px-6 py-4 hover:bg-gray-50/50 transition-colors cursor-pointer"
         onClick={() => onVerDetalle(mascota.id_mascota)}
       >
         {/* Foto */}
-        <div className="w-10 h-10 rounded-xl bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
+        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
           {mascota.foto ? (
             <img src={mascota.foto} alt={mascota.nombre} className="w-full h-full object-cover" />
           ) : (
@@ -192,17 +192,22 @@ function MascotaRow({ mascota, onEstadoChange, onVerDetalle }) {
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 text-sm truncate">{mascota.nombre}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-gray-900 text-sm truncate">{mascota.nombre}</p>
+            <span className="sm:hidden shrink-0" onClick={e => e.stopPropagation()}>
+              <EstadoBadge estado={mascota.estado_adopcion} />
+            </span>
+          </div>
           <p className="text-xs text-gray-400 truncate">{mascota.nombre_albergue}</p>
         </div>
 
-        {/* Estado */}
-        <div onClick={e => e.stopPropagation()}>
+        {/* Estado (desktop) */}
+        <div className="hidden sm:block" onClick={e => e.stopPropagation()}>
           <EstadoBadge estado={mascota.estado_adopcion} />
         </div>
 
         {/* Acciones */}
-        <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0" onClick={e => e.stopPropagation()}>
           {mascota.estado_adopcion !== "oculto" && mascota.estado_adopcion !== "adoptado" && (
             <div className="flex items-center gap-1.5">
               <button
@@ -381,7 +386,7 @@ const mutation = useMutation({
   const meta = data?.meta ?? {};
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 min-h-screen space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-screen space-y-8 sm:space-y-10">
       {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2.5 text-[#8b9e7e] mb-1">
@@ -399,13 +404,31 @@ const mutation = useMutation({
       {/* Tabla */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 size={32} className="animate-spin text-[#8b9e7e]" />
+          <div className="p-6 space-y-4 animate-pulse">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-gray-100 rounded-xl shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-100 rounded w-32" />
+                  <div className="h-3 bg-gray-100 rounded w-24" />
+                </div>
+                <div className="h-5 bg-gray-100 rounded w-20" />
+                <div className="h-8 bg-gray-100 rounded w-32" />
+              </div>
+            ))}
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center px-6">
-            <AlertCircle size={32} className="text-rose-400" />
-            <p className="text-rose-600 font-medium">Error al cargar las mascotas.</p>
+          <div className="flex flex-col items-center gap-4 py-20 text-center px-6">
+            <AlertCircle size={36} className="text-rose-400" />
+            <p className="text-rose-700 font-bold text-lg">Error al cargar las mascotas</p>
+            <p className="text-rose-500 text-sm max-w-md">{error?.message || "Error de conexión con el servidor."}</p>
+            <button
+              onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-mascotas"] })}
+              className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-colors"
+            >
+              <RefreshCw size={14} strokeWidth={2.5} />
+              Reintentar
+            </button>
           </div>
         ) : (
           <>
@@ -419,11 +442,11 @@ const mutation = useMutation({
             />
 
             {/* Header tabla */}
-            <div className="flex items-center gap-4 px-6 py-3 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center gap-4 px-4 sm:px-6 py-3 border-b border-gray-100 bg-gray-50/50">
               <div className="w-10 shrink-0" />
               <p className="flex-1 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Mascota</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 w-24 text-right">Estado</p>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 w-40 text-right">Acciones</p>
+              <p className="hidden sm:block text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 w-24 text-right">Estado</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 sm:w-40 text-right">Acciones</p>
             </div>
 
             {mascotas.length === 0 ? (
@@ -444,25 +467,27 @@ const mutation = useMutation({
 
             {/* Paginación */}
             {meta.pages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 disabled:opacity-40 transition-colors"
-                >
-                  Anterior
-                </button>
-                <span className="text-sm text-gray-500">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-gray-100">
+                <span className="text-xs sm:text-sm text-gray-500 order-2 sm:order-1">
                   Página <span className="font-semibold text-gray-700">{page}</span> de{" "}
                   <span className="font-semibold text-gray-700">{meta.pages}</span>
                 </span>
-                <button
-                  onClick={() => setPage(p => p + 1)}
-                  disabled={page >= meta.pages}
-                  className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 disabled:opacity-40 transition-colors"
-                >
-                  Siguiente
-                </button>
+                <div className="flex items-center gap-3 order-1 sm:order-2">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                  >
+                    Anterior
+                  </button>
+                  <button
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={page >= meta.pages}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-full hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                  >
+                    Siguiente
+                  </button>
+                </div>
               </div>
             )}
           </>

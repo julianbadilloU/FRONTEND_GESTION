@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Settings, ChevronDown, ChevronUp, Loader2, AlertTriangle, RefreshCw } from "lucide-react";
 import { Toast } from "@/features/shared/components/Toast";
 import {
   getConfiguracion,
@@ -190,9 +190,12 @@ export function ConfiguracionView() {
   };
 
   // Load configuration from API on mount
+  const [loadError, setLoadError] = useState(null);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setLoadError(null);
     getConfiguracion()
       .then((remote) => {
         if (cancelled) return;
@@ -205,8 +208,9 @@ export function ConfiguracionView() {
         }
         setValues(merged);
       })
-      .catch(() => {
+      .catch((err) => {
         if (!cancelled) {
+          setLoadError(err?.message || "Error de conexión con el servidor.");
           setToast({ show: true, message: "No se pudo cargar la configuración. Mostrando valores por defecto.", type: "error" });
           setTimeout(() => setToast((prev) => ({ ...prev, show: false })), 4000);
         }
@@ -234,7 +238,7 @@ export function ConfiguracionView() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-12 min-h-screen space-y-8">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-screen space-y-8 sm:space-y-10">
       {/* Header */}
       <div className="space-y-1">
         <div className="flex items-center gap-2.5 text-[#8b9e7e] mb-1">
@@ -250,10 +254,43 @@ export function ConfiguracionView() {
       </div>
 
       {/* Loading state */}
-      {loading && (
-        <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
-          <Loader2 size={22} className="animate-spin" />
-          <span className="text-sm font-medium">Cargando configuración…</span>
+      {loading && !loadError && (
+        <div className="space-y-4 animate-pulse">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-gray-100 rounded" />
+                  <div className="h-4 bg-gray-100 rounded w-48" />
+                </div>
+                <div className="w-4 h-4 bg-gray-100 rounded" />
+              </div>
+              <div className="px-6 pb-6 space-y-4 border-t border-gray-50 pt-5">
+                <div className="h-10 bg-gray-100 rounded-xl" />
+                <div className="h-10 bg-gray-100 rounded-xl" />
+                <div className="h-10 bg-gray-100 rounded-xl" />
+                <div className="h-10 bg-gray-100 rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Inline error banner */}
+      {loadError && (
+        <div className="bg-amber-50 border border-amber-100 p-6 rounded-3xl flex items-start gap-4">
+          <AlertTriangle size={20} className="text-amber-500 shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-amber-800 font-bold text-sm">No se pudo cargar la configuración del servidor</p>
+            <p className="text-amber-600 text-xs mt-1">{loadError}</p>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="flex items-center gap-2 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-colors shrink-0"
+          >
+            <RefreshCw size={12} strokeWidth={2.5} />
+            Recargar
+          </button>
         </div>
       )}
 

@@ -8,6 +8,11 @@ export async function getUsuarios({ rol = "", estado = "" } = {}) {
   return data.data ?? data;
 }
 
+export async function getUsuarioById(id) {
+  const { data } = await apiClient.get(`/api/admin/usuarios/${id}`);
+  return data.data ?? data;
+}
+
 export async function cambiarEstadoUsuario(id, { estado, motivo }) {
   const { data } = await apiClient.patch(`/api/admin/usuarios/${id}/estado`, { estado, motivo });
   return data.data ?? data;
