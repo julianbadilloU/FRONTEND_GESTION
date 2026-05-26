@@ -13,6 +13,16 @@ export function MatchFunnel({ data }) {
   // Stage-to-stage conversion: each stage's % is relative to first stage (pendiente)
   const firstCount = Math.max(data[0]?.count ?? 0, 1);
 
+  // Colors: blue-to-green gradient (match pipeline)
+  const DEFAULT_COLORS = ["#6b8fa3", "#7da3ba", "#8b9e7e", "#6d8f5e"];
+
+  const STAGE_LABELS = {
+    pendiente: "Pendiente",
+    contactado: "Contactado",
+    en_adopcion: "En adopción",
+    adoptado: "Adoptado",
+  };
+
   const funnelData = data.map((d, i) => ({
     label: STAGE_LABELS[d.label] ?? d.label,
     count: d.count ?? 0,
