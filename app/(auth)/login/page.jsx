@@ -30,7 +30,7 @@ export default function LoginPage() {
           } else if (role === "albergue") {
             router.push("/albergue/mascotas");
           } else if (role === "administrador") {
-            router.push("/admin/tags");
+            router.push("/admin/dashboard");
           } else {
             router.push("/");
           }

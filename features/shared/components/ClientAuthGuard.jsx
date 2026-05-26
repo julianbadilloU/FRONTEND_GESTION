@@ -54,7 +54,7 @@ export function ClientAuthGuard({ children, allowedRoles = [] }) {
             : userRole === "albergue"
             ? "/albergue/mascotas"
             : userRole === "administrador"
-            ? "/admin/tags"
+            ? "/admin/dashboard"
             : "/login";
         
         router.replace(redirectPath);

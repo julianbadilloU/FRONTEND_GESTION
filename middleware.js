@@ -94,7 +94,7 @@ export function middleware(request) {
     const redirectPath =
       userRole === "adoptante"      ? "/adoptante/feed"
     : userRole === "albergue"       ? "/albergue/mascotas"
-    : userRole === "administrador"  ? "/admin/tags"
+    : userRole === "administrador"  ? "/admin/dashboard"
     : "/";
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }

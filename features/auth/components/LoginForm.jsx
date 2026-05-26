@@ -74,6 +74,8 @@ export function LoginForm({ onSuccess }) {
         password: data.password,
       });
 
+      // Primary path: backend nests token under response.data.data.token
+      // Fallback chain: accessToken.data?.token → accessToken.token → accessToken.accessToken → accessToken.jwt → accessToken.data
       let accessToken = response.data;
       if (typeof accessToken === "object") {
         accessToken = accessToken.data?.token || accessToken.token || accessToken.accessToken || accessToken.jwt || accessToken.data;
