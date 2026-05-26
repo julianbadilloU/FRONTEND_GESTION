@@ -1,22 +1,30 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getSocket } from '@/lib/socket/socket-client';
 
 let permissionRequested = false;
 
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+  } catch {}
+}
+
 export function useNotificacionesSocket() {
   const queryClient = useQueryClient();
-  const audioRef = useRef(null);
-
-  useEffect(() => {
-    // Pre-cargar sonido de notificación
-    if (typeof window !== 'undefined') {
-      audioRef.current = new Audio('/notification.mp3');
-      audioRef.current.volume = 0.5;
-    }
-  }, []);
 
   useEffect(() => {
     const token = typeof window !== 'undefined'
@@ -34,9 +42,7 @@ export function useNotificacionesSocket() {
       queryClient.invalidateQueries({ queryKey: ['notificaciones', 'noLeidas'] });
 
       // Reproducir sonido
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {});
-      }
+      playNotificationSound();
 
       // Notificación nativa del navegador
       if ('Notification' in window && Notification.permission === 'granted') {
