@@ -17,6 +17,7 @@ import {
   AlertCircle,
   MessageCircle,
   Heart,
+  Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import {
@@ -67,6 +68,26 @@ function PendienteBadge() {
   return (
     <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
       Pendiente
+    </span>
+  );
+}
+
+// ── EnAdopcionBadge ──────────────────────────────────────────────────────────
+function EnAdopcionBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full">
+      <Star size={11} />
+      Seleccionado
+    </span>
+  );
+}
+
+// ── AdoptadoBadge ─────────────────────────────────────────────────────────────
+function AdoptadoBadge() {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full">
+      <Check size={11} strokeWidth={3} />
+      Adoptado
     </span>
   );
 }
@@ -144,7 +165,11 @@ function CandidatoDetailPanel({ candidato, nombreMascota, onContactado, onClose 
 
         {/* Status badge */}
         <div>
-          {yaContactado
+          {candidato.estado === 'en_adopcion'
+            ? <EnAdopcionBadge />
+            : candidato.estado === 'adoptado'
+            ? <AdoptadoBadge />
+            : yaContactado
             ? <ContactadoBadge fecha={candidato.historial_contactos?.at(-1)?.fecha} />
             : <PendienteBadge />
           }
@@ -289,7 +314,11 @@ function CandidatoRow({ candidato, nombreMascota, isSelected, onSelect, onContac
 
           {/* Status */}
           <div className="mb-2">
-            {yaContactado
+            {candidato.estado === 'en_adopcion'
+            ? <EnAdopcionBadge />
+            : candidato.estado === 'adoptado'
+            ? <AdoptadoBadge />
+            : yaContactado
               ? <ContactadoBadge fecha={ultimoContacto?.fecha} />
               : <PendienteBadge />
             }
