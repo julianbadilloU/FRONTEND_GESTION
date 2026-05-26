@@ -263,7 +263,7 @@ export function MatchDetailContent({ matchData, onMatchUpdate }) {
         )}
 
         {/* Botón Rechazar — solo visible en estados que permiten rechazo */}
-        {(estadoActual === "contactado" || estadoActual === "pendiente") && (
+        {(estadoActual === "contactado" || estadoActual === "pendiente" || estadoActual === "en_adopcion") && (
           <button
             id="btn-rechazar-match"
             onClick={handleReject}
