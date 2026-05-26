@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { getMascotaById } from "@/features/albergue/services/mascota.service";
 import { registrarMeInteresa } from "@/features/adoptante/services/adoptante.service";
+import AlbergueInfoCard from "@/features/shared/components/AlbergueInfoCard";
 
 /**
  * Obtiene el rol del usuario actual decodificando el JWT del localStorage.
@@ -395,6 +396,25 @@ export default function PetDetailContent({
           )}
         </div>
       </div>
+
+      {/* Información del albergue */}
+      {(() => {
+        const albergue = mascota ? {
+          nombre_albergue: mascota.nombre_albergue,
+          logo: mascota.logo,
+          descripcion: mascota.descripcion_albergue,
+          direccion: mascota.direccion_albergue,
+          ciudad: mascota.ciudad_albergue,
+          whatsapp_actual: mascota.whatsapp_albergue,
+          sitio_web: mascota.sitio_web_albergue,
+        } : null;
+        return albergue ? (
+          <div className="mt-6">
+            <AlbergueInfoCard albergue={albergue} />
+          </div>
+        ) : null;
+      })()}
+
       {/* Lightbox / visor de imagen con zoom */}
       {lightbox && fotoActual && (
         <div

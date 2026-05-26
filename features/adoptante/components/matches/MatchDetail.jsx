@@ -24,6 +24,7 @@ import {
 import { CompatibilityBar } from "@/features/adoptante/components/feed/CompatibilityBadge";
 import { EstadoBadge } from "@/features/adoptante/components/matches/MatchCard";
 import { rejectMatch } from "@/features/adoptante/services/match.service";
+import AlbergueInfoCard from "@/features/shared/components/AlbergueInfoCard";
 
 // ─── Mensaje por estado ───────────────────────────────────────────────────────
 
@@ -275,6 +276,13 @@ export function MatchDetailContent({ matchData, onMatchUpdate }) {
           </button>
         )}
       </div>
+
+      {/* Información del albergue */}
+      {albergue && (
+        <div className="border-t border-gray-50">
+          <AlbergueInfoCard albergue={albergue} />
+        </div>
+      )}
     </div>
   );
 }
