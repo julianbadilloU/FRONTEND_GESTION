@@ -43,7 +43,7 @@ function formatFecha(dateString) {
  * @param {'adoptante'|'albergue'} props.role - User role for routing
  * @param {Function} [props.onMascotaClick] - Callback for adoptante mascota notifications (opens PetDetailModal)
  */
-export default function NotificationsModal({ isOpen, onClose, role = "adoptante" }) {
+export default function NotificationsModal({ isOpen, onClose, role = "adoptante", onOpenMatch, onOpenMascota }) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -77,17 +77,20 @@ export default function NotificationsModal({ isOpen, onClose, role = "adoptante"
   const handleVerDetalles = (notif, notifId) => {
     if (notif.recurso_tipo === "match" && notif.recurso_id) {
       marcarLeidaMut.mutate(notifId);
-      if (role === "albergue") {
-        router.push(`/albergue/candidatos?match=${notif.recurso_id}`);
-      } else {
-        router.push(`/adoptante/matches/${notif.recurso_id}`);
-      }
       onClose?.();
+      if (onOpenMatch) {
+        onOpenMatch(notif.recurso_id);
+      } else {
+        setTimeout(() => router.push(`/adoptante/matches/${notif.recurso_id}`), 300);
+      }
     } else if (notif.recurso_tipo === "mascota" && notif.recurso_id) {
       marcarLeidaMut.mutate(notifId);
-      router.push(`/mascota/${notif.recurso_id}`);
       onClose?.();
-
+      if (onOpenMascota) {
+        onOpenMascota(notif.recurso_id);
+      } else {
+        setTimeout(() => router.push(`/mascota/${notif.recurso_id}`), 300);
+      }
     } else if (notif.recurso_tipo === "adopcion") {
       marcarLeidaMut.mutate(notifId);
       if (role === "albergue") {
