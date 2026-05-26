@@ -43,7 +43,7 @@ function formatFecha(dateString) {
  * @param {'adoptante'|'albergue'} props.role - User role for routing
  * @param {Function} [props.onMascotaClick] - Callback for adoptante mascota notifications (opens PetDetailModal)
  */
-export default function NotificationsModal({ isOpen, onClose, role = "adoptante", onMascotaClick }) {
+export default function NotificationsModal({ isOpen, onClose, role = "adoptante" }) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
@@ -85,14 +85,9 @@ export default function NotificationsModal({ isOpen, onClose, role = "adoptante"
       onClose?.();
     } else if (notif.recurso_tipo === "mascota" && notif.recurso_id) {
       marcarLeidaMut.mutate(notifId);
-      if (role === "albergue") {
-        router.push(`/albergue/mascotas/${notif.recurso_id}/estado`);
-      } else if (onMascotaClick) {
-        onMascotaClick(notif.recurso_id);
-      } else {
-        router.push("/adoptante/descubrir");
-      }
+      router.push(`/mascota/${notif.recurso_id}`);
       onClose?.();
+
     } else if (notif.recurso_tipo === "adopcion") {
       marcarLeidaMut.mutate(notifId);
       if (role === "albergue") {

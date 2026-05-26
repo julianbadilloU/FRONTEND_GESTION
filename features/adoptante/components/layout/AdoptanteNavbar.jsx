@@ -13,7 +13,6 @@ import { getAdoptanteProfile } from "@/features/adoptante/services/adoptante.ser
 import { getNotificaciones } from "@/features/shared/services/notificacion.service";
 import { useNotificacionesSocket, requestNotificationPermission } from "@/features/shared/hooks/useNotificacionesSocket";
 import NotificationsModal from "@/features/shared/components/NotificationsModal";
-import PetDetailModal from "@/features/shared/components/PetDetailModal";
 
 const NAV_LINKS = [
   { href: "/adoptante/descubrir", label: "Descubrir", icon: Sparkles },
@@ -27,7 +26,6 @@ export function AdoptanteNavbar() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [notifModalOpen, setNotifModalOpen] = useState(false);
-  const [petModalId, setPetModalId] = useState(null);
   const headerRef = useRef(null);
 
   // HU-NOT-01: real-time notifications via Socket.IO
@@ -254,14 +252,6 @@ export function AdoptanteNavbar() {
       isOpen={notifModalOpen}
       onClose={() => setNotifModalOpen(false)}
       role="adoptante"
-      onMascotaClick={(mascotaId) => {
-        setNotifModalOpen(false);
-        setPetModalId(mascotaId);
-      }}
-    />
-    <PetDetailModal
-      mascotaId={petModalId}
-      onClose={() => setPetModalId(null)}
     />
     </>
   );
