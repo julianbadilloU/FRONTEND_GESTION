@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import PetDetailContent from "@/features/shared/components/PetDetailContent";
 
-export default function PetDetailModal({ mascotaId, onClose }) {
+export default function PetDetailModal({ mascotaId, onClose, showActions = true, extraContent }) {
   useEffect(() => {
     if (!mascotaId) return;
     const original = document.body.style.overflow;
@@ -57,7 +57,8 @@ export default function PetDetailModal({ mascotaId, onClose }) {
               </button>
 
               <div className="pt-12 pb-8 sm:px-2 sm:pt-4">
-                <PetDetailContent mascotaId={mascotaId} showActions={true} />
+                <PetDetailContent mascotaId={mascotaId} showActions={showActions} />
+                {extraContent}
               </div>
             </div>
           </motion.div>
