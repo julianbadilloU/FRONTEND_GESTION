@@ -212,8 +212,8 @@ export default function NotificationsModal({ isOpen, onClose, role = "adoptante"
                               {formatFecha(notif.fecha_creacion)}
                             </span>
 
-                            {/* Ver detalles */}
-                            {notif.recurso_tipo && notif.recurso_id && (
+                            {/* Ver detalles — match, mascota, y adopcion */}
+                            {notif.recurso_tipo && notif.recurso_id && notif.recurso_tipo !== 'adopcion' && (
                               <button
                                 onClick={() => handleVerDetalles(notif, notifId)}
                                 className="text-xs font-medium text-[#5e924e] hover:text-[#3d6b30] hover:underline transition-colors"
@@ -221,7 +221,7 @@ export default function NotificationsModal({ isOpen, onClose, role = "adoptante"
                                 Ver detalles
                               </button>
                             )}
-                            {notif.recurso_tipo === "adopcion" && (
+                            {notif.recurso_tipo === 'adopcion' && (
                               <button
                                 onClick={() => handleVerDetalles(notif, notifId)}
                                 className="text-xs font-medium text-[#5e924e] hover:text-[#3d6b30] hover:underline transition-colors"
