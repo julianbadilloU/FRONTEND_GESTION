@@ -83,12 +83,11 @@ export function LoginForm({ onSuccess }) {
       
       saveSessionTokens({ accessToken });
 
-      // Decodificar JWT para obtener rol, estado_cuenta y redirigir
       let role = null;
       let estadoCuenta = null;
       try {
         const payload = JSON.parse(atob(accessToken.split('.')[1]));
-        role = payload.role;
+        role = payload.role === "admin" ? "administrador" : payload.role;
         estadoCuenta = payload.estado_cuenta;
       } catch {
         role = null;

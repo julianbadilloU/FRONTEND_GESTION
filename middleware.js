@@ -77,7 +77,9 @@ export function middleware(request) {
 
   // ── VALIDACIÓN DE ROL ──
   const payload = decodeJwtPayload(accessToken);
-  const userRole = payload?.role?.toLowerCase();
+  let userRole = payload?.role?.toLowerCase();
+  if (userRole === "admin") userRole = "administrador";
+  
   const userEstadoCuenta = payload?.estado_cuenta;
 
   const roleByPrefix = {
