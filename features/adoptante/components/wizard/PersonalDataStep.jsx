@@ -21,50 +21,24 @@ export const PersonalDataStep = forwardRef(function PersonalDataStep({ selection
   dataRef.current = data;
   const profilePhotoBase64Ref = useRef(null);
 
-  // Exponer data al padre para el botón Siguiente
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  // Expone method to show all errors (called by parent when clicking "Siguiente")
   useImperativeHandle(ref, () => ({
     getData: () => dataRef.current,
     getPreview: () => preview,
     getProfilePhotoBase64: () => profilePhotoBase64Ref.current,
+    validateAndShowErrors: () => {
+      setShowAllErrors(true);
+      return data.fullName.trim().length > 3 &&
+             data.whatsapp.trim().length >= 10 &&
+             data.departamento.trim().length > 2 &&
+             data.city.trim().length > 2 &&
+             data.direccion.trim().length > 2;
+    },
   }));
-
-  // Sincronizar estado local cuando el selection cambia (ej: pre-fill desde API)
-  useEffect(() => {
-    if (selection) {
-      setData(prev => ({
-        ...prev,
-        ...selection,
-        direccion: selection.direccion || selection.address || prev.direccion || "",
-      }));
-      if (selection.profilePhoto) {
-        setPreview(selection.profilePhoto);
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selection]);
-
-  // Validar si el paso puede avanzar
-  useEffect(() => {
-    const isValid = data.fullName.trim().length > 3 && 
-                    data.whatsapp.trim().length >= 10 && 
-                    data.departamento.trim().length > 2 &&
-                    data.city.trim().length > 2 &&
-                    data.direccion.trim().length > 2;
-    onValidation?.(isValid);
-  }, [data, onValidation]);
-
-  // Errores por campo (solo si el usuario ya interactuó con el campo)
-  const fieldErrors = {
-    fullName: touched.fullName && data.fullName.trim().length <= 3 ? "Mínimo 4 caracteres" : null,
-    whatsapp: touched.whatsapp && data.whatsapp.trim().length < 10 ? "Ingresa al menos 10 dígitos" : null,
-    departamento: touched.departamento && data.departamento.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
-    city: touched.city && data.city.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
-    direccion: touched.direccion && data.direccion.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
-  };
-
-  const handleBlur = (field) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];

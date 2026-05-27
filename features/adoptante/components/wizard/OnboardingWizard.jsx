@@ -429,6 +429,9 @@ export function OnboardingWizard() {
         <button
           onClick={() => {
             if (isFormStep && personalDataRef.current) {
+              // Validar y mostrar errores antes de avanzar
+              const isValid = personalDataRef.current.validateAndShowErrors();
+              if (!isValid) return;
               const d = personalDataRef.current.getData();
               const photo = personalDataRef.current.getProfilePhotoBase64();
               select({ fullName: d.fullName, whatsapp: d.whatsapp, departamento: d.departamento, city: d.city, direccion: d.direccion, profilePhotoBase64: photo });
