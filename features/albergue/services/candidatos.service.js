@@ -19,7 +19,7 @@ const extractData = (response) => {
  */
 export async function getCandidatosPorMascota(idMascota) {
   const { data } = await apiClient.get(
-    `/api/albergue/matches?id_mascota=${idMascota}`
+    `/api/shelters/matches?id_mascota=${idMascota}`
   );
   return extractData(data);
 }
@@ -29,26 +29,26 @@ export async function getCandidatosPorMascota(idMascota) {
  * Endpoint: GET /api/shelters/matches
  */
 export async function getMisCandidatos() {
-  const { data } = await apiClient.get("/api/albergue/matches");
+  const { data } = await apiClient.get("/api/shelters/matches");
   return extractData(data);
 }
 
 /**
  * HU-MCH-02: Registra el contacto WhatsApp con un adoptante.
  * Actualiza el estado del match a "contactado".
- * Endpoint: POST /api/albergue/matches/:id/contact
+ * Endpoint: POST /api/shelters/matches/:id/contact
  */
 export async function contactarAdoptante(idMatch) {
-  const { data } = await apiClient.post(`/api/albergue/matches/${idMatch}/contact`);
+  const { data } = await apiClient.post(`/api/shelters/matches/${idMatch}/contact`);
   return extractData(data);
 }
 
 /**
  * Obtiene el historial de contactos de un match específico.
- * Endpoint: GET /api/albergue/matches/:id/historial
+ * Endpoint: GET /api/shelters/matches/:id/historial
  */
 export async function getHistorialContactos(idMatch) {
-  const { data } = await apiClient.get(`/api/albergue/matches/${idMatch}/historial`);
+  const { data } = await apiClient.get(`/api/shelters/matches/${idMatch}/historial`);
   return extractData(data);
 }
 
@@ -70,7 +70,7 @@ export function buildWhatsAppUrl(whatsapp, nombreAdoptante, nombreMascota) {
   }
 
   const mensaje = encodeURIComponent(
-    `Hola ${nombreAdoptante}, te contactamos desde FurMatch porque tu perfil es compatible con ${nombreMascota}. ¿Te gustaría conocerlo/a? 🐾`
+    `Hola ${nombreAdoptante}, te contactamos desde FurMatch porque tu perfil es compatible con ${nombreMascota}. ¿Te gustaría conocerlo/a?`
   );
 
   return `https://wa.me/${numero}?text=${mensaje}`;

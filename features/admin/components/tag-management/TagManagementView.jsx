@@ -83,7 +83,7 @@ export function TagManagementView() {
   });
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 min-h-screen space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-screen space-y-8 sm:space-y-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">

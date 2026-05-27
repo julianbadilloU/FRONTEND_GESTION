@@ -5,7 +5,7 @@ export const metadata = { title: "Dashboard | FurMatch Admin" };
 
 export default function AdminDashboardPage() {
   return (
-    <ClientAuthGuard allowedRoles={["admin"]}>
+    <ClientAuthGuard allowedRoles={["administrador"]}>
       <DashboardView />
     </ClientAuthGuard>
   );

@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 
 import { SignupForm } from "@/features/auth/components/SignupForm";
 import { VerifyEmailView } from "@/features/auth/components/VerifyEmailView";
 
 export default function RegistroPage() {
-  const router = useRouter();
   const [verifyEmail, setVerifyEmail] = useState(null);
 
   if (verifyEmail) {

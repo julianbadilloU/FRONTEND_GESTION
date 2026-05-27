@@ -1,9 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Clock, AlertCircle, ClipboardList } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CheckCircle2, Clock, AlertCircle, ClipboardList, Check } from "lucide-react";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
-import { obtenerHistorialAdopciones } from "@/features/albergue/services/adopciones.service";
+import {
+  obtenerHistorialAdopciones,
+  finalizarAdopcion,
+} from "@/features/albergue/services/adopciones.service";
 
 function EstadoBadge({ estado }) {
   const config = {
@@ -51,10 +54,25 @@ function formatDate(dateStr) {
 }
 
 export default function AdopcionesHistorialPage() {
+  const queryClient = useQueryClient();
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["historial-adopciones"],
     queryFn: obtenerHistorialAdopciones,
   });
+
+  const completarMutation = useMutation({
+    mutationFn: finalizarAdopcion,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["historial-adopciones"] });
+    },
+  });
+
+  const handleCompletar = (id) => {
+    if (window.confirm("¿Estás seguro de que deseas completar esta adopción?")) {
+      completarMutation.mutate(id);
+    }
+  };
 
   // The service's extractData returns either the array directly or
   // an object { data: [], meta: {} } depending on the API response shape.
@@ -111,6 +129,9 @@ export default function AdopcionesHistorialPage() {
                       <th className="text-left text-xs font-semibold text-gray-500 uppercase px-6 py-3">
                         Estado
                       </th>
+                      <th className="text-left text-xs font-semibold text-gray-500 uppercase px-6 py-3">
+                        Acción
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -159,6 +180,20 @@ export default function AdopcionesHistorialPage() {
                           </td>
                           <td className="px-6 py-4">
                             <EstadoBadge estado={estado} />
+                          </td>
+                          <td className="px-6 py-4">
+                            {estado === "en_proceso" && (
+                              <button
+                                onClick={() => handleCompletar(id)}
+                                disabled={completarMutation.isPending}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 active:bg-emerald-200 text-xs font-semibold transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                <Check size={14} />
+                                {completarMutation.isPending
+                                  ? "Completando..."
+                                  : "Completar Adopción"}
+                              </button>
+                            )}
                           </td>
                         </tr>
                       );

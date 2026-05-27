@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Camera, Lock, MapPin } from "lucide-react";
@@ -63,12 +64,13 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
     watch,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(albergueProfileSchema.omit({ nit: true })),
+    resolver: zodResolver(albergueProfileSchema),
     mode: "onChange",
     defaultValues: {
       name:        profile.name        ?? "",
       whatsapp:    profile.whatsapp    ?? "",
       address:     profile.address     ?? "",
+      departamento: profile.departamento ?? "",
       city:        profile.city        ?? "",
       website:     profile.website     ?? "",
       description: profile.description ?? "",
@@ -194,6 +196,21 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
               />
             </div>
 
+            {/* Departamento */}
+            <div>
+              <FieldLabel htmlFor="f-dept">Departamento</FieldLabel>
+              <FieldInput
+                id="f-dept"
+                type="text"
+                error={errors.departamento}
+                placeholder="Ej: Huila"
+                {...register("departamento")}
+              />
+              {errors.departamento && (
+                <p className="text-xs text-red-500 mt-1">{errors.departamento.message}</p>
+              )}
+            </div>
+
             {/* Ciudad */}
             <div>
               <FieldLabel htmlFor="f-city">Ciudad</FieldLabel>
@@ -202,6 +219,7 @@ export function ProfileForm({ profile, logoPreview, onLogoChange, onSave, onCanc
                 type="text"
                 prefix={<MapPin size={13} />}
                 error={errors.city}
+                placeholder="Ej: Neiva"
                 {...register("city")}
               />
               {errors.city && (

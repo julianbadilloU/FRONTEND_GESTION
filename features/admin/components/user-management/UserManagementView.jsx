@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Users } from "lucide-react";
+import { Users, AlertTriangle, RefreshCw } from "lucide-react";
 import { UserTable } from "./UserTable";
 import { UserStatusModal } from "./UserStatusModal";
+import { UserDetailModal } from "./UserDetailModal";
 import { Toast } from "@/features/shared/components/Toast";
-import { getUsuarios, cambiarEstadoUsuario } from "@/features/admin/services/adminUser.service";
+import { getUsuarios, cambiarEstadoUsuario, eliminarUsuario } from "@/features/admin/services/adminUser.service";
 
 export function UserManagementView() {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({ rol: "", estado: "" });
   const [modalState, setModalState] = useState({ open: false, user: null, action: null });
+  const [detailUserId, setDetailUserId] = useState(null);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
   const { data: users = [], isLoading, error } = useQuery({
@@ -31,12 +33,37 @@ export function UserManagementView() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => eliminarUsuario(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      showToast("Usuario eliminado correctamente.");
+    },
+    onError: (err) => {
+      showToast(err?.response?.data?.message || "Error al eliminar usuario.", "error");
+    },
+  });
+
   const handleAction = (user, action) => {
+    if (action === "eliminar") {
+      if (window.confirm(`¿Eliminar permanentemente a ${user.nombre || user.correo}?`)) {
+        deleteMutation.mutate(user.id);
+      }
+      return;
+    }
     setModalState({ open: true, user, action });
+  };
+
+  const handleDetail = (userId) => {
+    setDetailUserId(userId);
   };
 
   const handleModalClose = () => {
     setModalState({ open: false, user: null, action: null });
+  };
+
+  const handleDetailClose = () => {
+    setDetailUserId(null);
   };
 
   const handleModalSuccess = (msg) => {
@@ -48,7 +75,7 @@ export function UserManagementView() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-12 min-h-screen space-y-8">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12 min-h-screen space-y-8 sm:space-y-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div className="space-y-1">
@@ -65,7 +92,6 @@ export function UserManagementView() {
             Administra el acceso de adoptantes, albergues y administradores.
           </p>
         </div>
-
       </div>
 
       {/* Filters */}
@@ -88,25 +114,34 @@ export function UserManagementView() {
           aria-label="Filtrar por estado"
           className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#8b9e7e]/30 focus:border-[#8b9e7e]"
         >
-          <option value="">Todos los estados</option>
-          <option value="activo">Activo</option>
-          <option value="suspendido">Suspendido</option>
+           <option value="">Todos los estados</option>
+           <option value="activo">Activo</option>
+           <option value="suspendido">Suspendido</option>
+           <option value="perfil_incompleto">Perfil incompleto</option>
         </select>
       </div>
 
       {error && (
-        <div className="bg-rose-50 border border-rose-100 p-6 rounded-3xl flex flex-col items-center gap-3 text-center">
+        <div className="bg-rose-50 border border-rose-100 p-8 rounded-3xl flex flex-col items-center gap-3 text-center">
+          <AlertTriangle size={28} className="text-rose-400" />
           <p className="text-rose-900 font-bold">Ocurrió un error al cargar los usuarios.</p>
+          <p className="text-rose-600 text-xs max-w-md">{error?.message || "Error de conexión con el servidor."}</p>
           <button
             onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-users"] })}
-            className="text-rose-600 text-xs font-bold uppercase tracking-widest hover:underline"
+            className="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-colors"
           >
+            <RefreshCw size={14} strokeWidth={2.5} />
             Reintentar
           </button>
         </div>
       )}
 
-      <UserTable users={users} loading={isLoading} onAction={handleAction} />
+      <UserTable
+        users={users}
+        loading={isLoading}
+        onAction={handleAction}
+        onDetail={handleDetail}
+      />
 
       <UserStatusModal
         isOpen={modalState.open}
@@ -115,6 +150,12 @@ export function UserManagementView() {
         action={modalState.action}
         onSuccess={handleModalSuccess}
         onError={handleModalError}
+      />
+
+      <UserDetailModal
+        isOpen={!!detailUserId}
+        onClose={handleDetailClose}
+        userId={detailUserId}
       />
 
       <Toast

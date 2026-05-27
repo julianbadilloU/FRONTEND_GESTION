@@ -1,11 +1,19 @@
+"use client";
+
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { CandidatosView } from "@/features/albergue/components/candidatos/CandidatosView";
 
-export const metadata = {
-  title: "Candidatos | FurMatch",
-  description:
-    "Gestiona los adoptantes compatibles con tus mascotas y contáctalos por WhatsApp.",
-};
+function CandidatosContent() {
+  const searchParams = useSearchParams();
+  const matchId = searchParams.get("match");
+  return <CandidatosView preselectedMatchId={matchId ? parseInt(matchId) : null} />;
+}
 
 export default function CandidatosPage() {
-  return <CandidatosView />;
+  return (
+    <Suspense>
+      <CandidatosContent />
+    </Suspense>
+  );
 }

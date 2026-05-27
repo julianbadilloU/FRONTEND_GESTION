@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Shield, Tag, Users, BarChart3, Settings, LogOut, Menu, X } from "lucide-react";
+import { Shield, Tag, Users, BarChart3, Settings, LogOut, Menu, X, PawPrint, Bell } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils/cn";
 const NAV_LINKS = [
   { href: "/admin/tags", label: "Tags", icon: Tag },
   { href: "/admin/usuarios", label: "Usuarios", icon: Users },
+  { href: "/admin/mascotas", label: "Mascotas", icon: PawPrint },
+  { href: "/admin/notificaciones", label: "Notificaciones", icon: Bell },
   { href: "/admin/dashboard", label: "Dashboard", icon: BarChart3 },
   { href: "/admin/configuracion", label: "Configuración", icon: Settings },
 ];
@@ -47,7 +49,7 @@ export function AdminNavbar() {
   return (
     <header
       ref={headerRef}
-      className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-40 shadow-sm"
+      className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3.5 sticky top-0 z-40 shadow-sm"
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
 

@@ -27,7 +27,7 @@ export async function getMatchesAdoptante(params = {}) {
     Object.entries(params).filter(([, v]) => v !== "" && v !== undefined && v !== null)
   );
   const query = new URLSearchParams(cleanParams).toString();
-  const url = query ? `/api/match?${query}` : "/api/match";
+  const url = query ? `/api/adopters/matches?${query}` : "/api/adopters/matches";
   const { data } = await apiClient.get(url);
   return data;
 }
@@ -39,7 +39,19 @@ export async function getMatchesAdoptante(params = {}) {
  * @returns {Promise<{data: Match}>}
  */
 export async function getMatchById(idMatch) {
-  const { data } = await apiClient.get(`/api/match/${idMatch}`);
+  const { data } = await apiClient.get(`/api/matches/${idMatch}`);
+  return data;
+}
+
+/**
+ * Rechaza un match como adoptante.
+ * El match debe estar en estado "pendiente" o "contactado".
+ *
+ * @param {number|string} idMatch
+ * @returns {Promise<{success: boolean, message: string}>}
+ */
+export async function rejectMatch(idMatch) {
+  const { data } = await apiClient.post(`/api/matches/${idMatch}/reject`);
   return data;
 }
 

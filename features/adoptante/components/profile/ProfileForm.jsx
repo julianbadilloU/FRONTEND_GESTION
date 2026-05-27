@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, Lock, MapPin, Phone, User, Tag, X } from "lucide-react";
+import { Camera, Lock, MapPin, Phone, User, Tag, X, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 import { adoptanteProfileSchema } from "@/features/adoptante/schemas/adoptante.schemas";
+import { getEtiquetas } from "@/features/adoptante/services/adoptante.service";
 import { cn } from "@/lib/utils/cn";
 
 // ─── Label reutilizable ───────────────────────────────────────────────────────
@@ -56,19 +57,6 @@ function FieldInput({ id, error, prefix = null, className = "", ...props }) {
   );
 }
 
-// ─── Sugerencias de tags ──────────────────────────────────────────────────────
-const TAG_SUGGESTIONS = [
-  "Perros",
-  "Gatos",
-  "Cachorros",
-  "Adultos",
-  "Senior",
-  "Grandes",
-  "Pequeños",
-  "Médicos",
-  "Urgentes",
-];
-
 // ─── Formulario de edición (HU-US-02) ─────────────────────────────────────────
 export function ProfileForm({
   profile,
@@ -78,13 +66,48 @@ export function ProfileForm({
   onCancel,
   isSaving,
 }) {
-  const [tagInput, setTagInput] = useState("");
+  const [catalogo, setCatalogo] = useState([]);
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
+
+  // Cargar el catálogo de tags desde la API al montar el formulario
+  useEffect(() => {
+    let mounted = true;
+    setCargandoCatalogo(true);
+    getEtiquetas()
+      .then((data) => {
+        if (mounted) {
+          setCatalogo(Array.isArray(data) ? data : data?.data ?? []);
+        }
+      })
+      .catch(() => {
+        // Si falla la carga, se deja catálogo vacío (solo se muestran chips existentes)
+        if (mounted) setCatalogo([]);
+      })
+      .finally(() => {
+        if (mounted) setCargandoCatalogo(false);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  // Agrupar catálogo por categoría
+  const categorias = useMemo(() => {
+    const map = {};
+    catalogo.forEach((tag) => {
+      // Filtrar tags de mascota que no aplican para adoptante
+      if (tag.categoria === "Condición especial" || tag.nombre_tag === "Condición especial") return;
+      const cat = tag.categoria || "General";
+      if (!map[cat]) map[cat] = [];
+      map[cat].push({ id_opcion: tag.id_opcion, valor: tag.valor, categoria: cat });
+    });
+    return Object.entries(map);
+  }, [catalogo]);
 
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(adoptanteProfileSchema),
@@ -92,36 +115,53 @@ export function ProfileForm({
     defaultValues: {
       nombre_completo: profile?.nombre_completo ?? "",
       whatsapp: profile?.whatsapp ?? "",
+      departamento: profile?.departamento ?? "",
       ciudad: profile?.ciudad ?? "",
       direccion: profile?.direccion ?? "",
       tags: profile?.tags ?? [],
     },
   });
 
+  // Reset form cuando el profile carga (después del mount inicial)
+  useEffect(() => {
+    if (profile) {
+      reset({
+        nombre_completo: profile.nombre_completo ?? "",
+        whatsapp: profile.whatsapp ?? "",
+        departamento: profile.departamento ?? "",
+        ciudad: profile.ciudad ?? "",
+        direccion: profile.direccion ?? "",
+        tags: profile.tags ?? [],
+      });
+    }
+  }, [profile, reset]);
+
   const tags = watch("tags") ?? [];
   const fotoSrc = fotoPreview || profile?.foto || profile?.foto_url || "/default-avatar.svg";
 
+  // IDs de tags seleccionados para búsqueda rápida
+  const selectedIds = useMemo(() => new Set(tags.map((t) => t.id_opcion)), [tags]);
+
+  // Categorías que permiten múltiple selección (coinciden con el wizard)
+  const MULTI_SELECT_CATEGORIES = new Set(["Raza", "Color", "Compatibilidad", "Aceptación de condición especial"]);
+
   // ── Manejo de tags (chips) ──────────────────────────────────────────────
-  const addTag = (tag) => {
-    const trimmed = tag.trim();
-    if (!trimmed || tags.includes(trimmed)) return;
-    setValue("tags", [...tags, trimmed], { shouldValidate: true });
+  const addTag = (tagObj) => {
+    if (!tagObj || selectedIds.has(tagObj.id_opcion)) return;
+    // Si es single-select, remover cualquier tag existente de la misma categoría
+    let updatedTags = tags;
+    if (!MULTI_SELECT_CATEGORIES.has(tagObj.categoria)) {
+      updatedTags = tags.filter((t) => t.categoria !== tagObj.categoria);
+    }
+    setValue("tags", [...updatedTags, tagObj], { shouldValidate: true });
   };
 
-  const removeTag = (tag) => {
+  const removeTag = (tagObj) => {
     setValue(
       "tags",
-      tags.filter((t) => t !== tag),
+      tags.filter((t) => t.id_opcion !== tagObj.id_opcion),
       { shouldValidate: true },
     );
-  };
-
-  const handleTagKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addTag(tagInput);
-      setTagInput("");
-    }
   };
 
   return (
@@ -136,7 +176,6 @@ export function ProfileForm({
                 alt={profile?.nombre_completo || "Adoptante"}
                 width={144}
                 height={144}
-                priority
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.currentTarget.src = "/default-avatar.svg";
@@ -211,21 +250,38 @@ export function ProfileForm({
               )}
             </div>
 
-            {/* Ciudad */}
-            <div>
-              <FieldLabel htmlFor="f-ciudad">Ciudad</FieldLabel>
-              <FieldInput
-                id="f-ciudad"
-                type="text"
-                prefix={<MapPin size={13} />}
-                error={errors.ciudad}
-                {...register("ciudad")}
-              />
-              {errors.ciudad && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.ciudad.message}
-                </p>
-              )}
+            {/* Departamento + Ciudad */}
+            <div className="col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+              {/* Departamento */}
+              <div>
+                <FieldLabel htmlFor="f-dept">Departamento</FieldLabel>
+                <FieldInput
+                  id="f-dept"
+                  type="text"
+                  error={errors.departamento}
+                  placeholder="Ej: Huila"
+                  {...register("departamento")}
+                />
+                {errors.departamento && (
+                  <p className="text-xs text-red-500 mt-1">{errors.departamento.message}</p>
+                )}
+              </div>
+
+              {/* Ciudad */}
+              <div>
+                <FieldLabel htmlFor="f-city">Ciudad</FieldLabel>
+                <FieldInput
+                  id="f-city"
+                  type="text"
+                  prefix={<MapPin size={13} />}
+                  error={errors.ciudad}
+                  placeholder="Ej: Neiva"
+                  {...register("ciudad")}
+                />
+                {errors.ciudad && (
+                  <p className="text-xs text-red-500 mt-1">{errors.ciudad.message}</p>
+                )}
+              </div>
             </div>
 
             {/* Dirección */}
@@ -246,24 +302,28 @@ export function ProfileForm({
           </div>
         </div>
 
-        {/* Tags / Preferencias (chips) */}
+        {/* Tags / Preferencias — selección desde el catálogo */}
         <div className="mt-6 pt-6 border-t border-[#e4d5c4]">
           <FieldLabel htmlFor="f-tags">
             <Tag size={11} />
             Preferencias
-            <span className="normal-case font-normal tracking-normal text-gray-300">
-              (opcional)
-            </span>
           </FieldLabel>
 
-          {/* Input para agregar tags */}
-          <div className="flex flex-wrap gap-2 mb-3">
-            {tags.map((tag, idx) => (
+          {/* Chips de tags seleccionados */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {tags.length === 0 && (
+              <span className="text-xs text-gray-400 italic">
+                {cargandoCatalogo
+                  ? "Cargando preferencias..."
+                  : "Seleccioná tus preferencias desde las categorías de abajo"}
+              </span>
+            )}
+            {tags.map((tag) => (
               <span
-                key={`${tag}-${idx}`}
+                key={tag.id_opcion}
                 className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#e8f0e2] text-[#5e7a50] text-xs font-medium border border-[#d4e0ca]"
               >
-                {tag}
+                {tag.valor}
                 <button
                   type="button"
                   onClick={() => removeTag(tag)}
@@ -275,42 +335,50 @@ export function ProfileForm({
             ))}
           </div>
 
-          <div className="flex gap-2">
-            <input
-              id="f-tags"
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagKeyDown}
-              placeholder="Escribe un tag y presiona Enter"
-              className="flex-1 border border-[#d8cfc5] rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#81af6d]/50 hover:border-[#a9c99a] transition-all"
-            />
-            <button
-              type="button"
-              onClick={() => {
-                addTag(tagInput);
-                setTagInput("");
-              }}
-              disabled={!tagInput.trim()}
-              className="px-4 py-2 rounded-lg bg-[#81af6d] hover:bg-[#5e924e] text-white text-sm font-medium transition-colors disabled:opacity-50"
-            >
-              Agregar
-            </button>
-          </div>
-
-          {/* Sugerencias */}
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {TAG_SUGGESTIONS.filter((s) => !tags.includes(s)).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => addTag(s)}
-                className="text-xs text-gray-400 hover:text-[#5e7a50] hover:bg-[#e8f0e2] px-2 py-0.5 rounded-full border border-transparent hover:border-[#d4e0ca] transition-all"
-              >
-                + {s}
-              </button>
-            ))}
-          </div>
+          {/* Catálogo de tags agrupado por categoría */}
+          {cargandoCatalogo ? (
+            <div className="flex items-center gap-2 text-xs text-gray-400 py-2">
+              <Loader2 size={14} className="animate-spin" />
+              Cargando categorías...
+            </div>
+          ) : categorias.length === 0 ? (
+            <p className="text-xs text-gray-400 italic">
+              No se pudieron cargar las preferencias disponibles.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {categorias.map(([categoria, opciones]) => (
+                <div key={categoria}>
+                  <p className="text-[0.65rem] font-semibold uppercase tracking-wider text-gray-400 mb-1.5">
+                    {categoria}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {opciones.map((opt) => {
+                      const isSelected = selectedIds.has(opt.id_opcion);
+                      return (
+                        <button
+                          key={opt.id_opcion}
+                          type="button"
+                          onClick={() =>
+                            isSelected ? removeTag(opt) : addTag(opt)
+                          }
+                          className={cn(
+                            "text-xs px-2.5 py-1 rounded-full border transition-all",
+                            isSelected
+                              ? "bg-[#5e924e] text-white border-[#5e924e] font-medium"
+                              : "text-gray-400 border-[#d4e0ca] hover:text-[#5e7a50] hover:bg-[#e8f0e2] hover:border-[#5e924e]",
+                          )}
+                        >
+                          {isSelected ? "✓ " : "+ "}
+                          {opt.valor}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

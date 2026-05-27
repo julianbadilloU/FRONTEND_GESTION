@@ -1,17 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dog, Upload, Loader2, Check, PawPrint } from "lucide-react";
+import { Dog, Upload, Loader2, Check, PawPrint, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 import { albergueProfileSchema } from "@/features/albergue/schemas/albergue.schemas";
 import { cn } from "@/lib/utils/cn";
-import { createAlbergueProfile } from "@/features/albergue/services/albergue.service";
+import { createAlbergueProfile, getAlbergueProfile } from "@/features/albergue/services/albergue.service";
 import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 export function AlbergueWizard() {
@@ -20,14 +20,18 @@ export function AlbergueWizard() {
   const [logoPreview, setLogoPreview] = useState(null);
   const [logoBase64, setLogoBase64] = useState(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [existingLogoUrl, setExistingLogoUrl] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const {
     register,
     trigger,
     getValues,
-    setValue,
+    reset,
+    setError,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(albergueProfileSchema),
@@ -38,17 +42,66 @@ export function AlbergueWizard() {
       description: "",
       whatsapp: "",
       address: "",
+      departamento: "",
       city: "",
       website: "",
     },
   });
+
+  // Cargar perfil existente al montar (para prellenar o redirigir si ya está completo)
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProfile() {
+      try {
+        const profile = await getAlbergueProfile();
+        if (cancelled || !profile) return;
+
+        // Mapear campos del backend al formulario
+        const formData = {
+          name: profile.nombre_albergue || "",
+          nit: profile.nit || "",
+          description: profile.descripcion || "",
+          whatsapp: profile.whatsapp_actual || "",
+          address: profile.direccion || "",
+          departamento: profile.departamento || "",
+          city: profile.ciudad || "",
+          website: profile.sitio_web || "",
+        };
+
+        // Si el perfil ya existe (nombre_albergue y nit como mínimo), está creado en DB
+        // pero el JWT del navegador aún tiene estado_cuenta="perfil_incompleto" →
+        // forzar re-login para obtener un token fresco con estado_cuenta correcto
+        if (formData.name && formData.nit) {
+          document.cookie = "accessToken=; path=/; max-age=0";
+          document.cookie = "furmatch.access_token=; path=/; max-age=0";
+          window.location.href = "/login";
+          return;
+        }
+
+        // Si hay datos parciales, prellenar el formulario
+        reset(formData);
+
+        // Precargar logo existente si el API devuelve una URL de Cloudinary
+        if (profile.logo) {
+          setLogoPreview(profile.logo);
+          setExistingLogoUrl(profile.logo);
+        }
+      } catch {
+        // 404 = no hay perfil, es normal — mostrar formulario vacío
+      } finally {
+        if (!cancelled) setIsLoadingProfile(false);
+      }
+    }
+    loadProfile();
+    return () => { cancelled = true; };
+  }, [reset]);
 
   const handleNext = async () => {
     let isValid = false;
     if (step === 1) {
       isValid = await trigger(["name", "nit", "description"]);
     } else if (step === 2) {
-      isValid = await trigger(["whatsapp", "address", "city", "website"]);
+      isValid = await trigger(["whatsapp", "address", "departamento", "city", "website"]);
     }
 
     if (isValid) {
@@ -70,30 +123,78 @@ export function AlbergueWizard() {
     
     try {
       const values = getValues();
+      // Formatear NIT: agregar guión y dígito verificador si no lo tiene
+      let nitFormateado = values.nit.replace(/\./g, '').trim();
+      if (/^\d{6,10}$/.test(nitFormateado)) {
+        // Calcular dígito verificador simple (módulo 11)
+        let suma = 0;
+        const factores = [3, 7, 13, 17, 19, 23, 29, 37, 41, 43];
+        for (let i = 0; i < nitFormateado.length; i++) {
+          suma += parseInt(nitFormateado[nitFormateado.length - 1 - i]) * factores[i];
+        }
+        const dv = (suma % 11) < 2 ? 0 : 11 - (suma % 11);
+        nitFormateado = nitFormateado + '-' + dv;
+      }
+      
       const payload = {
         nombre_albergue: values.name,
-        nit: values.nit,
+        nit: nitFormateado,
         descripcion: values.description || "",
         whatsapp: values.whatsapp,
         sitio_web: values.website || "",
-        logo: logoBase64 || "",
-        // Opcional en caso de que el backend lo soporte
+        logo: logoBase64 || existingLogoUrl || "",
         direccion: values.address || "",
+        departamento: values.departamento || "",
         ciudad: values.city || "",
       };
 
       const result = await createAlbergueProfile(payload);
-      
-      if (result && result.token) {
-        saveSessionTokens({ accessToken: result.token });
+      // Actualizar el token en localStorage y cookie con el nuevo JWT
+      // (tiene estado_cuenta='activo') para que el middleware no redirija de vuelta al onboarding
+      if (result?.accessToken) {
+        saveSessionTokens({ accessToken: result.accessToken });
       }
-
-      setStep(3);
+      // Redirigir inmediatamente con recarga total para que el navegador
+      // recoja la nueva cookie JWT con estado_cuenta='activo'
+      window.location.href = "/albergue/mascotas";
     } catch (err) {
       if (err.response?.status === 409) {
-        setSubmitError("El NIT ya está registrado o ya tienes un perfil creado.");
+        // El perfil ya existe en DB pero el JWT del navegador está desactualizado
+        // (estado_cuenta="perfil_incompleto"). Limpiar cookies y forzar re-login.
+        document.cookie = "accessToken=; path=/; max-age=0";
+        document.cookie = "furmatch.access_token=; path=/; max-age=0";
+        window.location.href = "/login";
+        return;
       } else if (err.response?.status === 400) {
-        setSubmitError("Error de validación en los campos enviados.");
+        const validationErrors = err.response?.data?.errors;
+        if (Array.isArray(validationErrors) && validationErrors.length > 0) {
+          // Mapear campos del backend al formulario
+          const fieldMap = {
+            nombre_albergue: "name",
+            nit: "nit",
+            descripcion: "description",
+            whatsapp: "whatsapp",
+            sitio_web: "website",
+            direccion: "address",
+            departamento: "departamento",
+            ciudad: "city",
+          };
+          // Set field-level errors para react-hook-form
+          validationErrors.forEach(({ field, message }) => {
+            const formField = fieldMap[field];
+            if (formField && message) {
+              setError(formField, { message, type: "server" });
+            }
+          });
+          // Mostrar todos los mensajes de error específicos
+          const errorMessages = validationErrors
+            .filter((e) => e.message)
+            .map((e) => e.message)
+            .join("\n");
+          setSubmitError(errorMessages);
+        } else {
+          setSubmitError("Error de validación en los campos enviados.");
+        }
       } else {
         setSubmitError("Ocurrió un error al intentar crear el perfil institucional.");
       }
@@ -119,6 +220,18 @@ export function AlbergueWizard() {
   };
 
   const stepPercentage = (step / 3) * 100;
+
+  // Mostrar spinner mientras se verifica si hay un perfil existente
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#fbfdfa]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="animate-spin text-[#81af6d]" size={36} />
+          <p className="text-sm text-gray-500 font-medium">Cargando información...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fbfdfa] relative">
@@ -272,12 +385,24 @@ export function AlbergueWizard() {
                     {errors.address && <p className="text-xs text-red-500 mt-1 px-1 absolute -bottom-5">{errors.address.message}</p>}
                   </div>
 
+                  {/* Departamento */}
+                  <div className="space-y-1 relative">
+                    <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-500 px-1">Departamento</label>
+                    <input
+                      {...register("departamento")}
+                      className={cn("w-full border-2 rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800", errors.departamento ? "border-red-300 focus:border-red-500" : "border-gray-100 focus:border-[#81af6d]")}
+                      placeholder="Ej: Huila"
+                    />
+                    {errors.departamento && <p className="text-xs text-red-500 mt-1 px-1 absolute -bottom-5">{errors.departamento.message}</p>}
+                  </div>
+
+                  {/* Ciudad/Municipio */}
                   <div className="space-y-1 relative">
                     <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-500 px-1">Ciudad/Municipio</label>
                     <input
                       {...register("city")}
-                      className={cn("w-full border-2 bg-[#f4f7f4] border-[#ebece8] rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800", errors.city ? "border-red-300 focus:border-red-500" : "focus:border-[#81af6d]")}
-                      placeholder="Neiva, Huila"
+                      className={cn("w-full border-2 rounded-xl py-3 px-4 focus:outline-none transition-colors text-sm text-gray-800", errors.city ? "border-red-300 focus:border-red-500" : "border-gray-100 focus:border-[#81af6d]")}
+                      placeholder="Ej: Neiva"
                     />
                     {errors.city && <p className="text-xs text-red-500 mt-1 px-1 absolute -bottom-5">{errors.city.message}</p>}
                   </div>
@@ -294,7 +419,7 @@ export function AlbergueWizard() {
                   </div>
 
                   {submitError && (
-                    <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200">
+                    <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl text-center border border-red-200 whitespace-pre-line">
                       {submitError}
                     </div>
                   )}
@@ -303,22 +428,29 @@ export function AlbergueWizard() {
             </motion.div>
           </AnimatePresence>
 
-          {/* Nav Buttons (Absolute position at top right is normally common for skip, but let's put it top right per mockup) */}
-          <div className="absolute top-4 right-6 flex items-center gap-3">
-             {step > 1 && (
-                <button type="button" onClick={handlePrev} className="text-sm font-semibold text-gray-500 hover:text-gray-800 px-3">
-                   Atrás
-                </button>
-             )}
-             <button
-               type="button"
-               onClick={handleNext}
-               disabled={isSubmitting}
-               className="bg-[#a9c99a] hover:bg-[#81af6d] transition-colors text-white text-sm font-semibold py-2 px-5 rounded-full flex items-center gap-2 disabled:opacity-50"
-             >
-               {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : step === 2 ? "Crear Perfil" : "Siguiente"}
-               {!isSubmitting && <ArrowRight size={14} className="ml-1" />}
-             </button>
+          {/* Bottom Navigation */}
+          <div className="flex items-center justify-between w-full max-w-lg mx-auto mt-10 pt-6 border-t border-gray-100">
+            {step > 1 ? (
+              <button
+                type="button"
+                onClick={handlePrev}
+                className="flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-gray-800 px-4 py-2 transition-colors rounded-lg hover:bg-gray-50"
+              >
+                <ArrowLeft size={14} />
+                Atrás
+              </button>
+            ) : (
+              <div />
+            )}
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={isSubmitting}
+              className="bg-[#a9c99a] hover:bg-[#81af6d] transition-colors text-white text-sm font-semibold py-2 px-5 rounded-full flex items-center gap-2 disabled:opacity-50"
+            >
+              {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : step === 2 ? "Crear Perfil" : "Siguiente"}
+              {!isSubmitting && <ArrowRight size={14} className="ml-1" />}
+            </button>
           </div>
         </main>
       ) : (
@@ -350,6 +482,15 @@ function ArrowRight({ size, className }) {
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <path d="M5 12h14" />
       <path d="m12 5 7 7-7 7" />
+    </svg>
+  );
+}
+
+function ArrowLeft({ size, className }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M19 12H5" />
+      <path d="m12 19-7-7 7-7" />
     </svg>
   );
 }
@@ -397,7 +538,7 @@ function CompletionScreen({ router }) {
 
            <button
              type="button"
-             onClick={() => window.location.href = '/albergue/perfil'}
+              onClick={() => window.location.href = '/albergue/mascotas'}
              className="bg-[#a9c99a] hover:bg-[#81af6d] transition-colors text-white font-semibold py-3 px-8 rounded-full shadow-sm"
            >
               Ir al Panel de Gestión

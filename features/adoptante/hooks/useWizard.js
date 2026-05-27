@@ -11,21 +11,57 @@ export function useWizard() {
   const [selections, setSelections] = useState({});
   const [isComplete, setIsComplete] = useState(false);
 
-  const totalSteps      = WIZARD_STEPS.length;
-  const currentStep     = WIZARD_STEPS[stepIndex];
-  const currentKey      = currentStep?.key;
-  const currentSelection = selections[currentKey];
+  const totalSteps   = WIZARD_STEPS.length;
+  const currentStep  = WIZARD_STEPS[stepIndex];
+  const currentKey   = currentStep?.key;
+  const isMultiSelect = currentStep?.multiSelect ?? false;
 
-  const canGoNext  = currentSelection !== undefined;
+  const currentSelection = isMultiSelect
+    ? (selections[currentKey] ?? [])
+    : selections[currentKey];
+
+  const canGoNext = isMultiSelect
+    ? currentSelection.length > 0
+    : currentSelection !== undefined;
+
   const isLastStep = stepIndex === totalSteps - 1;
   const progress   = ((stepIndex + 1) / totalSteps) * 100;
+
+  /**
+   * IDs que actúan como "exclusivos" en pasos multi‑select:
+   * si se eligen, reemplazan toda la selección en lugar de acumular.
+   */
+  const EXCLUSIVE_IDS = ["any", "none"];
 
   /** Guarda la selección del paso actual */
   const select = useCallback(
     (value) => {
-      setSelections((prev) => ({ ...prev, [currentKey]: value }));
+      if (isMultiSelect) {
+        setSelections((prev) => {
+          const current = prev[currentKey] ?? [];
+
+          // Exclusivo: "any" o "none" → reemplaza todo
+          if (EXCLUSIVE_IDS.includes(value)) {
+            return { ...prev, [currentKey]: [value] };
+          }
+
+          // Si ya hay un exclusivo seleccionado, reemplázalo
+          if (current.some((v) => EXCLUSIVE_IDS.includes(v))) {
+            return { ...prev, [currentKey]: [value] };
+          }
+
+          // Toggle normal
+          const next = current.includes(value)
+            ? current.filter((v) => v !== value)
+            : [...current, value];
+
+          return { ...prev, [currentKey]: next };
+        });
+      } else {
+        setSelections((prev) => ({ ...prev, [currentKey]: value }));
+      }
     },
-    [currentKey],
+    [currentKey, isMultiSelect],
   );
 
   /** Avanza al siguiente paso o marca el wizard como completo */

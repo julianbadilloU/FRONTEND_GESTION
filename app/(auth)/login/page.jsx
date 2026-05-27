@@ -8,41 +8,32 @@ import { LoginForm } from "@/features/auth/components/LoginForm";
 export default function LoginPage() {
   const router = useRouter();
 
-  const normalizeRole = (role) => {
-    const normalized = (role || "").toString().toLowerCase();
-
-    if (normalized === "administrador") return "admin";
-
-    return normalized;
-  };
-
   return (
     <AnimatePresence mode="wait">
       <LoginForm
         onSuccess={({ email, role, estado_cuenta }) => {
-          const normalizedRole = normalizeRole(role);
-
-          // Si el perfil está incompleto, redirigir al onboarding correspondiente
+          // Si el perfil está incompleto, redirigir al onboarding correspondiente.
+          // Admin y otros roles sin onboarding van directo a su dashboard.
           if (estado_cuenta === "perfil_incompleto") {
-            if (normalizedRole === "adoptante") {
-              window.location.href = "/adoptante/onboarding";
-            } else if (normalizedRole === "albergue") {
-              window.location.href = "/albergue/onboarding";
-            } else {
-              window.location.href = "/";
+            if (role === "adoptante") {
+              router.push("/adoptante/onboarding");
+              return;
             }
-            return;
+            if (role === "albergue") {
+              router.push("/albergue/onboarding");
+              return;
+            }
           }
 
-          // Perfil completo → redirigir al dashboard según rol
-          if (normalizedRole === "adoptante") {
-            window.location.href = "/adoptante/feed";
-          } else if (normalizedRole === "albergue") {
-            window.location.href = "/albergue/mascotas";
-          } else if (normalizedRole === "admin") {
-            window.location.href = "/admin/tags";
+          // Perfil completo (o roles sin onboarding como admin) → dashboard según rol
+          if (role === "adoptante") {
+            router.push("/adoptante/feed");
+          } else if (role === "albergue") {
+            router.push("/albergue/mascotas");
+          } else if (role === "administrador") {
+            router.push("/admin/dashboard");
           } else {
-            window.location.href = "/";
+            router.push("/");
           }
         }}
       />

@@ -338,24 +338,25 @@ export function StepTags({ tags, onTagChange, etiquetas = [], etiquetasLoading =
           <Divider />
           <TagSection title="Raza" icon="🔍">
             <div className="relative max-w-sm">
-              <select
+              <input
+                type="text"
+                list="breed-list"
                 value={tags.breed || ""}
                 onChange={(e) => onTagChange("breed", e.target.value)}
-                className="w-full border border-[#e0dbd4] rounded-xl py-3 px-4 pr-10 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#a9c99a] focus:border-[#8b9e7e] appearance-none cursor-pointer transition-colors hover:border-[#8b9e7e]"
-              >
-                <option value="">Seleccioná una raza</option>
+                onBlur={(e) => {
+                  const formatted = e.target.value
+                    .toLowerCase()
+                    .replace(/(^\w|\s\w)/g, (c) => c.toUpperCase());
+                  onTagChange("breed", formatted);
+                }}
+                placeholder="Escribí o seleccioná una raza"
+                className="w-full border border-[#e0dbd4] rounded-xl py-3 px-4 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#a9c99a] focus:border-[#8b9e7e] transition-colors hover:border-[#8b9e7e]"
+              />
+              <datalist id="breed-list">
                 {breedOps.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.label}
-                  </option>
+                  <option key={opt.id} value={opt.label} />
                 ))}
-              </select>
-              {/* Flecha custom */}
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </span>
+              </datalist>
             </div>
           </TagSection>
         </>

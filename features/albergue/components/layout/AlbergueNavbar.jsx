@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Dog, Bell, LogOut, Menu, X, ChevronRight } from "lucide-react";
+import { Dog, Bell, LogOut, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -11,6 +11,8 @@ import { logoutUser } from "@/lib/auth/auth-service";
 import { cn } from "@/lib/utils/cn";
 import { getAlbergueProfile } from "../../services/albergue.service";
 import { getNotificaciones } from "@/features/shared/services/notificacion.service";
+import { useNotificacionesSocket, requestNotificationPermission } from "@/features/shared/hooks/useNotificacionesSocket";
+import NotificationsModal from "@/features/shared/components/NotificationsModal";
 
 const NAV_LINKS = [
   { href: "/albergue/mascotas",   label: "Mis Mascotas" },
@@ -24,7 +26,12 @@ export function AlbergueNavbar() {
   const pathname = usePathname();
   const router   = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifModalOpen, setNotifModalOpen] = useState(false);
   const headerRef = useRef(null);
+
+  // HU-NOT-01: real-time notifications via Socket.IO
+  useNotificacionesSocket();
+  useEffect(() => { requestNotificationPermission(); }, []);
 
   // Cerrar menú al hacer click fuera del header
   useEffect(() => {
@@ -61,7 +68,7 @@ export function AlbergueNavbar() {
   const notifNoLeidas = notifData?.total_no_leidas ?? 0;
 
   const displayName = profile?.nombre_albergue || "Mi Albergue";
-  const displayLogo = profile?.logo || null;
+  const displayLogo = profile?.logo || profile?.logo_url || null;
 
   const linkColor = "text-[#5e924e]";
 
@@ -95,6 +102,7 @@ export function AlbergueNavbar() {
   };
 
   return (
+    <>
     <header
       ref={headerRef}
       className="bg-white border-b border-[#e4d5c4] px-6 py-3.5 sticky top-0 z-40 shadow-sm"
@@ -112,7 +120,26 @@ export function AlbergueNavbar() {
 
         {/* Nav links (desktop) */}
         <nav className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map((link) => renderNavLink(link))}
+          {NAV_LINKS.map((link) => {
+            if (link.href === "/albergue/notificaciones") {
+              return (
+                <button
+                  key={link.href}
+                  onClick={() => setNotifModalOpen(true)}
+                  className="flex items-center gap-2 text-sm font-medium transition-colors relative pb-0.5 text-gray-500 hover:text-gray-900 border-b-2 border-transparent"
+                >
+                  {notifNoLeidas > 0 && (
+                    <span className="absolute -top-2.5 -right-2.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-1 leading-none z-10">
+                      {notifNoLeidas > 99 ? "99+" : notifNoLeidas}
+                    </span>
+                  )}
+                  {link.icon && <Bell size={15} />}
+                  {link.label}
+                </button>
+              );
+            }
+            return renderNavLink(link);
+          })}
         </nav>
 
         {/* Mi Albergue / Cerrar sesión / Hamburguesa */}
@@ -221,5 +248,12 @@ export function AlbergueNavbar() {
         </div>
       )}
     </header>
+
+    <NotificationsModal
+      isOpen={notifModalOpen}
+      onClose={() => setNotifModalOpen(false)}
+      role="albergue"
+    />
+    </>
   );
 }

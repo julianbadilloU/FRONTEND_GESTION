@@ -106,19 +106,16 @@ describe('MascotaEstadoView', () => {
 
     await waitFor(() => expect(screen.getByText('Fido')).toBeInTheDocument());
 
-    // Click inactivo option button
     fireEvent.click(screen.getByText('Inactivo'));
 
-    // Motivo textarea should appear
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/Explica brevemente/i)).toBeInTheDocument();
     });
 
-    // Try to submit without motivo
     fireEvent.click(screen.getByText('Guardar Cambios'));
 
     await waitFor(() => {
-      expect(screen.getByText('El motivo es obligatorio')).toBeInTheDocument();
+      expect(screen.getByText('El motivo es obligatorio y debe tener al menos 5 caracteres.')).toBeInTheDocument();
     });
   });
 
@@ -160,15 +157,22 @@ describe('MascotaEstadoView', () => {
 
     await waitFor(() => expect(screen.getByText('Fido')).toBeInTheDocument());
 
-    // Select a different estado that doesn't need motivo
+    // Select a different estado that needs motivo
     fireEvent.click(screen.getByText('Oculto'));
+
+    // Fill motivo (required for oculto)
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Explica brevemente/i)).toBeInTheDocument();
+    });
+    const textarea = screen.getByPlaceholderText(/Explica brevemente/i);
+    fireEvent.change(textarea, { target: { value: 'Mascota temporalmente no visible' } });
 
     fireEvent.click(screen.getByText('Guardar Cambios'));
 
     await waitFor(() => {
       expect(updateMascotaEstado).toHaveBeenCalledWith('42', {
         estado: 'oculto',
-        motivo: undefined,
+        motivo: 'Mascota temporalmente no visible',
       });
     });
   });
@@ -182,7 +186,7 @@ describe('MascotaEstadoView', () => {
 
     await waitFor(() => expect(screen.getByText('Fido')).toBeInTheDocument());
 
-    fireEvent.click(screen.getByText('Oculto'));
+    fireEvent.click(screen.getByText('En Proceso'));
     fireEvent.click(screen.getByText('Guardar Cambios'));
 
     await waitFor(() => {

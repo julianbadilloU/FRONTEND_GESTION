@@ -4,13 +4,12 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Dog, Bone, PawPrint, AlertCircle } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, ArrowRight, Check, Bone, PawPrint, AlertCircle } from "lucide-react";
 
 import { useWizard } from "@/features/adoptante/hooks/useWizard";
 import { cn } from "@/lib/utils/cn";
 import { PersonalDataStep } from "./PersonalDataStep";
-import { getEtiquetas, createAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
+import { getEtiquetas, createAdoptanteProfile, getAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
 import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 // ─────────────────────────────────────────────
@@ -22,20 +21,20 @@ function ImageCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center p-2 pb-3 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "snap-center relative group flex flex-col items-center justify-center w-48 sm:w-56 md:w-64 h-64 sm:h-72 md:h-80 flex-shrink-0 p-4 sm:p-5 md:p-6 rounded-3xl border-2 bg-white shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
-          ? "border-[#5e924e] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
-          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
+          ? "ring-2 ring-[#5e924e] ring-offset-2 shadow-lg"
+          : "border-[#d8e8d0] hover:border-[#81af6d]",
       )}
     >
-      <div className="w-full aspect-square rounded-xl overflow-hidden mb-2 bg-[#f4f8f2]">
+      <div className="h-36 w-36 sm:h-40 sm:w-40 md:h-48 md:w-48 rounded-xl overflow-hidden bg-[#f4f8f2]">
         <img
           src={option.image}
           alt={option.label}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
         />
       </div>
-      <span className="text-[0.7rem] font-bold text-gray-700">{option.label}</span>
+      <span className="text-xs sm:text-sm md:text-base font-bold text-gray-700">{option.label}</span>
       {selected && (
         <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-[#5e924e] rounded-full flex items-center justify-center shadow">
           <Check size={10} color="white" strokeWidth={3} />
@@ -54,16 +53,16 @@ function ColorCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center gap-3 p-3 pb-4 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "snap-center relative group flex flex-col items-center justify-center gap-3 w-44 sm:w-52 md:w-56 h-56 sm:h-64 flex-shrink-0 p-4 sm:p-5 md:p-6 rounded-3xl border-2 bg-white shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
-          ? "border-[#5e924e] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
-          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
+          ? "ring-2 ring-[#5e924e] ring-offset-2 shadow-lg"
+          : "border-[#d8e8d0] hover:border-[#81af6d]",
       )}
     >
       {/* Swatch */}
       {option.type === "multicolor" ? (
         // Composición multicolor igual al mockup
-        <div className="relative w-full aspect-square">
+        <div className="relative w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40">
           <div
             className="absolute rounded-xl"
             style={{
@@ -87,13 +86,13 @@ function ColorCard({ option, selected, onSelect }) {
         </div>
       ) : (
         <div
-          className="w-full aspect-square rounded-xl transition-transform duration-200 group-hover:scale-[1.02]"
+          className="w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-xl transition-transform duration-200 group-hover:scale-[1.02]"
           style={{ backgroundColor: option.color }}
         />
       )}
 
       {/* Label */}
-      <span className="text-sm font-medium text-gray-700">{option.label}</span>
+      <span className="text-xs sm:text-sm md:text-base font-medium text-gray-700">{option.label}</span>
 
       {/* Indicador de selección */}
       {selected && (
@@ -114,18 +113,18 @@ function EmojiCard({ option, selected, onSelect }) {
       type="button"
       onClick={() => onSelect(option.id)}
       className={cn(
-        "relative group flex flex-col items-center justify-center gap-3 p-5 rounded-2xl border-2 bg-white transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
+        "snap-center relative group flex flex-col items-center justify-center gap-3 w-44 sm:w-52 md:w-56 h-56 sm:h-64 flex-shrink-0 p-4 sm:p-5 md:p-6 rounded-3xl border-2 bg-white shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#5e924e]",
         selected
-          ? "border-[#5e924e] bg-[#f4f8f2] shadow-xl shadow-[#a9c99a]/30 scale-[1.04]"
-          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-md",
+          ? "ring-2 ring-[#5e924e] ring-offset-2 bg-[#f4f8f2] shadow-lg"
+          : "border-[#d8e8d0] hover:border-[#81af6d] hover:shadow-lg",
       )}
     >
-      <span className="text-4xl leading-none group-hover:scale-110 transition-transform duration-200">
+      <span className="text-6xl sm:text-7xl leading-none group-hover:scale-110 transition-transform duration-200">
         {option.emoji}
       </span>
 
       <div className="text-center">
-        <p className="font-bold text-sm text-gray-800">{option.label}</p>
+        <p className="font-bold text-xs sm:text-sm md:text-base text-gray-800">{option.label}</p>
         {option.hint && (
           <p className="text-xs text-gray-400 mt-0.5">{option.hint}</p>
         )}
@@ -143,7 +142,7 @@ function EmojiCard({ option, selected, onSelect }) {
 // ─────────────────────────────────────────────
 // Pantalla de finalización
 // ─────────────────────────────────────────────
-function CompletionScreen({ selections }) {
+function CompletionScreen({ selections, personalDataRef }) {
   const router = useRouter();
   const called = useRef(false);
   const [error, setError] = useState(null);
@@ -195,18 +194,26 @@ function CompletionScreen({ selections }) {
         if (selections.energy === "active") addTag("Nivel de energía", "Muy activo");
         if (selections.energy === "any") addTag("Nivel de energía", "Sin preferencia");
 
-        // ── Compatibilidad ──
-        if (selections.compatibility === "kids") addTag("Compatibilidad", "Niños");
-        if (selections.compatibility === "dogs") addTag("Compatibilidad", "Otros perros");
-        if (selections.compatibility === "cats") addTag("Compatibilidad", "Gatos");
-        if (selections.compatibility === "seniors") addTag("Compatibilidad", "Adultos mayores");
-        if (selections.compatibility === "disabled") addTag("Compatibilidad", "Personas con discapacidad");
-        if (selections.compatibility === "none") addTag("Compatibilidad", "Ninguna");
+        // ── Compatibilidad (multi‑select o single) ──
+        const COMPAT_MAP = {
+          kids: "Niños",
+          dogs: "Otros perros",
+          cats: "Gatos",
+          seniors: "Adultos mayores",
+          disabled: "Personas con discapacidad",
+          none: "Ninguna",
+        };
+        (Array.isArray(selections.compatibility) ? selections.compatibility : [selections.compatibility])
+          .forEach((v) => { if (COMPAT_MAP[v]) addTag("Compatibilidad", COMPAT_MAP[v]); });
 
-        // ── Aceptación de condición especial ──
-        if (selections.specialCondition === "disabled_pet") addTag("Aceptación de condición especial", "Acepto mascotas con discapacidad");
-        if (selections.specialCondition === "medical_treatment") addTag("Aceptación de condición especial", "Acepto mascotas en tratamiento médico");
-        if (selections.specialCondition === "healthy_only") addTag("Aceptación de condición especial", "Solo mascotas sanas");
+        // ── Aceptación de condición especial (multi‑select o single) ──
+        const COND_MAP = {
+          disabled_pet: "Acepto mascotas con discapacidad",
+          medical_treatment: "Acepto mascotas en tratamiento médico",
+          healthy_only: "Solo mascotas sanas",
+        };
+        (Array.isArray(selections.specialCondition) ? selections.specialCondition : [selections.specialCondition])
+          .forEach((v) => { if (COND_MAP[v]) addTag("Aceptación de condición especial", COND_MAP[v]); });
 
         // ── Entorno del adoptante ──
         if (selections.residence === "apt_no_balcony") addTag("Entorno del adoptante", "Apartamento sin balcón");
@@ -226,21 +233,32 @@ function CompletionScreen({ selections }) {
         const payload = {
           nombre_completo: selections.personalData?.fullName || "",
           whatsapp: selections.personalData?.whatsapp || "",
+          departamento: selections.personalData?.departamento || "",
           ciudad: selections.personalData?.city || "",
+          direccion: selections.personalData?.direccion || selections.personalData?.address || "",
           tags: Array.from(selectedTagIds),
-          foto: selections.personalData?.profilePhotoBase64 || "",
+          foto: personalDataRef?.current?.getProfilePhotoBase64() || selections?.personalData?.profilePhotoBase64 || "",
         };
 
         const result = await createAdoptanteProfile(payload);
-        
-        if (result && result.token) {
-          saveSessionTokens({ accessToken: result.token });
+        // Guardar el nuevo token y forzar recarga completa para que el navegador recoja la cookie
+        if (result?.accessToken) {
+          saveSessionTokens({ accessToken: result.accessToken });
         }
-
         window.location.href = "/adoptante/feed";
       } catch (err) {
         console.error("Error creating profile:", err);
-        setError("Ocurrió un error al crear tu perfil. Por favor, intenta de nuevo.");
+        if (err.response?.status === 409) {
+          setError("Tu perfil ya fue creado anteriormente. Redirigiendo al inicio...");
+          setTimeout(() => router.push("/"), 2000);
+          return;
+        }
+        const errors = err.response?.data?.errors;
+        if (errors?.length) {
+          setError(errors.map(e => `• ${e.message}`).join('\n'));
+        } else {
+          setError(err.response?.data?.message || "Ocurrió un error al crear tu perfil. Por favor, intenta de nuevo.");
+        }
       }
     }
 
@@ -273,7 +291,7 @@ function CompletionScreen({ selections }) {
           {error ? "Uy!" : "Listo!"}
         </h1>
         
-        <p className="text-gray-500 text-center text-lg leading-relaxed px-4">
+        <p className="text-gray-500 text-center text-lg leading-relaxed px-4 whitespace-pre-line">
           {error ? error : <>Estamos personalizando tu perfil<br className="hidden sm:block" />con tus preferencias</>}
         </p>
 
@@ -318,44 +336,108 @@ export function OnboardingWizard() {
   } = useWizard();
 
   const [isFormValid, setIsFormValid] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const personalDataRef = useRef(null);
 
-  if (isComplete) return <CompletionScreen selections={selections} />;
+  // Verificar si ya hay un perfil guardado al montar el wizard
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProfile() {
+      try {
+        const profile = await getAdoptanteProfile();
+        if (cancelled || !profile) return; // null = 404, perfil no creado — wizard vacío
 
-  const isColorStep    = currentStep.variant === "color";
-  const isImageStep    = currentStep.variant === "image";
-  const isFormStep     = currentStep.variant === "form";
+        // Perfil completo (tiene tags de preferencia) → redirigir al feed
+        if (profile.nombre_completo && profile.whatsapp && profile.ciudad && profile.tags?.length > 0) {
+          router.push("/");
+          return;
+        }
 
-  const optionsCount   = currentStep.options?.length || 0;
-  let emojiGridClass   = "grid-cols-2 sm:grid-cols-4";
-  if (optionsCount === 2) {
-    emojiGridClass = "grid-cols-1 sm:grid-cols-2 max-w-md mx-auto";
-  } else if (optionsCount === 3) {
-    emojiGridClass = "grid-cols-1 sm:grid-cols-3";
-  } else if (optionsCount === 5 || optionsCount === 6) {
-    emojiGridClass = "grid-cols-2 sm:grid-cols-3 max-w-2xl mx-auto";
-  }
+        // Perfil parcial: prellenar datos personales
+        if (profile.nombre_completo || profile.whatsapp || profile.ciudad) {
+          select({
+            fullName: profile.nombre_completo || "",
+            whatsapp: profile.whatsapp || "",
+            departamento: profile.departamento || "",
+            city: profile.ciudad || "",
+            direccion: profile.direccion || "",
+            profilePhoto: null,
+          });
+        }
+      } finally {
+        if (!cancelled) setIsLoadingProfile(false);
+      }
+    }
+    loadProfile();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isComplete) return <CompletionScreen selections={selections} personalDataRef={personalDataRef} />;
+
+  const isColorStep     = currentStep.variant === "color";
+  const isImageStep     = currentStep.variant === "image";
+  const isFormStep      = currentStep.variant === "form";
+  const isMultiSelect   = currentStep.multiSelect ?? false;
+
+  const optionsCount    = currentStep.options?.length || 0;
+
+  /** Determina si una opción está seleccionada según el modo del paso */
+  const getIsSelected = (optionId) => {
+    if (isMultiSelect) return currentSelection?.includes(optionId) ?? false;
+    return currentSelection === optionId;
+  };
 
   const canProceed = isFormStep ? isFormValid : canGoNext;
+
+  // Mostrar spinner mientras se verifica si hay un perfil existente
+  if (isLoadingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-[3px] border-[#d8e8d0] border-t-[#81af6d] rounded-full animate-spin" />
+          <p className="text-sm text-gray-500 font-medium">Cargando información...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {/* ── Header ── */}
       <header className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 text-gray-800 shrink-0">
-          <Dog size={20} />
-          <span className="font-bold text-base tracking-tight">FurMatch</span>
-        </Link>
+        {/* Botón de retroceso */}
+        <button
+          onClick={prev}
+          className={cn(
+            "flex items-center gap-2 text-gray-800 shrink-0 transition-colors",
+            stepIndex > 0
+              ? "cursor-pointer hover:text-gray-600"
+              : "opacity-0 pointer-events-none",
+          )}
+        >
+          <ArrowLeft size={20} />
+        </button>
 
         {/* Título central */}
-        <h1 className="text-lg font-bold text-gray-900 hidden sm:block">
+        <h1 className="text-sm sm:text-lg font-bold text-gray-900 text-center min-w-0">
           Encuentra tu{" "}
           <span className="font-serif italic font-normal text-[#5e924e]">match</span>
         </h1>
 
         {/* Botón Siguiente */}
         <button
-          onClick={next}
+          onClick={() => {
+            if (isFormStep && personalDataRef.current) {
+              // Validar y mostrar errores antes de avanzar
+              const isValid = personalDataRef.current.validateAndShowErrors();
+              if (!isValid) return;
+              const d = personalDataRef.current.getData();
+              const photo = personalDataRef.current.getProfilePhotoBase64();
+              select({ fullName: d.fullName, whatsapp: d.whatsapp, departamento: d.departamento, city: d.city, direccion: d.direccion, profilePhotoBase64: photo });
+            }
+            next();
+          }}
           disabled={!canProceed}
           className={cn(
             "flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 shrink-0",
@@ -378,29 +460,10 @@ export function OnboardingWizard() {
         />
       </div>
 
-      {/* ── Contador de pasos ── */}
-      <div className="flex items-center justify-between px-6 pt-4 text-xs text-gray-400">
-        <button
-          onClick={prev}
-          disabled={stepIndex === 0}
-          className={cn(
-            "flex items-center gap-1 transition-colors",
-            stepIndex > 0
-              ? "text-gray-500 hover:text-gray-700 cursor-pointer"
-              : "opacity-0 pointer-events-none",
-          )}
-        >
-          <ArrowLeft size={14} />
-          Anterior
-        </button>
 
-        <span className="font-medium text-gray-400">
-          {stepIndex + 1} / {totalSteps}
-        </span>
-      </div>
 
       {/* ── Contenido del paso ── */}
-      <main className="flex-1 flex flex-col items-center px-6 pt-6 pb-12 w-full max-w-3xl mx-auto">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 pt-6 pb-12 w-full max-w-3xl mx-auto min-h-[calc(100vh-3.5rem)]">
         <AnimatePresence mode="wait">
           <motion.div
             key={stepIndex}
@@ -411,25 +474,34 @@ export function OnboardingWizard() {
             className="w-full"
           >
             {/* Pregunta */}
-            <h2 className="text-xl font-bold text-gray-800 text-center mb-8">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 text-center mb-8">
               {currentStep.question}
             </h2>
 
             {/* Contenido según el tipo de paso */}
             {isFormStep ? (
               <PersonalDataStep
+                ref={personalDataRef}
                 selection={currentSelection}
                 onSelect={select}
                 onValidation={setIsFormValid}
               />
             ) : isImageStep ? (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div
+                  className={cn(
+                    "flex gap-3 sm:gap-4 md:gap-5",
+                    optionsCount <= 3
+                      ? "flex-wrap justify-center"
+                      : "overflow-x-auto snap-x snap-mandatory px-2 sm:px-4 pb-4 scrollbar-hide [mask-image:linear-gradient(to_right,transparent_0%,black_10%,black_90%,transparent_100%)]",
+                  )}
+                  style={{ WebkitOverflowScrolling: "touch" }}
+                >
                   {currentStep.options.map((option) => (
                     <ImageCard
                       key={option.id}
                       option={option}
-                      selected={currentSelection === option.id}
+                      selected={getIsSelected(option.id)}
                       onSelect={select}
                     />
                   ))}
@@ -440,7 +512,7 @@ export function OnboardingWizard() {
                     onClick={() => select("any")}
                     className={cn(
                       "w-full flex items-center justify-center gap-4 py-4 rounded-3xl border-2 transition-all duration-200 overflow-hidden relative group",
-                      currentSelection === "any"
+                      getIsSelected("any")
                         ? "border-[#5e924e] bg-[#f4f8f2] shadow-lg"
                         : "border-[#d8e8d0] bg-white hover:border-[#a9c99a]"
                     )}
@@ -453,7 +525,7 @@ export function OnboardingWizard() {
                        />
                     </div>
                     <span className="text-lg font-bold text-gray-700 relative z-10">Sin preferencia</span>
-                    {currentSelection === "any" && (
+                    {getIsSelected("any") && (
                       <span className="w-6 h-6 bg-[#5e924e] rounded-full flex items-center justify-center shadow text-white relative z-10">
                         <Check size={14} strokeWidth={3} />
                       </span>
@@ -462,25 +534,41 @@ export function OnboardingWizard() {
                 )}
               </div>
             ) : isColorStep ? (
-              // Color: siempre 4 columnas (como el mockup)
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              // Color: scroll horizontal o centrado según cantidad de opciones
+              <div
+                className={cn(
+                  "flex gap-3 sm:gap-4 md:gap-5",
+                  optionsCount <= 3
+                    ? "flex-wrap justify-center"
+                    : "overflow-x-auto snap-x snap-mandatory px-2 sm:px-4 pb-4 scrollbar-hide [mask-image:linear-gradient(to_right,transparent_0%,black_10%,black_90%,transparent_100%)]",
+                )}
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
                 {currentStep.options.map((option) => (
                   <ColorCard
                     key={option.id}
                     option={option}
-                    selected={currentSelection === option.id}
+                    selected={getIsSelected(option.id)}
                     onSelect={select}
                   />
                 ))}
               </div>
             ) : (
-              // Emoji: grid dinámico según cantidad de opciones
-              <div className={cn("grid gap-4 w-full", emojiGridClass)}>
+              // Emoji: scroll horizontal o centrado según cantidad de opciones
+              <div
+                className={cn(
+                  "flex gap-3 sm:gap-4 md:gap-5",
+                  optionsCount <= 3
+                    ? "flex-wrap justify-center"
+                    : "overflow-x-auto snap-x snap-mandatory px-2 sm:px-4 pb-4 scrollbar-hide [mask-image:linear-gradient(to_right,transparent_0%,black_10%,black_90%,transparent_100%)]",
+                )}
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
                 {currentStep.options.map((option) => (
                   <EmojiCard
                     key={option.id}
                     option={option}
-                    selected={currentSelection === option.id}
+                    selected={getIsSelected(option.id)}
                     onSelect={select}
                   />
                 ))}

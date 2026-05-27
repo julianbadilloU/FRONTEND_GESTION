@@ -25,9 +25,7 @@ export async function getAdoptanteProfile() {
     const { data } = await apiClient.get("/api/adoptante/perfil");
     return extractData(data);
   } catch (error) {
-    if (error.response && error.response.status === 404) {
-      return null;
-    }
+    if (error.response?.status === 404) return null; // Perfil no creado aún
     throw error;
   }
 }
@@ -71,5 +69,15 @@ export async function registrarDescartar(id) {
 
 export async function deshacerRecomendacion() {
   const { data } = await apiClient.post(`/api/recomendaciones/deshacer`);
+  return extractData(data);
+}
+
+export async function getDescartes() {
+  const { data } = await apiClient.get("/api/adoptante/descartes");
+  return extractData(data);
+}
+
+export async function deshacerDescarte(idMascota) {
+  const { data } = await apiClient.delete(`/api/adoptante/descartes/${idMascota}`);
   return extractData(data);
 }

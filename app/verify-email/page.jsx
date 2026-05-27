@@ -1,102 +1,73 @@
-'use client';
+"use client";
 
-import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/http/api-client';
-import { saveSessionTokens } from '@/lib/auth/token-storage';
-import Link from 'next/link';
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Mail, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { apiClient } from "@/lib/http/api-client";
+import { saveSessionTokens } from "@/lib/auth/token-storage";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
   const router = useRouter();
-  const [status, setStatus] = useState('loading'); // 'loading', 'success', 'error'
-  const [message, setMessage] = useState('');
+  const token = searchParams.get("token");
+  const [status, setStatus] = useState("loading");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (!token) {
-      setStatus('error');
-      setMessage('El enlace de verificación no es válido o está incompleto.');
+      setStatus("error");
+      setMessage("No se encontró un token de verificación en el enlace.");
       return;
     }
 
-    const verify = async () => {
-      try {
-        const response = await apiClient.post('/api/auth/verify-email', { token });
-        setStatus('success');
-        setMessage(response.data.message || 'Correo verificado exitosamente.');
-        
-        // Auto-login y redirección
-        if (response.data.data && response.data.data.token) {
-            const { token: jwtToken, user } = response.data.data;
-            saveSessionTokens({ accessToken: jwtToken });
-            
-            const role = (user?.role || '').toLowerCase();
-            setTimeout(() => {
-                if (role === 'adoptante') {
-                    window.location.href = '/adoptante/onboarding';
-                } else if (role === 'albergue') {
-                    window.location.href = '/albergue/onboarding';
-                } else {
-                    window.location.href = '/login';
-                }
-            }, 1500); // Pequeña pausa para que vean el mensaje de éxito antes de redirigir
-        }
-      } catch (error) {
-        setStatus('error');
-        setMessage(error.response?.data?.message || 'Error al verificar el correo.');
-      }
-    };
-
-    verify();
-  }, [token, router]);
+    apiClient.post("/api/auth/verify-email", { token })
+      .then((res) => {
+        setStatus("success");
+        setMessage("¡Cuenta verificada exitosamente! Redirigiendo...");
+        const jwt = res.data?.data?.token;
+        if (jwt) saveSessionTokens({ accessToken: jwt });
+        setTimeout(() => router.push("/login?verified=true"), 2000);
+      })
+      .catch((err) => {
+        setStatus("error");
+        setMessage(err.response?.data?.message || "Error al verificar la cuenta. El enlace puede haber expirado.");
+      });
+  }, [token]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg text-center">
-        {status === 'loading' && (
-          <div className="animate-pulse">
-            <h2 className="mb-4 text-2xl font-bold text-gray-800">Verificando tu cuenta...</h2>
-            <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-emerald-500 border-t-transparent"></div>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-[#fafaf8] p-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center space-y-4"
+      >
+        {status === "loading" && (
+          <>
+            <Loader2 size={48} className="mx-auto text-[#81af6d] animate-spin" />
+            <h2 className="text-xl font-bold text-gray-900">Verificando tu cuenta...</h2>
+            <p className="text-gray-500">Estamos validando tu token de verificación.</p>
+          </>
         )}
-        
-        {status === 'success' && (
-          <div>
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-              <svg className="h-8 w-8 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h2 className="mb-2 text-2xl font-bold text-gray-800">¡Cuenta Verificada!</h2>
-            <p className="mb-6 text-gray-600">{message}</p>
-            <Link 
-              href="/login"
-              className="inline-block w-full rounded-lg bg-emerald-600 px-4 py-3 font-medium text-white transition-colors hover:bg-emerald-700"
-            >
-              Ir a Iniciar Sesión
-            </Link>
-          </div>
+        {status === "success" && (
+          <>
+            <CheckCircle size={48} className="mx-auto text-green-500" />
+            <h2 className="text-xl font-bold text-gray-900">¡Cuenta Verificada!</h2>
+            <p className="text-gray-500">{message}</p>
+          </>
         )}
-
-        {status === 'error' && (
-          <div>
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-              <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-            <h2 className="mb-2 text-2xl font-bold text-gray-800">Error en la verificación</h2>
-            <p className="mb-6 text-gray-600">{message}</p>
-            <Link 
-              href="/registro"
-              className="inline-block w-full rounded-lg bg-gray-600 px-4 py-3 font-medium text-white transition-colors hover:bg-gray-700"
-            >
-              Volver al registro
-            </Link>
-          </div>
+        {status === "error" && (
+          <>
+            <XCircle size={48} className="mx-auto text-red-400" />
+            <h2 className="text-xl font-bold text-gray-900">Error de Verificación</h2>
+            <p className="text-gray-500">{message}</p>
+          </>
         )}
-      </div>
+        <div className="pt-4">
+          <Mail size={32} className="mx-auto text-gray-300" />
+          <p className="text-xs text-gray-400 mt-2">FurMatch</p>
+        </div>
+      </motion.div>
     </div>
   );
 }
@@ -104,10 +75,8 @@ function VerifyEmailContent() {
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-        <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-gray-600"></div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#fafaf8]">
+        <Loader2 size={48} className="text-[#81af6d] animate-spin" />
       </div>
     }>
       <VerifyEmailContent />

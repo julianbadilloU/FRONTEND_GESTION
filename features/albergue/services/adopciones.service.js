@@ -24,6 +24,16 @@ export async function completarAdopcion(datos) {
 }
 
 /**
+ * Finaliza una adopción en proceso (PATCH /api/adopciones/:id/completar).
+ * Solo usable desde la vista de historial de adopciones del albergue.
+ * @param {number} id - ID de la adopción a completar
+ */
+export async function finalizarAdopcion(id) {
+  const { data } = await apiClient.patch(`/api/adopciones/${id}/completar`);
+  return extractData(data);
+}
+
+/**
  * Obtiene el historial de adopciones completadas del albergue autenticado.
  * Endpoint: GET /api/albergue/adopciones
  */

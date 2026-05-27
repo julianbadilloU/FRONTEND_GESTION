@@ -8,6 +8,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { apiClient } from "@/lib/http/api-client";
 
 import { mascotaDatosBasicosSchema } from "@/features/albergue/schemas/mascota.schemas";
 import { StepTags } from "@/features/albergue/components/publicar-mascota/StepTags";
@@ -168,8 +169,23 @@ export function EditarMascotaForm() {
   }, []);
 
   const onSubmit = async (data) => {
-    // 1. Calcular tagsIds
-    const tagsIds = buildTagsIds(tags, etiquetas);
+    // 1. Calcular tagsIds y auto-crear razas custom
+    const tagResult = buildTagsIds(tags, etiquetas);
+    let tagsIds = tagResult.ids;
+    
+    // Auto-crear razas custom que no existen en el catálogo
+    if (tagResult.pendingBreeds?.length > 0) {
+      try {
+        const { data: newData } = await apiClient.post("/api/opcion", 
+          tagResult.pendingBreeds.map(breed => ({ categoria: "Raza", valor: breed }))
+        );
+        const newIds = (newData?.data || newData || []).map(o => o.id_opcion).filter(Boolean);
+        tagsIds = [...tagsIds, ...newIds];
+      } catch {
+        showToast("No se pudo guardar la raza personalizada. Intentá con una raza de la lista.");
+        return;
+      }
+    }
 
     // 2. Detectar fotos eliminadas
     const currentExistingIds = new Set(

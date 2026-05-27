@@ -137,7 +137,7 @@ export function WhatsAppContactButton({
 
       // 2. Construir URL de WhatsApp y abrir en nueva pestaña (SOLO TRAS ÉXITO)
       const url = buildWhatsAppUrl(
-        adoptante?.whatsapp_adoptante,
+        adoptante?.whatsapp,
         adoptante?.nombre_completo,
         nombreMascota
       );

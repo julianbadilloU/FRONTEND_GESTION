@@ -9,24 +9,26 @@ import { ProfileView } from "./ProfileView";
 import { ProfileForm } from "./ProfileForm";
 import { getAlbergueProfile, updateAlbergueProfile } from "../../services/albergue.service";
 
+// ─── Datos mock (reemplazar por fetch real cuando exista el endpoint) ─────────
 const MOCK_PROFILE = {
-  name: "Fundación Huellitas",
-  nit: "9001234567",
-  email: "contacto@huellitas.org",
-  whatsapp: "3124567890",
-  address: "Calle 10 #5-32, Barrio Centro",
-  city: "Neiva, Huila",
-  website: "https://www.huellitas.org",
+  name:        "Fundación Huellitas",
+  nit:         "9001234567",
+  email:       "contacto@huellitas.org",
+  whatsapp:    "3124567890",
+  address:     "Calle 10 #5-32, Barrio Centro",
+  city:        "Neiva, Huila",
+  website:     "https://www.huellitas.org",
   description: "Somos una fundación dedicada al rescate y cuidado de animales en situación de calle en Neiva, Huila.",
-  logoUrl: "/shelter-dogs.jpg",
+  logoUrl:     "/shelter-dogs.jpg",
 };
 
+// ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ message }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 16, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0,  scale: 1     }}
+      exit={{    opacity: 0, y: 16, scale: 0.97  }}
       transition={{ duration: 0.25 }}
       className="fixed bottom-8 right-8 z-50 flex items-center gap-3 bg-white border border-[#a9c99a] rounded-2xl px-5 py-4 shadow-2xl"
     >
@@ -38,12 +40,13 @@ function Toast({ message }) {
   );
 }
 
+// ─── Controlador principal ────────────────────────────────────────────────────
 export function AlbergueProfile() {
   const queryClient = useQueryClient();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing,   setIsEditing]   = useState(false);
   const [logoPreview, setLogoPreview] = useState(null);
-  const [logoBase64, setLogoBase64] = useState(null);
-  const [toast, setToast] = useState(null);
+  const [logoBase64,  setLogoBase64]  = useState(null);
+  const [toast,       setToast]       = useState(null);
 
   const { data: serverProfile, isLoading, isError } = useQuery({
     queryKey: ["albergueProfile"],
@@ -51,21 +54,17 @@ export function AlbergueProfile() {
   });
 
   const profile = serverProfile ? {
-    name: serverProfile.nombre_albergue || "",
-    nit: serverProfile.nit || "",
-    email: serverProfile.correo || "",
-    whatsapp: serverProfile.whatsapp_actual || "",
-    website: serverProfile.sitio_web || "",
-    description: serverProfile.descripcion || "",
-    logoUrl: serverProfile.logo || "",
-    address: "",
-    city: "",
+     name:        serverProfile.nombre_albergue || "",
+     nit:         serverProfile.nit             || "",
+     email:       serverProfile.correo          || "",
+     whatsapp:    serverProfile.whatsapp_actual || "",
+     website:     serverProfile.sitio_web       || "",
+     description: serverProfile.descripcion     || "",
+     logoUrl:     serverProfile.logo            || "",
+     address:     serverProfile.direccion       || "",
+     departamento: serverProfile.departamento   || "",
+     city:        serverProfile.ciudad          || "",
   } : MOCK_PROFILE;
-
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3500);
-  };
 
   const updateMutation = useMutation({
     mutationFn: updateAlbergueProfile,
@@ -77,14 +76,21 @@ export function AlbergueProfile() {
       setLogoBase64(null);
     },
     onError: (err) => {
-      if (err?.response?.status === 400) {
-        showToast("Error de validación en los campos enviados");
-      } else {
-        showToast("Error al actualizar el perfil");
-      }
-    },
+       if (err?.response?.status === 400) {
+           showToast("Error de validación en los campos enviados");
+       } else {
+           showToast("Error al actualizar el perfil");
+       }
+    }
   });
 
+  // ── Mostrar toast 3.5 s ──────────────────────────────────────────────────
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  // ── Cambio de logo con preview y base64 ──────────────────────────────────
   const handleLogoChange = useCallback((e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -97,11 +103,16 @@ export function AlbergueProfile() {
     reader.readAsDataURL(file);
   }, []);
 
+  // ── Guardar cambios ──────────────────────────────────────────────────────
   const handleSave = useCallback((data) => {
     const payload = {
-      descripcion: data.description,
-      whatsapp_actual: data.whatsapp,
-      sitio_web: data.website,
+      nombre_albergue: data.name,
+      descripcion:     data.description    || "",
+      whatsapp:        data.whatsapp,
+      sitio_web:       data.website        || "",
+      direccion:       data.address        || "",
+      departamento:    data.departamento   || "",
+      ciudad:          data.city           || "",
     };
     if (logoBase64) {
       payload.logo = logoBase64;
@@ -109,6 +120,7 @@ export function AlbergueProfile() {
     updateMutation.mutate(payload);
   }, [logoBase64, updateMutation]);
 
+  // ── Cancelar edición ─────────────────────────────────────────────────────
   const handleCancel = useCallback(() => {
     setLogoPreview(null);
     setLogoBase64(null);
@@ -116,25 +128,27 @@ export function AlbergueProfile() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-gray-500">
-        <Loader2 className="animate-spin text-[#81af6d] mb-4" size={32} />
-        <p>Cargando perfil...</p>
-      </div>
-    );
+     return (
+       <div className="flex flex-col items-center justify-center min-h-[50vh] text-gray-500">
+         <Loader2 className="animate-spin text-[#81af6d] mb-4" size={32} />
+         <p>Cargando perfil...</p>
+       </div>
+     );
   }
 
   if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[50vh] text-red-500">
-        <p>Ocurrió un error al cargar el perfil. Por favor, intenta más tarde.</p>
-      </div>
-    );
+     return (
+       <div className="flex flex-col items-center justify-center min-h-[50vh] text-red-500">
+         <p>Ocurrió un error al cargar el perfil. Por favor, intenta más tarde.</p>
+       </div>
+     );
   }
 
   return (
     <>
       <div className="px-6 py-8 max-w-5xl mx-auto w-full">
+
+        {/* Encabezado de sección */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Perfil del Albergue</h1>
           {!isEditing && (
@@ -148,6 +162,7 @@ export function AlbergueProfile() {
           )}
         </div>
 
+        {/* Vista o formulario */}
         {isEditing ? (
           <ProfileForm
             profile={profile}
@@ -165,6 +180,7 @@ export function AlbergueProfile() {
         )}
       </div>
 
+      {/* Toast de confirmación */}
       <AnimatePresence>
         {toast && <Toast key="toast" message={toast} />}
       </AnimatePresence>

@@ -1,35 +1,90 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
 import { Camera, Upload, PawPrint } from "lucide-react";
 import Image from "next/image";
 
-export function PersonalDataStep({ selection, onSelect, onValidation }) {
-  const [data, setData] = useState(selection || {
-    fullName: "",
-    whatsapp: "",
-    city: "",
+import { cn } from "@/lib/utils/cn";
+
+export const PersonalDataStep = forwardRef(function PersonalDataStep({ selection, onSelect, onValidation }, ref) {
+  const [data, setData] = useState({
+    fullName: selection?.fullName || "",
+    whatsapp: selection?.whatsapp || "",
+    departamento: selection?.departamento || "",
+    city: selection?.city || "",
+    direccion: selection?.direccion || selection?.address || "",
     profilePhoto: null
   });
   const [preview, setPreview] = useState(selection?.profilePhoto || null);
+  const [touched, setTouched] = useState({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
+  const dataRef = useRef(data);
+  dataRef.current = data;
+  const profilePhotoBase64Ref = useRef(null);
 
+  // Exponer data y validación al padre
+  useImperativeHandle(ref, () => ({
+    getData: () => dataRef.current,
+    getPreview: () => preview,
+    getProfilePhotoBase64: () => profilePhotoBase64Ref.current,
+    validateAndShowErrors: () => {
+      setShowAllErrors(true);
+      return dataRef.current.fullName.trim().length > 3 &&
+             dataRef.current.whatsapp.trim().length >= 10 &&
+             dataRef.current.departamento.trim().length > 2 &&
+             dataRef.current.city.trim().length > 2 &&
+             dataRef.current.direccion.trim().length > 2;
+    },
+  }));
+
+  // Sincronizar estado local cuando el selection cambia
   useEffect(() => {
-    const isValid = data.fullName.trim().length > 3 &&
-                    data.whatsapp.trim().length >= 10 &&
-                    data.city.trim().length > 2;
+    if (selection) {
+      setData(prev => ({
+        ...prev,
+        ...selection,
+        direccion: selection.direccion || selection.address || prev.direccion || "",
+      }));
+      if (selection.profilePhoto) {
+        setPreview(selection.profilePhoto);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection]);
+
+  // Validar si el paso puede avanzar
+  useEffect(() => {
+    const isValid = data.fullName.trim().length > 3 && 
+                    data.whatsapp.trim().length >= 10 && 
+                    data.departamento.trim().length > 2 &&
+                    data.city.trim().length > 2 &&
+                    data.direccion.trim().length > 2;
     onValidation?.(isValid);
-    onSelect?.(data);
-  }, [data, onValidation, onSelect]);
+  }, [data, onValidation]);
+
+  // Errores por campo — mostrar si ya interactuó O si se intentó avanzar sin tocar
+  const fieldErrors = {
+    fullName: (touched.fullName || showAllErrors) && data.fullName.trim().length <= 3 ? "Mínimo 4 caracteres" : null,
+    whatsapp: (touched.whatsapp || showAllErrors) && data.whatsapp.trim().length < 10 ? "Ingresa al menos 10 dígitos" : null,
+    departamento: (touched.departamento || showAllErrors) && data.departamento.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+    city: (touched.city || showAllErrors) && data.city.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+    direccion: (touched.direccion || showAllErrors) && data.direccion.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
       setPreview(url);
-
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setData(prev => ({ ...prev, profilePhoto: url, profilePhotoBase64: reader.result }));
+        profilePhotoBase64Ref.current = reader.result;
       };
       reader.readAsDataURL(file);
     }
@@ -43,10 +98,13 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
 
   return (
     <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+      
+      {/* Icono de huella decorativo */}
       <div className="relative mb-8">
         <PawPrint className="text-[#b4d2a6] opacity-40 rotate-[-15deg]" size={48} />
       </div>
 
+      {/* Upload de foto */}
       <div className="flex flex-col items-center gap-4 mb-10 group">
         <label htmlFor="p-upload" className="relative cursor-pointer">
           <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden transition-all group-hover:border-[#81af6d]">
@@ -66,27 +124,38 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           <Upload size={16} className="text-gray-400" />
           Sube una foto de perfil
         </label>
-        <input
-          id="p-upload"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handlePhotoChange}
+        <input 
+          id="p-upload" 
+          type="file" 
+          accept="image/*" 
+          className="hidden" 
+          onChange={handlePhotoChange} 
         />
       </div>
 
+      {/* Formulario */}
       <div className="w-full max-w-sm space-y-6">
+        
         <div className="space-y-2">
           <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">
             Nombre Completo
           </label>
           <input
             type="text"
-            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.fullName
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
             placeholder=""
             value={data.fullName}
             onChange={(e) => handleChange("fullName", e.target.value)}
+            onBlur={() => handleBlur("fullName")}
           />
+          {fieldErrors.fullName && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.fullName}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -95,26 +164,86 @@ export function PersonalDataStep({ selection, onSelect, onValidation }) {
           </label>
           <input
             type="tel"
-            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.whatsapp
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
             placeholder="Ej: 3001234567"
             value={data.whatsapp}
             onChange={(e) => handleChange("whatsapp", e.target.value)}
+            onBlur={() => handleBlur("whatsapp")}
           />
+          {fieldErrors.whatsapp && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.whatsapp}</p>
+          )}
         </div>
 
+        {/* Departamento */}
         <div className="space-y-2">
-          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">
-            Ciudad/Municipio
-          </label>
+          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">Departamento</label>
           <input
             type="text"
-            className="w-full border-b-2 border-gray-100 py-3 px-1 focus:outline-none focus:border-[#81af6d] transition-colors text-gray-800"
-            placeholder="Neiva"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.departamento
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
+            placeholder="Ej: Huila"
+            value={data.departamento}
+            onChange={(e) => handleChange("departamento", e.target.value)}
+            onBlur={() => handleBlur("departamento")}
+          />
+          {fieldErrors.departamento && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.departamento}</p>
+          )}
+        </div>
+
+        {/* Ciudad/Municipio */}
+        <div className="space-y-2">
+          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">Ciudad/Municipio</label>
+          <input
+            type="text"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.city
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
+            placeholder="Ej: Neiva"
             value={data.city}
             onChange={(e) => handleChange("city", e.target.value)}
+            onBlur={() => handleBlur("city")}
           />
+          {fieldErrors.city && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.city}</p>
+          )}
         </div>
+
+        {/* Dirección */}
+        <div className="space-y-2">
+          <label className="text-[0.65rem] font-bold uppercase tracking-wider text-gray-400 px-1">Dirección</label>
+          <input
+            type="text"
+            className={cn(
+              "w-full border-b-2 py-3 px-1 focus:outline-none transition-colors text-gray-800",
+              fieldErrors.direccion
+                ? "border-b-red-300 focus:border-b-red-500"
+                : "border-gray-100 focus:border-[#81af6d]"
+            )}
+            placeholder="Ej: Calle 14 # 16-50"
+            value={data.direccion}
+            onChange={(e) => handleChange("direccion", e.target.value)}
+            onBlur={() => handleBlur("direccion")}
+          />
+          {fieldErrors.direccion && (
+            <p className="text-[0.65rem] text-red-500 mt-1 px-1">{fieldErrors.direccion}</p>
+          )}
+        </div>
+
       </div>
     </div>
   );
-}
+});

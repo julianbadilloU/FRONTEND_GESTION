@@ -2,6 +2,8 @@
 // El backend devuelve tags con id_opcion, categoria (string) y valor (string).
 // Catálogo unificado RF-US-01 + RF-MA-01: tags compartidos entre adoptante y mascota.
 
+import { apiClient } from "@/lib/http/api-client";
+
 // Categorías que usa el wizard de publicación de mascota (RF-MA-01)
 export const TAG_CATEGORIAS = {
   animalType: ["Tipo de animal"],
@@ -15,6 +17,9 @@ export const TAG_CATEGORIAS = {
   specialCondition: ["Condición especial"],
   healthStatus: ["Estado de salud"],
 };
+
+// Valores que solo tienen sentido para el perfil de adoptante, no para describir una mascota
+const ADOPTANTE_ONLY_VALUES = new Set(["Sin preferencia"]);
 
 // Mapeo de compatibilidad: label del frontend → categoría+valor del backend unificado
 const COMPATIBILITY_MAP = {
@@ -35,7 +40,7 @@ export function getOpcionesByCategoria(etiquetas, categorias) {
   if (!etiquetas || etiquetas.length === 0) return [];
   for (const cat of categorias) {
     const ops = etiquetas
-      .filter((e) => e.categoria === cat)
+      .filter((e) => e.categoria === cat && !ADOPTANTE_ONLY_VALUES.has(e.valor))
       .map((e) => ({ id: e.valor, label: e.valor })); // id = valor string
     if (ops.length > 0) return ops;
   }
@@ -49,11 +54,29 @@ export function getOpcionesByCategoria(etiquetas, categorias) {
  * @param {Array} etiquetas - Lista de etiquetas del backend
  * @returns {Array} ids de opciones seleccionadas
  */
+/**
+ * Crea una nueva opción de tag en el backend y retorna su id_opcion.
+ */
+async function createTagOption(categoria, valor) {
+  try {
+    const { data } = await apiClient.post("/api/admin/etiquetas/opcion", { categoria, valor });
+    return data?.data?.id_opcion || data?.id_opcion || null;
+  } catch {
+    return null;
+  }
+}
+
 export function buildTagsIds(tags, etiquetas) {
+  const pendingCustomBreeds = [];
+  
   const findId = (categorias, valor) => {
     for (const cat of categorias) {
       const match = etiquetas.find((t) => t.categoria === cat && t.valor === valor);
       if (match) return match.id_opcion;
+    }
+    // Si es raza y no se encontró, marcar para crear custom
+    if (categorias.includes("Raza") && valor && valor.trim()) {
+      pendingCustomBreeds.push(valor.trim());
     }
     return null;
   };
@@ -88,7 +111,7 @@ export function buildTagsIds(tags, etiquetas) {
     if (id) ids.add(id);
   }
 
-  return Array.from(ids);
+  return { ids: Array.from(ids), pendingBreeds: pendingCustomBreeds };
 }
 
 /**

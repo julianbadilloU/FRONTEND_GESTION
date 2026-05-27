@@ -137,9 +137,10 @@ export function PublicarMascotaWizard() {
     setPhotosProgress({ done: 0, total: photos.length });
 
     try {
-      const tagsIds = buildTagsIds(tags, etiquetas);
+      const tagResult = buildTagsIds(tags, etiquetas);
+      const tagsIds = tagResult.ids || tagResult;
 
-      if (tagsIds.length === 0) {
+      if (!Array.isArray(tagsIds) || tagsIds.length === 0) {
         setSubmitError(
           "No se pudo asociar ninguna etiqueta válida. Recarga la página e intenta de nuevo.",
         );
@@ -170,23 +171,23 @@ export function PublicarMascotaWizard() {
 
   return (
     <div className="min-h-[calc(100vh-140px)] bg-[#fafaf8]">
-      <div className="max-w-4xl mx-auto px-6 py-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         {/* Header: Back + Title + Next */}
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center justify-between gap-2 mb-10">
           {step > 1 ? (
             <button
               type="button"
               onClick={handlePrev}
-              className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-[#d5d0c8] rounded-full px-5 py-2.5 transition-colors bg-white"
+              className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 border border-[#d5d0c8] rounded-full px-5 py-2.5 transition-colors bg-white shrink-0"
             >
               <ChevronLeft size={16} />
               Atrás
             </button>
           ) : (
-            <div className="w-28" />
+            <div className="w-20 sm:w-28 shrink-0" />
           )}
 
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-gray-900 text-center min-w-0">
             Publica tu{" "}
             <span className="font-serif italic font-normal text-[#b5c9a8]">
               mascota
@@ -197,13 +198,13 @@ export function PublicarMascotaWizard() {
             <button
               type="button"
               onClick={handleNext}
-              className="flex items-center gap-1.5 bg-[#8b9e7e] hover:bg-[#7a8e6e] transition-colors text-white text-sm font-semibold py-2.5 px-6 rounded-full shadow-sm"
+              className="flex items-center gap-1.5 bg-[#8b9e7e] hover:bg-[#7a8e6e] transition-colors text-white text-sm font-semibold py-2.5 px-4 sm:px-6 rounded-full shadow-sm shrink-0"
             >
               Siguiente
               <ChevronRight size={16} />
             </button>
           ) : (
-            <div className="w-32" />
+            <div className="w-20 sm:w-32 shrink-0" />
           )}
         </div>
 

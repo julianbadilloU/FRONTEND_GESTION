@@ -18,7 +18,7 @@ export function TagFilters({ filters, onFilterChange, onReset }) {
         />
       </div>
 
-      <div className="flex items-center gap-3 w-full sm:w-auto">
+      <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
         <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest mr-2">
           <Filter size={14} />
           Filtrar:

@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 
+// NOTA: Este middleware decodifica JWT sin verificar firma.
+// La protección real está en el backend (authMiddleware + authorizeRole).
+// Este decode solo se usa para routing UX (redirigir según rol, onboarding pendiente, etc.).
+// NO confiar en este decode para decisiones de seguridad.
+
 const PUBLIC_ROUTES = [
   "/login",
   "/registro",
@@ -7,6 +12,7 @@ const PUBLIC_ROUTES = [
   "/reset-password",
   "/nueva-contrasena",
   "/terminos-y-condiciones",
+  "/verify-email",
   "/",
 ];
 
@@ -77,7 +83,7 @@ export function middleware(request) {
   const roleByPrefix = {
     "/adoptante": "adoptante",
     "/albergue": "albergue",
-    "/admin": "admin",
+    "/admin": "administrador",
   };
 
   const requiredRole = PROTECTED_PREFIXES.find((prefix) =>
@@ -93,7 +99,7 @@ export function middleware(request) {
     const redirectPath =
       userRole === "adoptante"      ? "/adoptante/feed"
     : userRole === "albergue"       ? "/albergue/mascotas"
-    : userRole === "admin"          ? "/admin/tags"
+    : userRole === "administrador"  ? "/admin/dashboard"
     : "/";
     return NextResponse.redirect(new URL(redirectPath, request.url));
   }

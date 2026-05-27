@@ -68,7 +68,9 @@ function AdoptanteOption({ candidato, selected, onSelect }) {
         {foto ? (
           <img src={foto} alt={nombre} className="w-full h-full object-cover" />
         ) : (
-          <Users size={18} className="text-[#8b9e7e]" />
+          <span className="text-sm font-bold text-[#8b9e7e]">
+            {nombre?.charAt(0)?.toUpperCase() || "A"}
+          </span>
         )}
       </div>
 

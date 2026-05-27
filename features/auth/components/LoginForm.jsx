@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PawPrint, Dog } from "lucide-react";
@@ -14,46 +14,48 @@ import { AuthAlert } from "@/features/auth/components/AuthAlert";
 import { apiClient } from "@/lib/http/api-client";
 import { saveSessionTokens } from "@/lib/auth/token-storage";
 
-function decodeJwtPayload(token) {
-  try {
-    if (!token || typeof token !== "string") return null;
-    const payload = token.split(".")[1];
-    if (!payload) return null;
-    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(atob(base64));
-  } catch {
-    return null;
-  }
-}
-
-function extractAccessToken(responseData) {
-  let current = responseData;
-
-  while (current && typeof current === "object") {
-    if (typeof current === "string") {
-      return current;
-    }
-
-    if (typeof current.token === "string") return current.token;
-    if (typeof current.accessToken === "string") return current.accessToken;
-    if (typeof current.jwt === "string") return current.jwt;
-
-    current = current.data;
-  }
-
-  return typeof current === "string" ? current : null;
-}
-
 export function LoginForm({ onSuccess }) {
   const [showPw, setShowPw] = useState(false);
-  const [attempts, setAttempts] = useState(0);
-  const [isBlocking, setIsBlocking] = useState(false);
-  const [countdown, setCountdown] = useState(null);
   const [serverError, setServerError] = useState(null);
+  const [isVerificationError, setIsVerificationError] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const cooldownRef = useRef(null);
+
+  // Limpiar el intervalo de cooldown al desmontar
+  useEffect(() => {
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    };
+  }, []);
+
+  // Manejar countdown de 30 segundos
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      cooldownRef.current = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(cooldownRef.current);
+            cooldownRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => {
+      if (cooldownRef.current) {
+        clearInterval(cooldownRef.current);
+        cooldownRef.current = null;
+      }
+    };
+  }, [resendCooldown > 0]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const {
     register,
     handleSubmit,
+    getValues,
     setError,
     formState: { errors, isSubmitting },
   } = useForm({
@@ -61,32 +63,10 @@ export function LoginForm({ onSuccess }) {
     mode: "onSubmit",
   });
 
-  // Start lockout countdown
-  const startLockout = () => {
-    setIsBlocking(true);
-    let secs = 60;
-    setCountdown(secs);
-    const timer = setInterval(() => {
-      secs -= 1;
-      setCountdown(secs);
-      if (secs <= 0) {
-        clearInterval(timer);
-        setIsBlocking(false);
-        setAttempts(0);
-        setCountdown(null);
-      }
-    }, 1000);
-  };
-
-  const formatTime = (s) => {
-    const m = Math.floor(s / 60).toString().padStart(2, "0");
-    const sec = (s % 60).toString().padStart(2, "0");
-    return `${m}:${sec}`;
-  };
-
   const onSubmit = async (data) => {
-    if (isBlocking) return;
     setServerError(null);
+    setIsVerificationError(false);
+    setResendMessage(null);
 
     try {
       const response = await apiClient.post("/api/auth/login", {
@@ -94,38 +74,49 @@ export function LoginForm({ onSuccess }) {
         password: data.password,
       });
 
-      const accessToken = extractAccessToken(response.data);
+      // Primary path: backend nests token under response.data.data.token
+      // Fallback chain: accessToken.data?.token → accessToken.token → accessToken.accessToken → accessToken.jwt → accessToken.data
+      let accessToken = response.data;
+      if (typeof accessToken === "object") {
+        accessToken = accessToken.data?.token || accessToken.token || accessToken.accessToken || accessToken.jwt || accessToken.data;
+      }
       
       saveSessionTokens({ accessToken });
 
-      const payload = decodeJwtPayload(accessToken);
-      const sessionUser = response.data?.data?.user ?? null;
+      // Decodificar JWT para obtener rol, estado_cuenta y redirigir
+      let role = null;
+      let estadoCuenta = null;
+      try {
+        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        role = payload.role;
+        estadoCuenta = payload.estado_cuenta;
+      } catch {
+        role = null;
+      }
 
-      onSuccess?.({
-        email: data.email,
-        role: payload?.role || payload?.rol || null,
-        estado_cuenta:
-          sessionUser?.estado_cuenta ||
-          payload?.estado_cuenta ||
-          payload?.estadoCuenta ||
-          null,
-        user: sessionUser,
-        token: accessToken,
-      });
+      onSuccess?.({ email: data.email, role, estado_cuenta: estadoCuenta });
     } catch (error) {
       if (error.response) {
-        const { status } = error.response;
+        const { status, data: errData } = error.response;
         if (status === 400) {
           setServerError("Error de validación (correo o contraseña en formato incorrecto).");
         } else if (status === 401) {
           setError("email", { type: "server", message: "Correo o contraseña incorrectos" });
           setError("password", { type: "server", message: "Correo o contraseña incorrectos" });
-          
-          const newAttempts = attempts + 1;
-          setAttempts(newAttempts);
-          if (newAttempts >= 3) startLockout();
         } else if (status === 403) {
-          startLockout();
+          const msg = errData?.message || "";
+          const isSuspendido =
+            errData?.tipo === "suspendido" ||
+            errData?.reason === "suspendido" ||
+            msg.toLowerCase().includes("suspendida");
+          if (isSuspendido) {
+            setServerError("Tu cuenta ha sido suspendida. Contactá al administrador para más información.");
+          } else if (msg.includes("verificar")) {
+            setServerError(msg);
+            setIsVerificationError(true);
+          } else {
+            setServerError(errData?.message || "Demasiados intentos fallidos. Tu cuenta está bloqueada temporalmente. Intentá en 15 minutos.");
+          }
         } else if (status === 500) {
           setServerError("Error interno del servidor. Intenta de nuevo más tarde.");
         } else {
@@ -137,13 +128,35 @@ export function LoginForm({ onSuccess }) {
     }
   };
 
+  const handleResendVerification = async () => {
+    const email = getValues("email");
+    if (!email) return;
+
+    setResending(true);
+    setResendMessage(null);
+
+    try {
+      const response = await apiClient.post("/api/auth/resend-verification", { email });
+      setResendMessage({ type: "success", text: response.data?.message || "Correo reenviado. Revisá tu bandeja de entrada." });
+      setResendCooldown(30);
+    } catch (error) {
+      if (error.response?.status === 429) {
+        setResendMessage({ type: "error", text: "Demasiadas solicitudes. Intentá de nuevo en 30 minutos." });
+      } else {
+        setResendMessage({ type: "error", text: "Error al reenviar el código. Intentá de nuevo más tarde." });
+      }
+    } finally {
+      setResending(false);
+    }
+  };
+
   return (
     <motion.div
       key="login"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="flex flex-col items-center justify-center min-h-[50vh] space-y-6"
+      className="flex flex-col items-center justify-center min-h-[50vh] space-y-6 px-4"
     >
       {/* Mobile only: Logo + Title */}
       <div className="md:hidden flex flex-col items-center w-full mb-4">
@@ -178,23 +191,38 @@ export function LoginForm({ onSuccess }) {
         </p>
       </div>
 
-      {isBlocking && countdown !== null && (
-        <div className="w-full max-w-sm">
-          <AuthAlert type="warn" title="Cuenta Bloqueada Temporalmente">
-            Demasiados intentos. Reintentar en{" "}
-            <span className="font-serif font-bold text-lg">{formatTime(countdown)}</span>
-          </AuthAlert>
-        </div>
-      )}
-
-      {!isBlocking && (serverError || errors.root?.message) && (
-        <div className="w-full max-w-sm">
+      {(serverError || errors.root?.message) && (
+        <div className="w-full max-w-sm space-y-3">
           <AuthAlert type="error">{serverError ?? errors.root?.message}</AuthAlert>
+          {isVerificationError && (
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500 text-center">
+                ¿No llegó el correo?{" "}
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resending || resendCooldown > 0}
+                  className="text-[#5e924e] font-semibold hover:underline disabled:text-gray-400 disabled:no-underline"
+                >
+                  {resending
+                    ? "Enviando..."
+                    : resendCooldown > 0
+                      ? `Reenviar (${resendCooldown}s)`
+                      : "Reenviar código"}
+                </button>
+              </p>
+              {resendMessage && (
+                <AuthAlert type={resendMessage.type === "success" ? "ok" : "error"}>
+                  {resendMessage.text}
+                </AuthAlert>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       <form
-        className={`w-full max-w-sm space-y-6 ${isBlocking ? "opacity-40 pointer-events-none grayscale" : ""}`}
+        className="w-full max-w-sm space-y-6"
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
@@ -231,7 +259,7 @@ export function LoginForm({ onSuccess }) {
         <div className="flex justify-center pt-2">
           <AuthButton 
              type="submit" 
-             disabled={isSubmitting || isBlocking}
+             disabled={isSubmitting}
              className="w-auto px-16 py-3 rounded-full bg-[#a9c99a] hover:bg-[#81af6d] text-white shadow-none text-base normal-case tracking-normal font-semibold"
           >
             {isSubmitting ? "Ingresando..." : "Login"}

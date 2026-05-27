@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { Dog, Cat, Search, Filter, Heart, MapPin, Calendar, RefreshCw } from "lucide-react";
 import { ClientAuthGuard } from "@/features/shared/components/ClientAuthGuard";
+import PetDetailModal from "@/features/shared/components/PetDetailModal";
 import { getFeedMascotas, getMatchMascotas } from "@/features/adoptante/services/adoptante.service";
 import { CompatibilityBadge, CompatibilityBar, getCompatibilityLevel } from "@/features/adoptante/components/feed/CompatibilityBadge";
 import { SwipeFeed } from "@/features/adoptante/components/feed/SwipeFeed";
@@ -14,8 +14,7 @@ export const MATCH_QUERY_KEY = ["match"];
 export const FEED_QUERY_KEY_PREFIX = "feed";
 
 // ─── Tarjeta de mascota ───────────────────────────────────────────────────────
-function MascotaCard({ mascota, compatibilidad }) {
-  const router = useRouter();
+function MascotaCard({ mascota, compatibilidad, onViewProfile }) {
   const tipoTag = mascota.tags?.find((t) => t.nombre_tag === "Tipo de animal");
   const tamañoTag = mascota.tags?.find((t) => t.nombre_tag === "Tamaño");
   const edadTag = mascota.tags?.find(
@@ -38,7 +37,7 @@ function MascotaCard({ mascota, compatibilidad }) {
   return (
     <div
       id={`mascota-card-${mascota.id_mascota}`}
-      onClick={() => router.push(`/mascota/${mascota.id_mascota}`)}
+      onClick={() => onViewProfile?.(mascota.id_mascota)}
       className={`group bg-white rounded-2xl border-2 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer ${borderClass}`}
     >
       {/* Imagen */}
@@ -126,6 +125,7 @@ export default function FeedPage() {
   const [filtros, setFiltros] = useState({ tipo: "", tamaño: "", edad: "" });
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedMascotaId, setSelectedMascotaId] = useState(null);
 
   // ── Query: feed de mascotas ──────────────────────────────────────────────────
   const {
@@ -271,10 +271,10 @@ export default function FeedPage() {
                 className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#a9c99a]"
               >
                 <option value="">Edad</option>
-                <option value="Cachorro (0-1)">Cachorro</option>
-                <option value="Joven (1-3)">Joven</option>
-                <option value="Adulto (3-7)">Adulto</option>
-                <option value="Senior (7+)">Senior</option>
+                <option value="Cachorro (0–1 año)">Cachorro</option>
+                <option value="Joven (1–3 años)">Joven</option>
+                <option value="Adulto (3–7 años)">Adulto</option>
+                <option value="Senior (+7 años)">Senior</option>
               </select>
 
               <button
@@ -317,6 +317,7 @@ export default function FeedPage() {
                       key={mascota.id_mascota}
                       mascota={mascota}
                       compatibilidad={compatibilidadMap.get(mascota.id_mascota) ?? null}
+                      onViewProfile={setSelectedMascotaId}
                     />
                   ))}
                 </div>
@@ -325,6 +326,11 @@ export default function FeedPage() {
           )}
         </div>
       </div>
+      {/* Modal de detalle de mascota */}
+      <PetDetailModal
+        mascotaId={selectedMascotaId}
+        onClose={() => setSelectedMascotaId(null)}
+      />
     </ClientAuthGuard>
   );
 }

@@ -52,16 +52,16 @@ const TAG_PALETTE = [
 ];
 
 function pickTags(mascota) {
-  const all = mascota.tags || [];
+  const all = (mascota.tags || []).filter(t => !(t.nombre_tag === "Raza" && t.valor === "Otra"));
   const preferred = all
     .filter((t) =>
-      ["Raza", "Temperamento", "Color", "Tamaño", "Tipo de animal"].includes(
+      ["Raza", "Color", "Tamaño", "Tipo de animal", "Sexo", "Nivel de energía", "Compatibilidad"].includes(
         t.nombre_tag,
       ),
     )
-    .slice(0, 3);
-  if (preferred.length >= 3) return preferred;
-  const filler = all.filter((t) => !preferred.includes(t)).slice(0, 3 - preferred.length);
+    .slice(0, 6);
+  if (preferred.length >= 4) return preferred;
+  const filler = all.filter((t) => !preferred.includes(t)).slice(0, 6 - preferred.length);
   return [...preferred, ...filler];
 }
 
@@ -222,7 +222,7 @@ export function SwipeCard({
 
         {/* Cuerpo */}
         <div className="px-6 pt-4 pb-5 h-[42%] flex flex-col gap-2">
-          <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
             {mascota.nombre}
           </h3>
 
@@ -247,7 +247,7 @@ export function SwipeCard({
                     key={`${t.nombre_tag}-${t.valor}-${i}`}
                     className={`px-3 py-1 text-[11px] font-semibold rounded-full ${palette.bg} ${palette.text} shadow-sm`}
                   >
-                    {t.valor}
+                    {t.valor.length > 12 ? t.valor : `${t.nombre_tag}: ${t.valor}`}
                   </span>
                 );
               })}

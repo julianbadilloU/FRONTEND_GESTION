@@ -6,8 +6,14 @@ import { z } from "zod";
  * - whatsapp: formato colombiano (10 dígitos, opcional +57)
  * - ciudad: obligatorio, 2-100 caracteres
  * - direccion: opcional
- * - tags: array de strings (etiquetas de preferencia)
+ * - tags: array de objetos con id_opcion, valor y categoria
  */
+const tagObjectSchema = z.object({
+  id_opcion: z.number(),
+  valor: z.string(),
+  categoria: z.string().optional(),
+});
+
 export const adoptanteProfileSchema = z.object({
   nombre_completo: z
     .string()
@@ -15,12 +21,16 @@ export const adoptanteProfileSchema = z.object({
     .max(150, "El nombre es demasiado largo"),
   whatsapp: z
     .string()
-    .min(10, "El número debe tener al menos 10 dígitos")
-    .max(13, "Número inválido")
+    .min(7, "El número debe tener al menos 7 dígitos")
+    .max(15, "Número inválido")
     .regex(
-      /^(\+?57)?3[0-9]{9}$|^[2-8][0-9]{6}$/,
-      "Debe ser un número celular (ej: 3001234567) o fijo de 7 dígitos.",
+      /^(\+?57)?[\s-]?[0-9]{10}$/,
+      "Formato inválido. Ej: 3001234567 o +573001234567",
     ),
+  departamento: z
+    .string()
+    .min(2, "Selecciona un departamento")
+    .max(100, "Departamento demasiado largo"),
   ciudad: z
     .string()
     .min(2, "La ciudad debe tener al menos 2 caracteres")
@@ -30,5 +40,5 @@ export const adoptanteProfileSchema = z.object({
     .max(200, "Dirección demasiado larga")
     .optional()
     .or(z.literal("")),
-  tags: z.array(z.string()).default([]),
+  tags: z.array(tagObjectSchema).default([]),
 });

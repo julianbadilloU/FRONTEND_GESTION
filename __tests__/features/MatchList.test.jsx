@@ -28,15 +28,35 @@ vi.mock("@/features/shared/components/ClientAuthGuard", () => ({
 }));
 
 const mockUseQuery = vi.fn();
-vi.mock("@tanstack/react-query", () => ({
-  useQuery: (...args) => mockUseQuery(...args),
-  QueryClient: vi.fn(),
-  QueryClientProvider: ({ children }) => <>{children}</>,
-}));
+const mockInvalidateQueries = vi.fn();
+vi.mock("@tanstack/react-query", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useQuery: (...args) => mockUseQuery(...args),
+    useQueryClient: () => ({
+      invalidateQueries: mockInvalidateQueries,
+    }),
+  };
+});
 
 vi.mock("@/features/adoptante/services/match.service", () => ({
   getMatchesAdoptante: vi.fn(),
   getMatchById: vi.fn(),
+  rejectMatch: vi.fn(),
+}));
+
+vi.mock("@/features/adoptante/services/adoptante.service", () => ({
+  getDescartes: vi.fn(),
+  deshacerDescarte: vi.fn(),
+}));
+
+vi.mock("@/features/shared/components/PetDetailModal", () => ({
+  default: () => null,
+}));
+
+vi.mock("@/features/shared/components/MatchDetailModal", () => ({
+  default: () => null,
 }));
 
 // ── Helpers de datos ────────────────────────────────────────────────────────
@@ -369,24 +389,22 @@ describe("MatchesPage – HU-MCH-03 Historial de Matches", () => {
 
   // ── Suite 5: Navegación al detalle ─────────────────────────────────────
 
-  it("al hacer click en una MatchCard debe navegar al detalle", async () => {
+  it("al hacer click en una MatchCard debe abrir el modal de detalle", async () => {
     setupMatchesQuery();
     const MatchesPage = (await import("@/app/adoptante/matches/page")).default;
     render(<MatchesPage />);
 
-    // La navegación usa id_match (1), no id_mascota (10)
     fireEvent.click(document.getElementById("match-card-1"));
-    expect(mockPush).toHaveBeenCalledWith("/adoptante/matches/1");
+    expect(screen.getByText("Mascota 1")).toBeInTheDocument();
   });
 
-  it("al hacer click en una segunda MatchCard debe navegar a su propio detalle", async () => {
+  it("al hacer click en una segunda MatchCard debe abrir su propio detalle", async () => {
     setupMatchesQuery();
     const MatchesPage = (await import("@/app/adoptante/matches/page")).default;
     render(<MatchesPage />);
 
-    // La navegación usa id_match (2), no id_mascota (20)
     fireEvent.click(document.getElementById("match-card-2"));
-    expect(mockPush).toHaveBeenCalledWith("/adoptante/matches/2");
+    expect(screen.getByText("Mascota 2")).toBeInTheDocument();
   });
 });
 

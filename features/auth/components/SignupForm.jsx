@@ -84,7 +84,7 @@ export function SignupForm({ onSuccess }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="space-y-8"
+      className="space-y-8 px-4 max-w-md mx-auto"
     >
       {/* Mobile only: Logo + Title */}
       <div className="md:hidden flex flex-col items-center w-full mb-4">
@@ -231,11 +231,11 @@ export function SignupForm({ onSuccess }) {
             />
             <span className="text-xs text-gray-500 font-medium transition-colors group-hover:text-gray-700">
               Acepto los{" "}
-              <Link href="/terminos-y-condiciones" className="text-sage-600 font-bold hover:underline">
+              <Link href="/terminos-y-condiciones" target="_blank" rel="noopener noreferrer" className="text-sage-600 font-bold hover:underline">
                 Términos
               </Link>{" "}
               y la{" "}
-              <Link href="/terminos-y-condiciones" className="text-sage-600 font-bold hover:underline">
+              <Link href="/terminos-y-condiciones" target="_blank" rel="noopener noreferrer" className="text-sage-600 font-bold hover:underline">
                 Política de Privacidad
               </Link>
             </span>

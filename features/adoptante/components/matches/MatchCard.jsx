@@ -40,6 +40,34 @@ const ESTADO_CONFIG = {
     border: "border-[#4a7c59]/20",
     dot: "bg-[#4a7c59]",
   },
+  en_adopcion: {
+    label: "Aceptado",
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "border-blue-200",
+    dot: "bg-blue-400",
+  },
+  en_espera: {
+    label: "En proceso (otro adoptante)",
+    bg: "bg-orange-50",
+    text: "text-orange-600",
+    border: "border-orange-200",
+    dot: "bg-orange-400",
+  },
+  adoptado_por_otro: {
+    label: "Adoptado por otro",
+    bg: "bg-orange-50",
+    text: "text-orange-600",
+    border: "border-orange-200",
+    dot: "bg-orange-400",
+  },
+  descartado: {
+    label: "Descartado",
+    bg: "bg-red-50",
+    text: "text-red-600",
+    border: "border-red-200",
+    dot: "bg-red-400",
+  },
 };
 
 /**

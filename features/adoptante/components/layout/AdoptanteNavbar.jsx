@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Heart, Bell, User, Search, LogOut, Menu, X, Sparkles } from "lucide-react";
+import { Heart, Bell, Search, LogOut, Menu, X, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -11,6 +11,10 @@ import { logoutUser } from "@/lib/auth/auth-service";
 import { cn } from "@/lib/utils/cn";
 import { getAdoptanteProfile } from "@/features/adoptante/services/adoptante.service";
 import { getNotificaciones } from "@/features/shared/services/notificacion.service";
+import { useNotificacionesSocket, requestNotificationPermission } from "@/features/shared/hooks/useNotificacionesSocket";
+import NotificationsModal from "@/features/shared/components/NotificationsModal";
+import MatchDetailModal from "@/features/shared/components/MatchDetailModal";
+import PetDetailModal from "@/features/shared/components/PetDetailModal";
 
 const NAV_LINKS = [
   { href: "/adoptante/descubrir", label: "Descubrir", icon: Sparkles },
@@ -23,7 +27,14 @@ export function AdoptanteNavbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notifModalOpen, setNotifModalOpen] = useState(false);
+  const [targetMatchId, setTargetMatchId] = useState(null);
+  const [targetMascotaId, setTargetMascotaId] = useState(null);
   const headerRef = useRef(null);
+
+  // HU-NOT-01: real-time notifications via Socket.IO
+  useNotificacionesSocket();
+  useEffect(() => { requestNotificationPermission(); }, []);
 
   // Cerrar menú al hacer click fuera del header
   useEffect(() => {
@@ -59,8 +70,8 @@ export function AdoptanteNavbar() {
 
   const notifNoLeidas = notifData?.total_no_leidas ?? 0;
 
-  const displayName = profile?.nombre || "Mi Perfil";
-  const displayPhoto = profile?.foto_perfil || null;
+  const displayName = profile?.nombre_completo || profile?.nombre || "Mi Perfil";
+  const displayPhoto = profile?.foto_url || profile?.foto_perfil || null;
 
   const linkColor = "text-[#e07a5f]";
 
@@ -94,9 +105,10 @@ export function AdoptanteNavbar() {
   };
 
   return (
+    <>
     <header
       ref={headerRef}
-      className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-40 shadow-sm"
+      className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3.5 sticky top-0 z-40 shadow-sm"
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
 
@@ -111,7 +123,26 @@ export function AdoptanteNavbar() {
 
         {/* Nav links (desktop) */}
         <nav className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map((link) => renderNavLink(link))}
+          {NAV_LINKS.map((link) => {
+            if (link.href === "/adoptante/notificaciones") {
+              return (
+                <button
+                  key={link.href}
+                  onClick={() => setNotifModalOpen(true)}
+                  className="flex items-center gap-2 text-sm font-medium transition-colors relative pb-0.5 text-gray-500 hover:text-gray-900 border-b-2 border-transparent"
+                >
+                  {notifNoLeidas > 0 && (
+                    <span className="absolute -top-2.5 -right-2.5 bg-red-500 text-white text-[9px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-1 leading-none z-10">
+                      {notifNoLeidas > 99 ? "99+" : notifNoLeidas}
+                    </span>
+                  )}
+                  <Bell size={15} />
+                  {link.label}
+                </button>
+              );
+            }
+            return renderNavLink(link);
+          })}
         </nav>
 
         {/* Perfil / Logout / Hamburguesa (desktop) */}
@@ -129,8 +160,8 @@ export function AdoptanteNavbar() {
                 className="w-8 h-8 rounded-full object-cover ring-2 ring-[#e07a5f]/20 group-hover:ring-[#e07a5f]/50 transition-all"
               />
             ) : (
-              <div className="w-8 h-8 bg-[#fdf0ec] rounded-full flex items-center justify-center ring-2 ring-[#e07a5f]/20 group-hover:ring-[#e07a5f]/50 transition-all">
-                <User size={15} className="text-[#e07a5f]" />
+              <div className="w-8 h-8 bg-[#fdf0ec] rounded-full flex items-center justify-center text-sm font-bold text-[#e07a5f] ring-2 ring-[#e07a5f]/20 group-hover:ring-[#e07a5f]/50 transition-all">
+                {displayName.charAt(0).toUpperCase()}
               </div>
             )}
             <span className="text-sm font-semibold text-gray-800 hidden sm:inline max-w-[120px] truncate">
@@ -201,7 +232,9 @@ export function AdoptanteNavbar() {
               {displayPhoto ? (
                 <Image src={displayPhoto} alt="Foto" width={22} height={22} className="w-5.5 h-5.5 rounded-full object-cover" />
               ) : (
-                <User size={17} />
+                <div className="w-5 h-5 bg-[#fdf0ec] rounded-full flex items-center justify-center text-[10px] font-bold text-[#e07a5f]">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
               )}
               {displayName}
             </Link>
@@ -218,5 +251,22 @@ export function AdoptanteNavbar() {
         </div>
       )}
     </header>
+
+    <NotificationsModal
+      isOpen={notifModalOpen}
+      onClose={() => setNotifModalOpen(false)}
+      role="adoptante"
+      onOpenMatch={(id) => setTargetMatchId(id)}
+      onOpenMascota={(id) => setTargetMascotaId(id)}
+    />
+    <MatchDetailModal
+      matchId={targetMatchId}
+      onClose={() => setTargetMatchId(null)}
+    />
+    <PetDetailModal
+      mascotaId={targetMascotaId}
+      onClose={() => setTargetMascotaId(null)}
+    />
+    </>
   );
 }
