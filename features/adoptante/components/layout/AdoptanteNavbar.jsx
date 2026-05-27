@@ -108,7 +108,7 @@ export function AdoptanteNavbar() {
     <>
     <header
       ref={headerRef}
-      className="bg-white border-b border-gray-100 px-6 py-3.5 sticky top-0 z-40 shadow-sm"
+      className="bg-white border-b border-gray-100 px-4 sm:px-6 py-3.5 sticky top-0 z-40 shadow-sm"
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between gap-6">
 

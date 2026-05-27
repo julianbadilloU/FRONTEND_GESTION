@@ -93,7 +93,7 @@ function NumberField({ label, value, onChange, min, max, suffix }) {
           min={min}
           max={max}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#8b9e7e]/40 focus:border-[#8b9e7e]"
+          className="w-full sm:w-28 border border-gray-200 rounded-xl px-3 py-2 text-sm font-semibold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#8b9e7e]/40 focus:border-[#8b9e7e]"
         />
         {suffix && <span className="text-xs text-gray-400 font-semibold">{suffix}</span>}
       </div>

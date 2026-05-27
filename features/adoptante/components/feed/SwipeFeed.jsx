@@ -135,7 +135,7 @@ export function SwipeFeed() {
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-md mx-auto py-4">
-      <div className="relative w-full h-[550px] sm:h-[600px] mb-8 perspective-1000">
+      <div className="relative w-full h-[min(550px,_70svh)] sm:h-[600px] mb-8 perspective-1000">
         {loading && cards.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center text-[#5dd39e]">
             <Loader2 className="animate-spin mr-2" size={28} /> 

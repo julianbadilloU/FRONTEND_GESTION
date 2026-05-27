@@ -100,24 +100,26 @@ function HistorialTable({ historial }) {
     );
   }
   return (
-    <table className="w-full text-xs" aria-label="Historial de contactos">
-      <thead>
-        <tr className="text-left text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-          <th className="pb-2 pr-4">Fecha</th>
-          <th className="pb-2">Mensaje</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-50">
-        {historial.map((h, i) => (
-          <tr key={i}>
-            <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">
-              {formatDate(h.fecha)}
-            </td>
-            <td className="py-2 text-gray-700">{h.mensaje}</td>
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs" aria-label="Historial de contactos">
+        <thead>
+          <tr className="text-left text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
+            <th className="pb-2 pr-4">Fecha</th>
+            <th className="pb-2">Mensaje</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody className="divide-y divide-gray-50">
+          {historial.map((h, i) => (
+            <tr key={i}>
+              <td className="py-2 pr-4 text-gray-500 whitespace-nowrap">
+                {formatDate(h.fecha)}
+              </td>
+              <td className="py-2 text-gray-700">{h.mensaje}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -501,15 +503,15 @@ export function CandidatosView({ preselectedMatchId = null }) {
 
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Candidatos</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Candidatos</h1>
             <p className="text-gray-500 text-sm mt-1">
               Adoptantes compatibles con tus mascotas
             </p>
           </div>
 
-          <div className="flex gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
         {/* Left: Mascotas sidebar */}
-        <aside className="w-72 flex-shrink-0 space-y-2">
+        <aside className="w-full lg:w-72 lg:flex-shrink-0 space-y-2">
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#a09890] px-1 mb-3">
             Mis Mascotas
           </p>
@@ -532,13 +534,14 @@ export function CandidatosView({ preselectedMatchId = null }) {
               <p className="text-xs text-gray-400 mt-1">Registá mascotas para ver sus candidatos.</p>
             </div>
           ) : (
-          mascotas.map((m) => (
+          <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-1 lg:pb-0 lg:overflow-x-visible">
+          {mascotas.map((m) => (
           <button
             key={m.id_mascota}
             id={`mascota-btn-${m.id_mascota}`}
             onClick={() => handleSelectMascota(m)}
             className={cn(
-              "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all",
+              "flex-shrink-0 lg:flex-shrink flex items-center gap-3 px-4 py-3 rounded-2xl text-left transition-all w-auto lg:w-full",
               selectedMascota?.id_mascota === m.id_mascota
                 ? "bg-white border border-[#8b9e7e] shadow-sm"
                 : "bg-white border border-transparent hover:border-[#e0dbd3]"
@@ -559,7 +562,8 @@ export function CandidatosView({ preselectedMatchId = null }) {
               {m.candidatos_count ?? 0}
             </span>
           </button>
-          ))
+          ))}
+          </div>
           )}
         </aside>
 
@@ -632,8 +636,11 @@ export function CandidatosView({ preselectedMatchId = null }) {
               )}
             </div>
 
-            {/* Right: Detail panel */}
-            <div className="w-80 flex-shrink-0 relative" style={{ minHeight: '400px' }}>
+            {/* Right: Detail panel — full width on mobile, fixed 320px on desktop */}
+            <div className={cn(
+              "w-full lg:w-80 lg:flex-shrink-0 lg:relative",
+              !selectedCandidato && "hidden lg:block"
+            )}>
               {selectedCandidato ? (
                 <CandidatoDetailPanel
                   candidato={selectedCandidato}

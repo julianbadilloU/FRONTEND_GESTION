@@ -37,7 +37,7 @@ function DeleteConfirmModal({ onConfirm, onCancel, step, codigo, setCodigo, isLo
   if (step === "codigo") {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
             <h3 className="text-lg font-bold text-gray-900">Código de verificación</h3>
             <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -94,7 +94,7 @@ function DeleteConfirmModal({ onConfirm, onCancel, step, codigo, setCodigo, isLo
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-bold text-gray-900">Eliminar cuenta</h3>
           <button onClick={onCancel} className="text-gray-400 hover:text-gray-600 transition-colors">

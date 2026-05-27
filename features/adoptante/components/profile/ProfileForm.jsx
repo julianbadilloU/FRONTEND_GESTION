@@ -236,7 +236,7 @@ export function ProfileForm({
             </div>
 
             {/* Departamento + Ciudad */}
-            <div className="col-span-2 grid grid-cols-2 gap-x-6">
+            <div className="col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6">
               {/* Departamento */}
               <div>
                 <FieldLabel htmlFor="f-dept">Departamento</FieldLabel>

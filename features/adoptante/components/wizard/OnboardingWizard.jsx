@@ -420,7 +420,7 @@ export function OnboardingWizard() {
         </button>
 
         {/* Título central */}
-        <h1 className="text-lg font-bold text-gray-900 hidden sm:block">
+        <h1 className="text-sm sm:text-lg font-bold text-gray-900 text-center min-w-0">
           Encuentra tu{" "}
           <span className="font-serif italic font-normal text-[#5e924e]">match</span>
         </h1>
