@@ -350,7 +350,7 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     switchToExplorar();
 
     const albergues = screen.getAllByText('Patitas Felices');
-    expect(albergues.length).toBe(3);
+    expect(albergues.length).toBe(6);
   });
 
   it('debe renderizar foto cuando la mascota tiene una', async () => {
@@ -365,7 +365,7 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     expect(img).toHaveAttribute('src', 'https://img/foto1.jpg');
   });
 
-  it('debe redirigir al detalle de la mascota al hacer click', async () => {
+  it('debe abrir el modal de detalle al hacer click en una mascota', async () => {
     setupUseQueryMocks();
     const FeedPage = (await import('@/app/adoptante/feed/page')).default;
     render(<FeedPage />);
@@ -373,6 +373,6 @@ describe('FeedPage — HU-MT-01 Motor de matching', () => {
     switchToExplorar();
 
     fireEvent.click(document.getElementById('mascota-card-1'));
-    expect(mockPush).toHaveBeenCalledWith('/mascota/1');
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

@@ -318,6 +318,7 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
     nombre_completo: 'Ana García',
     email: 'ana@example.com',
     whatsapp: '3001234567',
+    departamento: 'Huila',
     ciudad: 'Bogotá',
     direccion: '',
     tags: [],
@@ -327,6 +328,8 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
   beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
+    mockInvalidateQueries.mockClear();
+    mockMutate.mockClear();
 
     vi.doMock('@tanstack/react-query', () => ({
       useQuery: ({ queryKey }) => {
@@ -336,14 +339,15 @@ describe('Flujo completo: AdoptanteProfile invalida cache de matching al guardar
         return { data: null, isLoading: false, isError: false };
       },
       useMutation: ({ mutationFn, onSuccess, onError }) => ({
-        mutate: async (payload) => {
+        mutate: (payload) => {
           mockMutate(payload);
-          try {
-            const result = await mutationFn(payload);
-            onSuccess(result, payload);
-          } catch (err) {
-            onError(err);
-          }
+          mutationFn(payload)
+            .then((result) => {
+              onSuccess(result, payload, undefined);
+            })
+            .catch((err) => {
+              onError(err, payload, undefined);
+            });
         },
         isPending: false,
       }),

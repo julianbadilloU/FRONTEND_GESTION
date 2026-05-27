@@ -105,7 +105,7 @@ describe("UserManagementView", () => {
     expect(screen.getByText("user3@example.com")).toBeDefined();
   });
 
-  it("shows loading spinner when isLoading is true", () => {
+  it("shows loading skeleton when isLoading is true", () => {
     mockUseQuery.mockReturnValue({
       data: [],
       isLoading: true,
@@ -113,9 +113,8 @@ describe("UserManagementView", () => {
     });
 
     const { container } = render(<UserManagementView />);
-    // Loader2 spins via animate-spin class
-    const spinner = container.querySelector(".animate-spin");
-    expect(spinner).not.toBeNull();
+    const skeleton = container.querySelector(".animate-pulse");
+    expect(skeleton).not.toBeNull();
   });
 
   it("shows empty state when no users returned", () => {

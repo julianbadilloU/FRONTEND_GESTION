@@ -78,6 +78,45 @@ const mockMascotas = [
   { id_mascota: 2, nombre: 'Max', especie: 'Gato', foto: null, candidatos_count: 0 },
 ];
 
+const mockMatches = [
+  {
+    id_match: 201,
+    mascota: { id_mascota: 1, nombre: 'Luna', especie: 'Perro', foto: null },
+    adoptante: {
+      id_adoptante: 1,
+      nombre_completo: 'Carlos Pérez',
+      ciudad: 'Bogotá',
+      direccion: 'Calle 10',
+      fecha_registro: '2026-01-01T00:00:00Z',
+      adopciones_previas: [],
+      tags: [],
+    },
+    puntaje: 85,
+    estado: 'contactado',
+    fecha: '2026-05-01T10:00:00Z',
+    veces_contactado: 1,
+    historial_contactos: [{ fecha: '2026-05-01T10:00:00Z', mensaje: 'Contactado vía WhatsApp.' }],
+  },
+  {
+    id_match: 202,
+    mascota: { id_mascota: 1, nombre: 'Luna', especie: 'Perro', foto: null },
+    adoptante: {
+      id_adoptante: 2,
+      nombre_completo: 'Ana Gómez',
+      ciudad: 'Medellín',
+      direccion: 'Carrera 5',
+      fecha_registro: '2026-02-01T00:00:00Z',
+      adopciones_previas: [],
+      tags: [],
+    },
+    puntaje: 65,
+    estado: 'pendiente',
+    fecha: '2026-05-02T10:00:00Z',
+    veces_contactado: 0,
+    historial_contactos: [],
+  },
+];
+
 const mockCandidatos = [
   {
     id_match: 101,
@@ -114,11 +153,11 @@ describe('CandidatosView', () => {
     useQuery = reactQuery.useQuery;
   });
 
-  function setupQuery({ mascotas = mockMascotas, candidatos = mockCandidatos, loadingMascotas = false, loadingCandidatos = false } = {}) {
+  function setupQuery({ matches = mockMatches, candidatos = mockCandidatos, loadingMascotas = false, loadingCandidatos = false } = {}) {
     useQuery.mockImplementation(({ queryKey }) => {
       if (queryKey[0] === 'mis-mascotas-candidatos') {
         return {
-          data: loadingMascotas ? undefined : { data: mascotas },
+          data: loadingMascotas ? undefined : matches,
           isLoading: loadingMascotas,
           error: null,
         };
@@ -178,7 +217,7 @@ describe('CandidatosView', () => {
   });
 
   it('shows empty state when no mascotas registered', async () => {
-    setupQuery({ mascotas: [] });
+    setupQuery({ matches: [] });
 
     const { CandidatosView } = await import(
       '@/features/albergue/components/candidatos/CandidatosView'
