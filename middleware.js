@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
 
+// NOTA: Este middleware decodifica JWT sin verificar firma.
+// La protección real está en el backend (authMiddleware + authorizeRole).
+// Este decode solo se usa para routing UX (redirigir según rol, onboarding pendiente, etc.).
+// NO confiar en este decode para decisiones de seguridad.
+
 const PUBLIC_ROUTES = [
   "/login",
   "/registro",
