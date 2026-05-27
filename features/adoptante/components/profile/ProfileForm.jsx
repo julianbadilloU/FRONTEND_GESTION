@@ -107,6 +107,7 @@ export function ProfileForm({
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(adoptanteProfileSchema),
@@ -120,6 +121,20 @@ export function ProfileForm({
       tags: profile?.tags ?? [],
     },
   });
+
+  // Reset form cuando el profile carga (después del mount inicial)
+  useEffect(() => {
+    if (profile) {
+      reset({
+        nombre_completo: profile.nombre_completo ?? "",
+        whatsapp: profile.whatsapp ?? "",
+        departamento: profile.departamento ?? "",
+        ciudad: profile.ciudad ?? "",
+        direccion: profile.direccion ?? "",
+        tags: profile.tags ?? [],
+      });
+    }
+  }, [profile, reset]);
 
   const tags = watch("tags") ?? [];
   const fotoSrc = fotoPreview || profile?.foto || profile?.foto_url || "/default-avatar.svg";
