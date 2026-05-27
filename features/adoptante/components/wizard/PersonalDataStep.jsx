@@ -17,28 +17,63 @@ export const PersonalDataStep = forwardRef(function PersonalDataStep({ selection
   });
   const [preview, setPreview] = useState(selection?.profilePhoto || null);
   const [touched, setTouched] = useState({});
+  const [showAllErrors, setShowAllErrors] = useState(false);
   const dataRef = useRef(data);
   dataRef.current = data;
   const profilePhotoBase64Ref = useRef(null);
 
-  const handleBlur = (field) => {
-    setTouched(prev => ({ ...prev, [field]: true }));
-  };
-
-  // Expone method to show all errors (called by parent when clicking "Siguiente")
+  // Exponer data y validación al padre
   useImperativeHandle(ref, () => ({
     getData: () => dataRef.current,
     getPreview: () => preview,
     getProfilePhotoBase64: () => profilePhotoBase64Ref.current,
     validateAndShowErrors: () => {
       setShowAllErrors(true);
-      return data.fullName.trim().length > 3 &&
-             data.whatsapp.trim().length >= 10 &&
-             data.departamento.trim().length > 2 &&
-             data.city.trim().length > 2 &&
-             data.direccion.trim().length > 2;
+      return dataRef.current.fullName.trim().length > 3 &&
+             dataRef.current.whatsapp.trim().length >= 10 &&
+             dataRef.current.departamento.trim().length > 2 &&
+             dataRef.current.city.trim().length > 2 &&
+             dataRef.current.direccion.trim().length > 2;
     },
   }));
+
+  // Sincronizar estado local cuando el selection cambia
+  useEffect(() => {
+    if (selection) {
+      setData(prev => ({
+        ...prev,
+        ...selection,
+        direccion: selection.direccion || selection.address || prev.direccion || "",
+      }));
+      if (selection.profilePhoto) {
+        setPreview(selection.profilePhoto);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection]);
+
+  // Validar si el paso puede avanzar
+  useEffect(() => {
+    const isValid = data.fullName.trim().length > 3 && 
+                    data.whatsapp.trim().length >= 10 && 
+                    data.departamento.trim().length > 2 &&
+                    data.city.trim().length > 2 &&
+                    data.direccion.trim().length > 2;
+    onValidation?.(isValid);
+  }, [data, onValidation]);
+
+  // Errores por campo — mostrar si ya interactuó O si se intentó avanzar sin tocar
+  const fieldErrors = {
+    fullName: (touched.fullName || showAllErrors) && data.fullName.trim().length <= 3 ? "Mínimo 4 caracteres" : null,
+    whatsapp: (touched.whatsapp || showAllErrors) && data.whatsapp.trim().length < 10 ? "Ingresa al menos 10 dígitos" : null,
+    departamento: (touched.departamento || showAllErrors) && data.departamento.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+    city: (touched.city || showAllErrors) && data.city.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+    direccion: (touched.direccion || showAllErrors) && data.direccion.trim().length <= 2 ? "Mínimo 3 caracteres" : null,
+  };
+
+  const handleBlur = (field) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files?.[0];
